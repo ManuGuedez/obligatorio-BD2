@@ -1,6 +1,6 @@
-CREATE DATABASE obligatorio_bd2;
+-- CREATE DATABASE obligatorio_bd2;
 
-USE obligatorio_bd2;
+USE XR_Grupo6;
 
 CREATE TABLE Rol_usuario(  -- para poder distiguir por ej. admin, miembro de mesa y ciudadano común
     id INT PRIMARY KEY AUTO_INCREMENT,
