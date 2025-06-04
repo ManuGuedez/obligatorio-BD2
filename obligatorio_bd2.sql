@@ -209,3 +209,5 @@ CREATE TABLE Registro_votacion (
     FOREIGN KEY (nro_circuito) REFERENCES Circuito(nro)
 );
 
+-- este no lo puedo usar con el nuevo coso.
+
