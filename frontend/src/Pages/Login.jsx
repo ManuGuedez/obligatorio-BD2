@@ -24,13 +24,13 @@ function Login() {
     return (
         <div className="login-container">
             <div className="login-wrapper">
-                <h2 className="login-title">Login</h2>
+                <h2 className="login-title">Inicio de Sesión</h2>
                 <form onSubmit={handleSubmit} className="login-form">
                     <div className="input-group">
                         <input
                             className="login-input"
                             type="text"
-                            placeholder="Usuario (cédula)"
+                            placeholder="Ej. 53860518"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required
@@ -40,7 +40,7 @@ function Login() {
                         <input
                             className="login-input"
                             type="password"
-                            placeholder="Clave"
+                            placeholder="Contraseña"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required

@@ -1,5 +1,5 @@
 function HomeMiembroMesa(){
-    return <h1>Página Miembro Mesa</h1>;
+    return <h1>Página Admin</h1>;
 }
 
 export default HomeMiembroMesa;
