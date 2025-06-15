@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./HomeMiembroMesa.css";
 import PersonaModal from "../Components/PersonaModal";
-import ConfirmarCierreModal from "../Components/ConfirmarCierreModal";
+import ConfirmarCierreModal from "../Components/Modals/ConfirmarCierreMesa/ConfirmarCierreModal.jsx";
 
 function MiembroMesa() {
   const [serie, setSerie] = useState("");

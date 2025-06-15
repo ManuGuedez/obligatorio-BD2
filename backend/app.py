@@ -73,7 +73,7 @@ def login():
     access_token = create_access_token(identity=str(resultado[1]['id']), additional_claims={'role_descripcion': resultado[1]['role_description']})
 
     datos_usuario["access_token"] = access_token
-    datos_usuario["role_descripcion"] = resultado[1]['role_description']
+    datos_usuario["role_description"] = resultado[1]['role_description']
     return jsonify(datos_usuario), 200
   
 if __name__ == "__main__":

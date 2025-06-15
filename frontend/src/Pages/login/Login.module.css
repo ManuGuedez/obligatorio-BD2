@@ -2,10 +2,9 @@ body {
     margin: 0;
     font-family: Arial, sans-serif;
     color: #222;
-    background: #f9f9f9;
 }
 
-.login-container {
+.loginContainer {
     height: 100vh;
     width: 100%;
     display: flex;
@@ -13,36 +12,54 @@ body {
     justify-content: center;
     box-sizing: border-box;
     padding: 20px;
+    box-shadow: 5px 10px 10px rgba(0, 0, 0, 0.1);
+    background-color: #e2effc;
 }
 
-.login-wrapper {
-    width: 400px;
-    padding: 30px 25px;
+.loginWrapper {
+    width: 500px;
+    padding: 50px;
     background: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
     text-align: center;
 }
 
-.login-title,
-h2.login-title {
-    font-size: 1.5em;
-    margin-bottom: 30px;
+.showPassword {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: 5px;
+    margin-left: 5px;
+    gap: 5px;
+}
+
+.loginTitle{
+    font-size: 30px;
+    margin-bottom: 0px;
     color: #000;
-    font-weight: normal !important;
+    font-weight: bold;
 }
 
-.login-form {
+.loginForm {
     width: 100%;
+    margin-top: 25px;
 }
 
-.input-group {
+.inputGroup {
     margin-bottom: 20px;
     text-align: left;
 }
 
-.login-input {
+.inputLabel {
+    font-size: 18px;
+    color: #000;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.loginInput {
     width: 100%;
     padding: 14px;
     font-size: 1em;
@@ -54,16 +71,16 @@ h2.login-title {
     font-weight: normal;
 }
 
-.login-input:focus {
+.loginInput:focus {
     border: 1px solid #003366;
 }
 
-.login-input::placeholder {
+.loginInput::placeholder {
     color: #999;
     font-weight: normal;
 }
 
-.login-button {
+.loginButton {
     width: 100%;
     padding: 14px;
     font-size: 1.1em;
@@ -77,52 +94,48 @@ h2.login-title {
     margin-top: 10px;
 }
 
-.login-button:hover {
+.loginButton:hover {
     background: #002244;
 }
 
-.login-button:active {
+.loginButton:active {
     background: #001122;
+}
+
+.logo {
+    width: 90px;
+    height: auto;
+    margin-bottom: 15px;
 }
 
 /* ===== Responsive ===== */
 @media (max-width: 500px) {
-    .login-wrapper {
+    .loginWrapper {
         width: 100%;
         padding: 20px 15px;
         border-radius: 0;
         box-shadow: none;
     }
     
-    .login-title,
-    h2.login-title {
+    .loginTitle,
+    h2.loginTitle {
         font-size: 1.2em;
         margin-bottom: 20px;
-        font-weight: normal !important;
+        /* font-weight: normal !important; */
     }
     
-    .login-button {
+    .loginButton {
         font-size: 1em;
         padding: 12px;
         font-weight: normal !important;
     }
     
-    .login-input {
+    .loginInput {
         padding: 12px;
         font-size: 0.9em;
     }
     
-    .input-group {
+    .inputGroup {
         margin-bottom: 15px;
     }
-}
-
-/* Asegurar que no haya negritas en ningún elemento */
-* {
-    font-weight: normal !important;
-}
-
-/* Excepciones específicas si necesitas mantener algún peso normal */
-.login-container * {
-    font-weight: normal !important;
 }

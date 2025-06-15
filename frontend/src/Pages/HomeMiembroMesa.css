@@ -144,7 +144,4 @@ body {
     }
 }
 
-/* Asegurar que no haya negritas en ningún elemento */
-* {
-    font-weight: normal !important;
-}
+
