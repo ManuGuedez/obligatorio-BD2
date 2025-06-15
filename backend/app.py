@@ -15,6 +15,7 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=30) # esto para que e
 jwt = JWTManager(app)
 
 @app.route('/registrar_usuario', methods=['POST'])
+@jwt_required()
 def registrar_usuario():
     '''
     cuerpo requerido:
@@ -26,6 +27,11 @@ def registrar_usuario():
         - no se pide rol porque solo se pueden registrsr miembros de mesa, el admin ya existe
     '''
     data = request.get_json()
+    claims = get_jwt()
+    role_description = claims.get('role_descripcion')
+    
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
     
     required_fields = ['nombre_usuario', 'password', 'ci', 'nombre', 'apellido']
     
@@ -57,15 +63,18 @@ def login():
     if resultado[0] < 0:
         return resultado[1], 400
     
-    person_data = services.get_person_data(nombre_usuario)
+    datos_usuario = dict()
     
-    usuario = {"ci": person_data['ci'], "nombre_usuario": nombre_usuario, "nombre": person_data['nombre'], "apellido": person_data['apellido']}
-    access_token = create_access_token(identity=str(usuario['ci']), additional_claims={'nombre': usuario['nombre'], 'apellido': usuario['apellido']})
+    if resultado[1]['role_description'] == "miembroMesa":           
+        person_data = services.get_person_data(nombre_usuario)
+        usuario = {"ci": person_data['ci'], "nombre_usuario": nombre_usuario, "nombre": person_data['nombre'], "apellido": person_data['apellido']}
+        datos_usuario["user"] = usuario 
+        
+    access_token = create_access_token(identity=str(resultado[1]['id']), additional_claims={'role_descripcion': resultado[1]['role_description']})
 
-    return jsonify({
-        "access_token": access_token,
-        "user": usuario,
-        "user_data": person_data
-    }), 200
- 
+    datos_usuario["access_token"] = access_token
+    datos_usuario["role_descripcion"] = resultado[1]['role_description']
+    return jsonify(datos_usuario), 200
   
+if __name__ == "__main__":
+    app.run(debug=True)

@@ -30,16 +30,19 @@ def verify_password(stored_hash, stored_salt, provided_password):
 
 # Ejemplo de uso:
 # Suponiendo que tenemos una contraseña que queremos encriptar y guardar:
-password = "password123"
+password = "amamos_base_de_datos2025"
 
 # Encriptar la contraseña y obtener el hash y la sal
 hashed_password, salt = encrypt_password(password)
+
+print("Contraseña encriptada:", hashed_password)
+print("Sal (hex):", salt.hex())
 
 # Estos datos obtenidos son los que deberíamos almacenar en la base de datos
 
 # Ejemplo de verificación de contraseña:
 # Supongamos que queremos verificar una contraseña ingresada por el usuario
-provided_password = "password123"
+provided_password = "amamos_base_de_datos2025"
 
 # Supongamos que tenemos el hashed_password y salt almacenados en la base de datos
 # Aquí es donde recuperaríamos hashed_password y salt de la base de datos
