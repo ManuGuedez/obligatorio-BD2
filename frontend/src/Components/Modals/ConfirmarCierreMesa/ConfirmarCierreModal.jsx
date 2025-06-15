@@ -1,3 +1,6 @@
+import React from 'react';
+import classes from './ConfirmarCierreModal.module.css';
+
 function ConfirmarCierreModal({ onConfirm, onCancel }) {
     return (
         <div className="modal">
