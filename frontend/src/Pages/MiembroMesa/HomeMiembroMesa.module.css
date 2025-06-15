@@ -1,0 +1,167 @@
+.container {
+  display: flex;
+  height: 100vh;
+  background-color: #f9f9fb;
+}
+
+.sidebar {
+  width: 220px;
+  background: #fff;
+  padding: 1rem;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo {
+  width: 60px;
+  margin-bottom: 2rem;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.nav button {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 10px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  color: #1e2a4a;
+}
+
+.active {
+  background-color: #f1f5f9;
+  border-radius: 8px;
+}
+
+.main {
+  flex-grow: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.statusBox {
+  background-color: #f3f3f7;
+  padding: 10px 15px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.contador {
+  background-color: #3b518a;
+  color: white;
+  padding: 1rem;
+  border-radius: 80%;
+  width: 100px;
+  height: 95px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.searchBox {
+  position: relative;
+  margin: 1.5rem 0;
+  max-width: 500px;
+}
+
+.searchBox input {
+  width: 100%;
+  padding: 0.75rem 2.5rem 0.75rem 1rem;
+  border-radius: 20px;
+  border: none;
+  background-color: #f3f3f7;
+  font-size: 1rem;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  color: #6b7280;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 600px;
+}
+
+.votante {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: #f3f3f7;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.userIcon {
+  font-size: 1.5rem;
+  color: #1e2a4a;
+}
+
+.votante p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.votante span {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.tagVoto {
+  margin-left: auto;
+  background: #e0e7ff;
+  color: #1e2a4a;
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+}
+
+.tagObservado {
+  margin-left: auto;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+}
+
+.abrirBtn, .cerrarBtn {
+  margin-top: 2rem;
+  padding: 12px 20px;
+  font-size: 1rem;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  color: white;
+  width: 200px;
+}
+
+.abrirBtn {
+  background-color: #003366;
+}
+
+.cerrarBtn {
+  background-color: #660000;
+}

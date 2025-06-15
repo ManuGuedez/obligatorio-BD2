@@ -1,8 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import Login from "./Pages/Login";
-import HomeMiembroMesa from "./Pages/HomeMiembroMesa";
-import HomeAdministrador from "./Pages/HomeAdministrador";
-import Estadisticas from "./Components/Estadisticas";
+import Login from "./Pages/Login/Login";
+import HomeMiembroMesa from "./Pages/MiembroMesa/HomeMiembroMesa";
+import HomeAdministrador from "./Pages/Administrador/HomeAdministrador";
+import Estadisticas from "./Components/Estadisticas/Estadisticas";
 
 function App() {
     return (
