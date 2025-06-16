@@ -239,3 +239,86 @@ def delete_establishment(id):
         return 1, "Establecimiento eliminado exitosamente"
     else:
         return -1, "No se encontró el establecimiento o no se realizaron cambios"
+    
+def get_circuitos():
+    '''
+    obtiene todos los circuitos
+    '''
+    query = 'SELECT * FROM Circuito'
+    cursor.execute(query)
+    result = cursor.fetchall()
+    if result:
+        return result
+    return None
+
+def get_circuito(id):
+    '''
+    obtiene un circuito por su id
+    '''
+    query = 'SELECT * FROM Circuito WHERE nro = %s'
+    cursor.execute(query, (id,))
+    result = cursor.fetchone()
+
+    if result:
+        return result
+    return None
+
+def create_circuito(data):
+    '''
+    crea un circuito
+    '''
+    try:
+        query = 'INSERT INTO Circuito (nro, es_accesible, id_establecimiento) VALUES (%s, %s, %s)'
+        valores = (data['nro'], data['es_accesible'], data['id_establecimiento'])
+        cursor.execute(query, valores)
+
+        cnx.commit()
+        message = "Circuito creado exitosamente"
+        return 1, message
+
+    except IntegrityError as e:
+        if "Duplicate entry" in str(e):
+            message = f"El Circuito '{data['nombre']}' ya fue ingresado."
+            return -1, message
+        else:
+            # Otro error de integridad
+            return -1, f"Error de integridad: {str(e)}"
+
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"
+    
+def update_circuito(id, data):
+    '''
+    Actualiza un circuito por su id.
+    Solo actualiza los campos presentes en el diccionario data.
+    '''
+    if not data:
+        return -1, "No se proporcionaron datos para actualizar"
+    fields = []
+    values = []
+    for key in ['es_accesible', 'id_establecimiento']:
+        if key in data:
+            fields.append(f"{key} = %s")
+            values.append(data[key])
+    if not fields:
+        return -1, "No se proporcionaron campos válidos para actualizar"
+    query = f"UPDATE Circuito SET {', '.join(fields)} WHERE nro = %s"
+    values.append(id)
+    cursor.execute(query, values)
+    cnx.commit()
+    if cursor.rowcount > 0:
+        return 1, "Circuito actualizado exitosamente"
+    else:
+        return -1, "No se encontró el circuito o no se realizaron cambios"
+    
+def delete_circuito(id):
+    '''
+    elimina un circuito por su id
+    '''
+    query = 'DELETE FROM Circuito WHERE nro = %s'
+    cursor.execute(query, (id,))
+    cnx.commit()
+    if cursor.rowcount > 0:
+        return 1, "Circuito eliminado exitosamente"
+    else:
+        return -1, "No se encontró el circuito o no se realizaron cambios"

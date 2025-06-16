@@ -184,6 +184,112 @@ def delete_establishment(id):
         return result[1], 400
     else:
         return jsonify({"message": "Establecimiento eliminado exitosamente"}), 200
+    
+@app.route('/circuitos', methods=['GET'])
+@jwt_required()
+def get_circuitos():
+    '''
+    obtiene todos los circuitos
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_descripcion')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    result = services.get_circuitos()
+
+    return jsonify(result), 200 if result else ({"error": "No se encontraron circuitos"}, 404)
+
+@app.route('/circuitos/<int:id>', methods=['GET'])
+@jwt_required()
+def get_circuito(id):
+    '''
+    obtiene un circuito por su id
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_descripcion')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    result = services.get_circuito(id)
+
+    if result:
+        return jsonify(result), 200
+    else:
+        return jsonify({"error": "Circuito no encontrado"}), 404
+    
+@app.route('/circuitos', methods=['POST'])
+@jwt_required()
+def crear_circuito():
+    '''
+    cuerpo requerido:
+        - nro
+        - es_accesible
+        - id_establecimiento
+    '''
+    data = request.get_json()
+    claims = get_jwt()
+    role_description = claims.get('role_descripcion')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    required_fields = ['nro', 'es_accesible', 'id_establecimiento']
+
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"error": f"{field} es requerido"}), 400
+
+    result = services.create_circuito(data)
+
+    return result[1], 400 if result[0] < 0 else 200
+
+@app.route('/circuitos/<int:id>', methods=['PATCH'])
+@jwt_required()
+def update_circuito(id):
+    '''
+    cuerpo requerido (al menos uno):
+        - es_accesible
+        - id_establecimiento
+    '''
+    data = request.get_json()
+    claims = get_jwt()
+    role_description = claims.get('role_descripcion')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    allowed_fields = ['es_accesible', 'id_establecimiento']
+    if not any(field in data for field in allowed_fields):
+        return jsonify({"error": "Debe proporcionar al menos un campo para actualizar"}), 400
+
+    # Filtra solo los campos permitidos
+    update_data = {field: data[field] for field in allowed_fields if field in data}
+
+    result = services.update_circuito(id, update_data)
+
+    return result[1], 400 if result[0] < 0 else 200
+
+@app.route('/circuitos/<int:id>', methods=['DELETE'])
+@jwt_required()
+def delete_circuito(id):
+    '''
+    elimina un circuito por su id
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_descripcion')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    result = services.delete_circuito(id)
+
+    if result[0] < 0:
+        return result[1], 400
+    else:
+        return jsonify({"message": "Circuito eliminado exitosamente"}), 200
 
 if __name__ == "__main__":
     app.run(debug=True)
