@@ -79,7 +79,6 @@ def register_user(data, role_name='miembroMesa'):
     except Exception as e:
         return -1, f"Error inesperado: {str(e)}"
 
-
 def get_role(id):
     '''
     obtiene el rol dado su id
@@ -116,7 +115,7 @@ def login_user(nombre_usuario, password):
         user_details = {"user_name": nombre_usuario, "role_description": current_role ,"id": result['id']}
         return 1, user_details
     return -1, "Hubo un error al iniciar sesión, ingrese nuevamente las credenciales" 
-    
+
 def get_person_data(nombre_usuario):
     '''
     obtiene los datos de la persona dado su nombre de usuario
@@ -134,3 +133,109 @@ def get_person_data(nombre_usuario):
     if result:
         return result
     return None
+
+def verify_establishment(nombre, direccion, id_zona):
+    '''
+    verifica si el establecimiento ya existe en la base de datos
+    es necesario porque al tener el id autoincremental, no se puede verificar por id
+    retorna True si existe, False si no
+    '''
+    query = 'SELECT 1 FROM Establecimiento WHERE (nombre = %s OR direccion = %s) AND id_zona = %s'
+    cursor.execute(query, (nombre, direccion, id_zona))
+    result = cursor.fetchone()
+    
+    if result:
+        return True
+    return False
+
+def create_establishment(data):
+    if verify_establishment(data['nombre'], data['direccion'], data['id_zona']):
+        message = f"El establecimiento {data['nombre']}, {data['direccion']}, {data['id_zona']} ya está registrado en la base de datos."
+        return -1, message
+
+    try:
+        query = 'INSERT INTO Establecimiento (nombre, tipo, direccion, id_zona) VALUES (%s, %s, %s, %s)'
+        valores = (
+            data['nombre'],
+            data['tipo'],
+            data['direccion'],
+            data['id_zona']
+        )
+        cursor.execute(query, valores)
+
+        cnx.commit()
+        message = "Establecimiento registrado exitosamente"
+        return 1, message
+
+    except IntegrityError as e:
+        if "Duplicate entry" in str(e):
+            message = f"El Establecimiento '{data['nombre']}' ya fue ingresado."
+            return -1, message
+        else:
+            # Otro error de integridad
+            return -1, f"Error de integridad: {str(e)}"
+
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"
+    
+def get_establishments():
+    '''
+    obtiene todos los establecimientos
+    '''
+    query = 'SELECT * FROM Establecimiento'
+    cursor.execute(query)
+    result = cursor.fetchall()
+
+    if result:
+        return result
+    return None
+
+def get_establishment(id):
+    '''
+    obtiene un establecimiento por su id
+    '''
+    query = 'SELECT * FROM Establecimiento WHERE id = %s'
+    cursor.execute(query, (id,))
+    result = cursor.fetchone()
+
+    if result:
+        return result
+    return None
+
+def update_establishment(id, data):
+    '''
+    Actualiza un establecimiento por su id.
+    Solo actualiza los campos presentes en el diccionario data.
+    '''
+    if not data:
+        return -1, "No se proporcionaron datos para actualizar"
+
+    fields = []
+    values = []
+    for key in ['nombre', 'tipo', 'direccion', 'id_zona']:
+        if key in data:
+            fields.append(f"{key} = %s")
+            values.append(data[key])
+    if not fields:
+        return -1, "No se proporcionaron campos válidos para actualizar"
+
+    query = f"UPDATE Establecimiento SET {', '.join(fields)} WHERE id = %s"
+    values.append(id)
+    cursor.execute(query, values)
+    cnx.commit()
+    if cursor.rowcount > 0:
+        return 1, "Establecimiento actualizado exitosamente"
+    else:
+        return -1, "No se encontró el establecimiento o no se realizaron cambios"
+
+def delete_establishment(id):
+    '''
+    elimina un establecimiento por su id
+    '''
+    query = 'DELETE FROM Establecimiento WHERE id = %s'
+    cursor.execute(query, (id,))
+    cnx.commit()
+    if cursor.rowcount > 0:
+        return 1, "Establecimiento eliminado exitosamente"
+    else:
+        return -1, "No se encontró el establecimiento o no se realizaron cambios"
