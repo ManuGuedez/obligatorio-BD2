@@ -487,3 +487,61 @@ def delete_policia(id):
         return 1, "Policía eliminado exitosamente"
     else:
         return -1, "No se encontró el policía o no se realizaron cambios"
+
+def get_candidatos():
+    '''
+    obtiene todos los candidatos
+    '''
+    query = 'SELECT * FROM Candidato'
+    cursor.execute(query)
+    result = cursor.fetchall()
+    if result:
+        return result
+    return None
+
+def get_candidato(id):
+    '''
+    obtiene un candidato por su id
+    '''
+    query = 'SELECT * FROM Candidato WHERE id = %s'
+    cursor.execute(query, (id,))
+    result = cursor.fetchone()
+    if result:
+        return result
+    return None
+
+def create_candidato(data):
+    '''
+    crea un candidato
+    '''
+    try:
+        query = 'INSERT INTO Candidato (ci_ciudadano) VALUES (%s)'
+        valores = (data['ci_ciudadano'],)
+        cursor.execute(query, valores)
+
+        cnx.commit()
+        message = "Candidato creado exitosamente"
+        return 1, message
+
+    except IntegrityError as e:
+        if "Duplicate entry" in str(e):
+            message = f"El Candidato '{data['ci_ciudadano']}' ya fue ingresado."
+            return -1, message
+        else:
+            # Otro error de integridad
+            return -1, f"Error de integridad: {str(e)}"
+
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"
+
+def delete_candidato(id):
+    '''
+    elimina un candidato por su id
+    '''
+    query = 'DELETE FROM Candidato WHERE id = %s'
+    cursor.execute(query, (id,))
+    cnx.commit()
+    if cursor.rowcount > 0:
+        return 1, "Candidato eliminado exitosamente"
+    else:
+        return -1, "No se encontró el candidato o no se realizaron cambios"

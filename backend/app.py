@@ -503,5 +503,83 @@ def delete_policia(id):
     else:
         return jsonify({"message": "Policia eliminado exitosamente"}), 200
 
+@app.route('/candidatos', methods=['GET'])
+@jwt_required()
+def get_candidatos():
+    '''
+    obtiene todos los candidatos
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_descripcion')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    result = services.get_candidatos()
+
+    return jsonify(result), 200 if result else ({"error": "No se encontraron candidatos"}, 404)
+
+@app.route('/candidatos/<int:id>', methods=['GET'])
+@jwt_required()
+def get_candidato(id):
+    '''
+    obtiene un candidato por su id
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_descripcion')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    result = services.get_candidato(id)
+
+    if result:
+        return jsonify(result), 200
+    else:
+        return jsonify({"error": "Candidato no encontrado"}), 404
+
+@app.route('/candidatos', methods=['POST'])
+@jwt_required()
+def crear_candidato():
+    '''
+    cuerpo requerido:
+        - ci_ciudadano
+    '''
+    data = request.get_json()
+    claims = get_jwt()
+    role_description = claims.get('role_descripcion')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    required_fields = ['ci_ciudadano']
+
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"error": f"{field} es requerido"}), 400
+
+    result = services.create_candidato(data)
+
+    return result[1], 400 if result[0] < 0 else 200
+
+@app.route('/candidatos/<int:id>', methods=['DELETE'])
+@jwt_required()
+def delete_candidato(id):
+    '''
+    elimina un candidato por su id
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_descripcion')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    result = services.delete_candidato(id)
+
+    if result[0] < 0:
+        return result[1], 400
+    else:
+        return jsonify({"message": "Candidato eliminado exitosamente"}), 200
+
 if __name__ == "__main__":
     app.run(debug=True)
