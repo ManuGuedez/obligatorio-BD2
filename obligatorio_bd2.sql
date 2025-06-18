@@ -210,4 +210,6 @@ CREATE TABLE Registro_votacion (
 );
 
 -- este no lo puedo usar con el nuevo coso.
+ALTER TABLE Usuario ADD COLUMN salt VARCHAR(128);
+ALTER TABLE Usuario MODIFY COLUMN contraseña VARCHAR(128);
 

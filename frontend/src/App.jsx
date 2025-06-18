@@ -1,8 +1,11 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import Login from "./Pages/Login/Login";
+import Login from "./Pages/login/Login";
 import HomeMiembroMesa from "./Pages/MiembroMesa/HomeMiembroMesa";
 import HomeAdministrador from "./Pages/Administrador/HomeAdministrador";
 import Estadisticas from "./Components/Estadisticas/Estadisticas";
+
+
+export const url = "http://localhost:5000";
 
 function App() {
     return (
