@@ -63,7 +63,7 @@ function Login() {
         if (user.data.role_description === "admin") {
             console.log("Redirigiendo a HomeAdministrador");
           navigate("/HomeAdministrador");
-        } else if (user.data.role_description === "mimbroMesa") {
+        } else if (user.data.role_description === "miembroMesa") {
           navigate("/HomeMiembroMesa");
         } else {
           setErrorMsg("Rol no válido. Contacta al administrador.");
