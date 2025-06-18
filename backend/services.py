@@ -91,7 +91,6 @@ def get_role(id):
     if result:
         return result['descripcion_rol']
     return None
-    
 
 def login_user(nombre_usuario, password):
     '''
@@ -322,3 +321,169 @@ def delete_circuito(id):
         return 1, "Circuito eliminado exitosamente"
     else:
         return -1, "No se encontró el circuito o no se realizaron cambios"
+
+def get_comisarias():
+    '''
+    obtiene todas las comisarías
+    '''
+    query = 'SELECT * FROM Comisaria'
+    cursor.execute(query)
+    result = cursor.fetchall()
+    if result:
+        return result
+    return None
+
+def get_comisaria(id):
+    '''
+    obtiene una comisaría por su id
+    '''
+    query = 'SELECT * FROM Comisaria WHERE id = %s'
+    cursor.execute(query, (id,))
+    result = cursor.fetchone()
+
+    if result:
+        return result
+    return None
+
+def create_comisaria(data):
+    '''
+    crea una comisaría
+    '''
+    try:
+        query = 'INSERT INTO Comisaria (calle, numero, codigo_postal) VALUES (%s, %s, %s)'
+        valores = (data['calle'], data['numero'], data['codigo_postal'])
+        cursor.execute(query, valores)
+
+        cnx.commit()
+        message = "Comisaría creada exitosamente"
+        return 1, message
+
+    except IntegrityError as e:
+        if "Duplicate entry" in str(e):
+            message = f"La Comisaría '{data['']}' ya fue ingresada."
+            return -1, message
+        else:
+            # Otro error de integridad
+            return -1, f"Error de integridad: {str(e)}"
+
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"
+
+def update_comisaria(id, data):
+    '''
+    Actualiza una comisaría por su id.
+    Solo actualiza los campos presentes en el diccionario data.
+    '''
+    if not data:
+        return -1, "No se proporcionaron datos para actualizar"
+    fields = []
+    values = []
+    for key in ['calle', 'numero', 'codigo_postal']:
+        if key in data:
+            fields.append(f"{key} = %s")
+            values.append(data[key])
+    if not fields:
+        return -1, "No se proporcionaron campos válidos para actualizar"
+    query = f"UPDATE Comisaria SET {', '.join(fields)} WHERE id = %s"
+    values.append(id)
+    cursor.execute(query, values)
+    cnx.commit()
+    if cursor.rowcount > 0:
+        return 1, "Comisaría actualizada exitosamente"
+    else:
+        return -1, "No se encontró la comisaría o no se realizaron cambios"
+
+def delete_comisaria(id):
+    '''
+    elimina una comisaría por su id
+    '''
+    query = 'DELETE FROM Comisaria WHERE id = %s'
+    cursor.execute(query, (id,))
+    cnx.commit()
+    if cursor.rowcount > 0:
+        return 1, "Comisaría eliminada exitosamente"
+    else:
+        return -1, "No se encontró la comisaría o no se realizaron cambios"
+
+def get_policias():
+    '''
+    obtiene todos los policías
+    '''
+    query = 'SELECT * FROM Policia'
+    cursor.execute(query)
+    result = cursor.fetchall()
+    if result:
+        return result
+    return None
+
+def get_policia(id):
+    '''
+    obtiene un policía por su id
+    '''
+    query = 'SELECT * FROM Policia WHERE id_policia = %s'
+    cursor.execute(query, (id,))
+    result = cursor.fetchone()
+
+    if result:
+        return result
+    return None
+
+def create_policia(data):
+    '''
+    crea un policía
+    '''
+    try:
+        query = 'INSERT INTO Policia (id_comisaria, ci_ciudadano, id_establecimiento) VALUES (%s, %s, %s)'
+        valores = (data['id_comisaria'], data['ci_ciudadano'], data['id_establecimiento'])
+        cursor.execute(query, valores)
+
+        cnx.commit()
+        message = "Policía creado exitosamente"
+        return 1, message
+
+    except IntegrityError as e:
+        if "Duplicate entry" in str(e):
+            message = f"El Policía '{data['ci_ciudadano']}' ya fue ingresado."
+            return -1, message
+        else:
+            # Otro error de integridad
+            return -1, f"Error de integridad: {str(e)}"
+
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"
+
+def update_policia(id, data):
+    '''
+    Actualiza un policía por su id.
+    Solo actualiza los campos presentes en el diccionario data.
+    '''
+    if not data:
+        return -1, "No se proporcionaron datos para actualizar"
+    fields = []
+    values = []
+    for key in ['id_comisaria', 'id_establecimiento']:
+        if key in data:
+            fields.append(f"{key} = %s")
+            values.append(data[key])
+    if not fields:
+        return -1, "No se proporcionaron campos válidos para actualizar"
+    query = f"UPDATE Policia SET {', '.join(fields)} WHERE id_policia = %s"
+    values.append(id)
+    cursor.execute(query, values)
+    cnx.commit()
+    if cursor.rowcount > 0:
+        return 1, "Policía actualizado exitosamente"
+    else:
+        return -1, "No se encontró el policía o no se realizaron cambios"
+
+def delete_policia(id):
+    '''
+    elimina un policía por su id
+    '''
+    query = 'DELETE FROM Policia WHERE id_policia = %s'
+    cursor.execute(query, (id,))
+    cnx.commit()
+    if cursor.rowcount > 0:
+        return 1, "Policía eliminado exitosamente"
+    else:
+        return -1, "No se encontró el policía o no se realizaron cambios"
