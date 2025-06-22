@@ -20,7 +20,7 @@ function Header({ selected, setSelected }) {
             />
             <div className="header-buttonContainer">
                 <button
-                    className={`button is-rounded is-large px-6 ${
+                    className={`button is-rounded is-large px-6 has-text-link has-text-weight-semibold ${
                         selected === "datos" ? "is-info" : "is-success"
                     }`}
                     onClick={() => handleClick("datos")}
@@ -28,7 +28,7 @@ function Header({ selected, setSelected }) {
                     Gestión de datos
                 </button>
                 <button
-                    className={`button is-rounded is-large px-6 ${
+                    className={`button is-rounded is-large px-6 has-text-link has-text-weight-semibold ${
                         selected === "eleccion" ? "is-info" : "is-success"
                     }`}
                     onClick={() => handleClick("eleccion")}

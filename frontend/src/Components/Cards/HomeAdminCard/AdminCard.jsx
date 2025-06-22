@@ -1,19 +1,16 @@
-import { useState } from 'react';
-import './AdminCard.css';
+import "./AdminCard.css";
 
-function AdminCard({ title, onClick, selected }) {
-    const [isHovered, setIsHovered] = useState(false);
-
+function AdminCard({ title, buttons }) {
     return (
-        <div
-            className={`admin-card ${selected ? 'selected' : ''}`}
-            onClick={onClick}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-        >
-            <p className="title">{title}</p>
-            {isHovered && <div className="hover-overlay">Click to select</div>}
+        <div className="card-panel">
+            <p className="title is-4 mt-1 has-text-link card-title">{title}</p>
+            {buttons.map(({ label, onClick }, index) => (
+                <button key={index} className="card-button" onClick={onClick}>
+                    {label}
+                </button>
+            ))}
         </div>
     );
 }
+
 export default AdminCard;
