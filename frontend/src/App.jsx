@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./Pages/login/Login";
 import HomeMiembroMesa from "./Pages/HomeMiembroMesa";
-import HomeAdministrador from "./Pages/HomeAdministrador";
+import HomeAdministrador from "./Pages/admin/HomeAdministrador";
 import Estadisticas from "./Components/Estadisticas";
 
 export const url = "http://localhost:5000";
@@ -12,7 +12,7 @@ function App() {
             <Route path="/" element={<Navigate to="/Login" />} />
             <Route path="/Login" element={<Login />} />
             <Route path="/HomeMiembroMesa" element={<HomeMiembroMesa />} />
-            <Route path="/HomeAdministrador" element={<HomeAdministrador />} />
+            <Route path="/HomeAdministrador/*" element={<HomeAdministrador />} />
             <Route path="/Estadisticas" element={<Estadisticas />} />
         </Routes>
     )

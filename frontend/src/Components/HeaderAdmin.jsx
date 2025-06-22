@@ -1,36 +1,29 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./HomeAdministrador.css";
+import {useState, useEffect} from "react";
+import "./HeaderAdmin.css";
 
-function HomeAdministrador() {
+function Header({ selected, setSelected }) {
     const navigate = useNavigate();
-    const [selected, setSelected] = useState('datos');
 
-    const goDatos = () => {
-        setSelected('datos');
-        navigate("/HomeAdministrador/Datos");
-    };
-
-    const goEleccion = () => {
-        setSelected('eleccion');
-        navigate("/HomeAdministrador/Eleccion");
+    const handleClick = (value) => {
+        setSelected(value);
+        navigate(`/HomeAdministrador/${value === "datos" ? "Datos" : "Eleccion"}`);
     };
 
     return (
-    <div className="home-admin">
         <div className="header">
             <img
-            src="../../../public/Escudo20Uruguay_19.png"
-            alt="Logo"
-            className="logo"
-            draggable="false"
+                src="../../../public/Escudo20Uruguay_19.png"
+                alt="Logo"
+                className="logo"
+                draggable="false"
             />
             <div className="header-buttonContainer">
                 <button
                     className={`button is-rounded is-large px-6 ${
                         selected === "datos" ? "is-info" : "is-success"
                     }`}
-                    onClick={goDatos}
+                    onClick={() => handleClick("datos")}
                 >
                     Gestión de datos
                 </button>
@@ -38,14 +31,13 @@ function HomeAdministrador() {
                     className={`button is-rounded is-large px-6 ${
                         selected === "eleccion" ? "is-info" : "is-success"
                     }`}
-                    onClick={goEleccion}
+                    onClick={() => handleClick("eleccion")}
                 >
                     Elección
                 </button>
             </div>
         </div>
-    </div>
     );
 }
 
-export default HomeAdministrador;
+export default Header;
