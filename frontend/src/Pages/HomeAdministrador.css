@@ -1,0 +1,35 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #ffffff;
+    display: flex;
+}
+
+.header {
+    background-color: #9CB9EB;
+    width: 100vw;
+    padding: 20px;
+    align-items: center;
+    display: flex;
+}
+
+.logo {
+    width: 60px;
+    height: auto;
+}
+
+.header-buttonContainer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-grow: 1;
+    gap: 10px;
+}
+
+.content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    padding: 30px;  
+}

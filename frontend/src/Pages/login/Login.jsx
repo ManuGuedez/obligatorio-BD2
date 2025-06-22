@@ -89,7 +89,7 @@ function Login() {
         </div>
         <h2 className={classes.loginTitle}>Inicio de Sesión</h2>
         <p>
-          Inicia sesión tu usuario de la <b>corte electoral</b>.
+          Inicia sesión con tu usuario de la <b>corte electoral</b>.
         </p>
 
         <form onSubmit={handleSubmit} className={classes.loginForm}>

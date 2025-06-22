@@ -13,11 +13,9 @@ function App() {
             <Route path="/Login" element={<Login />} />
             <Route path="/HomeMiembroMesa" element={<HomeMiembroMesa />} />
             <Route path="/HomeAdministrador" element={<HomeAdministrador />} />
-           <Route path="/Estadisticas" element={<Estadisticas />} />
+            <Route path="/Estadisticas" element={<Estadisticas />} />
         </Routes>
     )
 }
 
 export default App;
-
-            
