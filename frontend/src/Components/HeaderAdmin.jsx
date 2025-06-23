@@ -1,9 +1,19 @@
-import { useNavigate } from "react-router-dom";
+import React from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {useState, useEffect} from "react";
 import "./HeaderAdmin.css";
 
 function Header({ selected, setSelected }) {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.pathname.includes("Eleccion")) {
+            setSelected("eleccion");
+        } else if (location.pathname.includes("Datos")) {
+            setSelected("datos");
+        }
+    }, [location.pathname, setSelected]);
 
     const handleClick = (value) => {
         setSelected(value);

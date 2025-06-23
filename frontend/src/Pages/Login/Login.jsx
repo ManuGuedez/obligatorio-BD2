@@ -63,7 +63,7 @@ function Login() {
         // Redirigir según el rol
         if (user.data.role_description === "admin") {
             console.log("Redirigiendo a HomeAdministrador");
-          navigate("/HomeAdministrador");
+          navigate("/HomeAdministrador/Datos");
         } else if (user.data.role_description === "miembroMesa") {
           navigate("/HomeMiembroMesa");
         } else {

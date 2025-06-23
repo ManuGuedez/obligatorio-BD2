@@ -1,3 +1,4 @@
+import React from "react";
 import "./AdminCard.css";
 
 function AdminCard({ title, buttons }) {
