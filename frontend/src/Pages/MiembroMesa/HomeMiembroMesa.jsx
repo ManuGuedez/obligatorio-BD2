@@ -6,7 +6,7 @@ import PersonaModal from "../../Components/Modals/Informacion/PersonaModal";
 import ConfirmarCierreModal from "../../Components/Modals/ConfirmarCierreMesa/ConfirmarCierreModal";
 import EsperandoVoto from "./EsperandoVoto";
 import { FaUser, FaSearch } from "react-icons/fa";
-import escudo from "../../Img/escudo.png";
+import escudo from "../../../public/Escudo20Uruguay_19.png"
 
 
 function HomeMiembroMesa() {
@@ -83,7 +83,6 @@ function HomeMiembroMesa() {
           <button onClick={() => navigate("/configuracion")}>
             Configuración
           </button>
-          <button>Ayuda</button>
         </nav>
       </aside>
 

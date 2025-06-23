@@ -1,3 +1,4 @@
+import React from "react";
 import classes from "./PersonaModal.module.css";
 
 function PersonaModal({ persona, onClose, onVotar }) {
