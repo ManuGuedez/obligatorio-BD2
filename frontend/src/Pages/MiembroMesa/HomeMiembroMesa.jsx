@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import classes from "./HomeMiembroMesa.module.css";
@@ -7,8 +8,11 @@ import EsperandoVoto from "./EsperandoVoto";
 import { FaUser, FaSearch } from "react-icons/fa";
 import escudo from "../../Img/escudo.png";
 
+
 function HomeMiembroMesa() {
-  const [circuitoAbierto, setCircuitoAbierto] = useState(false);
+  const [circuitoAbierto, setCircuitoAbierto] = useState(() => {
+    return localStorage.getItem("circuitoAbierto") === "true";
+  });
   const [tiempoRestante, setTiempoRestante] = useState(10 * 60 * 60); // 10 horas en segundos
   const [votantes, setVotantes] = useState([
     { nombre: "Juan Pérez", ci: "AAAXXXX", voto: false },
@@ -24,7 +28,6 @@ function HomeMiembroMesa() {
 
   const handleAbrirCircuito = () => {
     setCircuitoAbierto(true);
-    alert("Circuito abierto");
   };
 
   const handleSeleccionarPersona = (v) => {
@@ -44,7 +47,6 @@ function HomeMiembroMesa() {
     );
     setVotantes(actualizados);
     setPersona({ ...persona, voto: true });
-    alert("Voto registrado");
   };
 
   const formatoTiempo = (segundos) => {
@@ -67,14 +69,20 @@ function HomeMiembroMesa() {
     v.ci.toLowerCase().includes(search.toLowerCase())
   );
 
+  useEffect(() => {
+    localStorage.setItem("circuitoAbierto", circuitoAbierto);
+  }, [circuitoAbierto]);
+
+
   return (
     <div className={classes.container}>
       <aside className={classes.sidebar}>
         <img src={escudo} alt="logo" className={classes.logo} />
         <nav className={classes.nav}>
           <button className={classes.active}>Mi circuito</button>
-          <button>Resumen</button>
-          <button>Configuración</button>
+          <button onClick={() => navigate("/configuracion")}>
+            Configuración
+          </button>
           <button>Ayuda</button>
         </nav>
       </aside>
@@ -191,6 +199,10 @@ function HomeMiembroMesa() {
               setEsperandoVoto(false);
               setPersona(null);
             }}
+            onClose={() => {
+              setEsperandoVoto(false);
+              setPersona(null);
+            }}
           />
         )}
 
@@ -198,6 +210,7 @@ function HomeMiembroMesa() {
           <ConfirmarCierreModal
             onConfirm={handleConfirm}
             onCancel={() => setIsConfirmOpen(false)}
+            onClose={() => setIsConfirmOpen(false)}
           />
         )}
       </main>

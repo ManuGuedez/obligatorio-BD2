@@ -1,15 +1,29 @@
 version: '3.8'
 
 services:
-  db:
-    image: mysql:5.7
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    volumes:
-      - mysql_data:/var/lib/mysql
+  backend:
+    build: ./backend
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      FLASK_ENV: development
+      DB_HOST: mysql.reto-ucu.net
+      DB_PORT: 50006
+      DB_USER: xr_g6_admin
+      DB_PASSWORD: Bd2025!
+      DB_NAME: XR_Grupo6
+      FLASK_APP: app.py
     ports:
-      - 3306:3306
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
 
-volumes:
-  mysql_data:
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    stdin_open: true
+    tty: true
