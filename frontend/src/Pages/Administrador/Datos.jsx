@@ -1,13 +1,13 @@
 import React from "react";
-import "./AdminContent.css";
+import classes from "./AdminContent.module.css";
 import AdminCard from "../../Components/Cards/HomeAdminCard/AdminCard";
 
 
 function Datos() {
     return (
-        <div className="page-container">
+        <div className={classes.pageContainer}>
             <p className="title h1 has-text-link ">Gestión de Datos</p>
-            <div className="page-content">
+            <div className={classes.pageContent}>
                 <AdminCard
                     title="Ciudadano"
                     buttons={[

@@ -1,4 +1,4 @@
-.card-panel {
+.cardPanel {
     background-color: #a5bff1;
     border-radius: 20px;
     padding: 20px;
@@ -9,11 +9,11 @@
     align-items: center;
 }
 
-.card-title {
+.cardTitle {
     margin-bottom: 15px;
 }
 
-.card-button {
+.cardButton {
     background-color: #cdddf5;
     border: none;
     border-radius: 20px;
@@ -26,6 +26,6 @@
     transition: background 0.2s ease;
 }
 
-.card-button:hover {
+.cardButton:hover {
     background-color: #b9d0f5;
 }

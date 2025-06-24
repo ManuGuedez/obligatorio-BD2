@@ -1,4 +1,4 @@
-.page-container {
+.pageContainer {
     display: flex;
     width: 100vw;
     flex-direction: column;
@@ -6,7 +6,7 @@
     padding: 20px;
 }
 
-.page-content {
+.pageContent {
     width: 100vw;
     height: 100%;
     display: flex;

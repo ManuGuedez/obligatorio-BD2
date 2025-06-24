@@ -11,7 +11,7 @@
     height: auto;
 }
 
-.header-buttonContainer {
+.headerButtonContainer {
     display: flex;
     align-items: center;
     justify-content: flex-end;

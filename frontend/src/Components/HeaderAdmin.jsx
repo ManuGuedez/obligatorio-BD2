@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {useState, useEffect} from "react";
-import "./HeaderAdmin.css";
+import classes from "./HeaderAdmin.module.css";
 
 function Header({ selected, setSelected }) {
     const navigate = useNavigate();
@@ -21,14 +21,14 @@ function Header({ selected, setSelected }) {
     };
 
     return (
-        <div className="header">
+        <div className={classes.header}>
             <img
                 src="../../../public/Escudo20Uruguay_19.png"
                 alt="Logo"
-                className="logo"
+                className={classes.logo}
                 draggable="false"
             />
-            <div className="header-buttonContainer">
+            <div className={classes.headerButtonContainer}>
                 <button
                     className={`button is-rounded is-large px-6 has-text-link has-text-weight-semibold ${
                         selected === "datos" ? "is-info" : "is-success"
