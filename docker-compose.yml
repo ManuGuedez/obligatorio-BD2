@@ -12,7 +12,7 @@ services:
       DB_NAME: XR_Grupo6
       FLASK_APP: app.py
     ports:
-      - "5000:5000"
+      - "5001:5000"
     volumes:
       - ./backend:/app
 
