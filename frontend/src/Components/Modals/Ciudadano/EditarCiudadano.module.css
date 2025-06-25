@@ -1,0 +1,123 @@
+/* EditarCiudadano.module.css */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background-color: #a2c0f0;
+  padding: 2rem;
+  border-radius: 20px;
+  width: 500px;
+  position: relative;
+}
+
+.title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #34495e;
+  margin-bottom: 1rem;
+}
+
+.label {
+  margin-top: 1rem;
+  font-weight: 600;
+  color: #34495e;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+.ciRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.credencialRow {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.input {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 20px;
+  background-color: white;
+  outline: none;
+}
+
+.iconButton {
+  background-color: white;
+  border: none;
+  border-radius: 50%;
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.editIcon {
+  color: #666;
+}
+
+.deleteButton {
+  margin-top: 1.5rem;
+  background-color: #3949ab;
+  color: gold;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  align-self: flex-end;
+  cursor: pointer;
+}
+
+.closeButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  color: #2c3e50;
+}
+
+.actionRow {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+}
+
+.deleteButton {
+  background-color: #3949ab;
+  color: gold;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
