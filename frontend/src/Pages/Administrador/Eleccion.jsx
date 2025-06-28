@@ -1,12 +1,12 @@
 import React from 'react';
-import './AdminContent.css'; // Asegúrate de tener un archivo CSS para estilos específicos
+import classes from './AdminContent.module.css'; 
 import AdminCard from '../../Components/Cards/HomeAdminCard/AdminCard';
 
 function Eleccion() {
     return (
-        <div className="page-container">
+        <div className={classes.pageContainer}>
             <p className="title h1 has-text-link ">Elección</p>
-            <div className="page-content">
+            <div className={classes.pageContent}>
                 <AdminCard
                     title="una card :)"
                     buttons={[

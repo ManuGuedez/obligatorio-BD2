@@ -1,12 +1,12 @@
 import React from "react";
-import "./AdminCard.css";
+import classes from "./AdminCard.module.css";
 
 function AdminCard({ title, buttons }) {
     return (
-        <div className="card-panel">
-            <p className="title is-4 mt-1 has-text-link card-title">{title}</p>
+        <div className={`${classes.cardPanel}`}>
+            <p className={`title is-4 mt-1 has-text-link ${classes.cardTitle}`}>{title}</p>
             {buttons.map(({ label, onClick }, index) => (
-                <button key={index} className="card-button" onClick={onClick}>
+                <button key={index} className={classes.cardButton} onClick={onClick}>
                     {label}
                 </button>
             ))}
