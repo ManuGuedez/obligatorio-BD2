@@ -58,7 +58,7 @@ function NuevosPartidos({ onClose }) {
       onClick={handleOverlayClick}
     >
       <div className={styles.modalContent}>
-        <button className={styles.closeButton} onClick={onClose}>X</button>
+        <button className={`${styles.closeButton} delete has-background-link`} onClick={onClose}/>
         <h2 className={styles.title}>Adjuntar archivo</h2>
 
         <div

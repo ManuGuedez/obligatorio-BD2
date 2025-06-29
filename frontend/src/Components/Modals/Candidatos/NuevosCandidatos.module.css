@@ -26,7 +26,7 @@
 .title {
   font-size: 1.2rem;
   font-weight: 600;
-  color: #34495e;
+  color: #495E92;
   margin-bottom: 1.5rem;
 }
 
@@ -54,8 +54,8 @@
 
 .submitButton {
   align-self: flex-end;
-  background-color: #3949ab;
-  color: gold;
+  background-color: #495E92;
+  color: #E8C06C;
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 30px;

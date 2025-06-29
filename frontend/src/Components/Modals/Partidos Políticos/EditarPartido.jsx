@@ -203,9 +203,7 @@ function EditarPartido({ onClose }) {
           )}
         </form>
 
-        <button className={styles.closeButton} onClick={onClose}>
-          X
-        </button>
+        <button className={`${styles.closeButton} delete has-background-link`} onClick={onClose}/>
       </div>
     </div>
   );
