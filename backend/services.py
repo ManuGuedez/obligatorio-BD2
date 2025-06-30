@@ -780,3 +780,100 @@ def add_member(id_organismo,ci, nro_circuito, id_rol):
 
     except Exception as e:
         return -1, str(e)
+    
+def get_members_data():
+    '''
+    Obtiene todos los miembros de mesa.
+    '''
+    query = '''
+        SELECT m.id_miembro, m.nro_circuito, rm.descripcion as rol_en_mesa, c.nombre, c.apellido
+            FROM Miembro_mesa m
+            JOIN Ciudadano c ON m.ci_ciudadano = c.ci
+            JOIN Rol_mesa rm ON m.id_rol = rm.id
+    '''
+    cursor.execute(query)
+    result = cursor.fetchall()
+    
+    if result:
+        return result
+    return None
+
+def get_member_data(id):
+    '''
+    Obtiene los datos de un miembro de mesa por su ID.
+    '''
+    query = '''
+        SELECT m.id_miembro, m.nro_circuito, rm.descripcion as rol_en_mesa, c.nombre, c.apellido
+            FROM Miembro_mesa m
+            JOIN Ciudadano c ON m.ci_ciudadano = c.ci
+            JOIN Rol_mesa rm ON m.id_rol = rm.id
+            WHERE m.id_miembro = %s
+    '''
+    cursor.execute(query, (id,))
+    result = cursor.fetchone()
+    
+    if result:
+        return result
+    return None
+
+def validar_posicion_miembro_disponible(nro_circuito, id_rol):
+    '''
+    Verifica si un miembro de mesa con el mismo nro_circuito y id_rol ya existe.
+    Retorna True si está disponible, False si ya existe.
+    '''
+    query = '''
+        SELECT 1 FROM Miembro_mesa
+        WHERE nro_circuito = %s AND id_rol = %s
+    '''
+    cursor.execute(query, (nro_circuito, id_rol))
+    result = cursor.fetchone()
+    
+    return result is None
+
+def update_member(member_id, update_data):
+    '''
+    Actualiza los datos de un miembro de mesa.
+    '''
+    fields = []
+    values = []
+    for key in ['nro_circuito', 'id_rol', 'id_organismo']:
+        if key in update_data:
+            fields.append(f"{key} = %s")
+            values.append(update_data[key])
+    
+    if not fields:
+        return -1, "No se proporcionaron campos válidos para actualizar"
+    
+    if not 'nro_circuito' in update_data:
+        result = get_member_data(member_id)
+        if result:
+            update_data['nro_circuito'] = result['nro_circuito']
+        else:
+            return -1, "No se encontró el miembro con el ID proporcionado"
+    
+    if not validar_posicion_miembro_disponible(update_data['nro_circuito'], update_data['id_rol']):
+        return -1, "Ya existe un miembro con ese rol en el circuito, debe eliminar o actualizar el otro miembro primero"
+
+    query = f"UPDATE Miembro_mesa SET {', '.join(fields)} WHERE id_miembro = %s"
+    values.append(member_id)
+    
+    cursor.execute(query, values)
+    cnx.commit()
+    
+    if cursor.rowcount > 0:
+        return 1, "Miembro actualizado exitosamente"
+    else:
+        return -1, "No se encontraron cambios o el miembro no existe"
+    
+def delete_member(id):
+    '''
+    Elimina un miembro de mesa por su id
+    '''
+    query = 'DELETE FROM Miembro_mesa WHERE id_miembro = %s'
+    cursor.execute(query, (id,))
+    cnx.commit()
+    
+    if cursor.rowcount > 0:
+        return 1, "Miembro eliminado exitosamente"
+    else:
+        return -1, "No se encontró el miembro o no se realizaron cambios"

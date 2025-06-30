@@ -109,7 +109,7 @@ def get_establishments():
 
     result = services.get_establishments()
 
-    return jsonify(result), 200 if result else ({"error": "No se encontraron establecimientos"}, 404)
+    return jsonify(result), 200 if result else ({"error": "No se encontraron establecimientos"}, 400)
 
 @app.route('/establecimientos/<int:id>', methods=['GET'])
 @jwt_required()
@@ -128,7 +128,7 @@ def get_establishment(id):
     if result:
         return jsonify(result), 200
     else:
-        return jsonify({"error": "Establecimiento no encontrado"}), 404
+        return jsonify({"error": "Establecimiento no encontrado"}), 400
     
 @app.route('/establecimientos/<int:id>', methods=['PATCH'])
 @jwt_required()
@@ -191,7 +191,7 @@ def get_circuitos():
 
     result = services.get_circuitos()
 
-    return jsonify(result), 200 if result else ({"error": "No se encontraron circuitos"}, 404)
+    return jsonify(result), 200 if result else ({"error": "No se encontraron circuitos"}, 400)
 
 @app.route('/circuitos/<int:nro>', methods=['GET'])
 @jwt_required()
@@ -210,7 +210,7 @@ def get_circuito(nro):
     if result:
         return jsonify(result), 200
     else:
-        return jsonify({"error": "Circuito no encontrado"}), 404
+        return jsonify({"error": "Circuito no encontrado"}), 400
 
 @app.route('/circuitos', methods=['POST'])
 @jwt_required()
@@ -338,7 +338,7 @@ def get_comisarias():
 
     result = services.get_comisarias()
 
-    return jsonify(result), 200 if result else ({"error": "No se encontraron comisarias"}, 404)
+    return jsonify(result), 200 if result else ({"error": "No se encontraron comisarias"}, 400)
 
 @app.route('/comisarias/<int:id>', methods=['GET'])
 @jwt_required()
@@ -357,7 +357,7 @@ def get_comisaria(id):
     if result:
         return jsonify(result), 200
     else:
-        return jsonify({"error": "Comisaria no encontrada"}), 404
+        return jsonify({"error": "Comisaria no encontrada"}), 400
     
 @app.route('/comisarias', methods=['POST'])
 @jwt_required()
@@ -448,7 +448,7 @@ def get_policias():
 
     result = services.get_policias()
 
-    return jsonify(result), 200 if result else ({"error": "No se encontraron policias"}, 404)
+    return jsonify(result), 200 if result else ({"error": "No se encontraron policias"}, 400)
 
 @app.route('/police/<int:id>', methods=['GET'])
 @jwt_required()
@@ -467,7 +467,7 @@ def get_policia(id):
     if result:
         return jsonify(result), 200
     else:
-        return jsonify({"error": "Policia no encontrado"}), 404
+        return jsonify({"error": "Policia no encontrado"}), 400
 
 @app.route('/police', methods=['POST'])
 @jwt_required()
@@ -555,7 +555,7 @@ def get_candidatos():
 
     result = services.get_candidatos()
 
-    return jsonify(result), 200 if result else ({"error": "No se encontraron candidatos"}, 404)
+    return jsonify(result), 200 if result else ({"error": "No se encontraron candidatos"}, 400)
 
 @app.route('/candidatos/<int:id>', methods=['GET'])
 @jwt_required()
@@ -574,7 +574,7 @@ def get_candidato(id):
     if result:
         return jsonify(result), 200
     else:
-        return jsonify({"error": "Candidato no encontrado"}), 404
+        return jsonify({"error": "Candidato no encontrado"}), 400
 
 @app.route('/candidatos', methods=['POST'])
 @jwt_required()
@@ -733,9 +733,92 @@ def add_member():
         return jsonify({"error": result[1]}), 400
     return jsonify({"message": "Miembro agregado exitosamente"}), 200
     
+@app.route('/miembro', methods=['GET'])    
+@jwt_required()
+def get_members():
+    '''
+    obtiene todos los miembros
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    result = services.get_members_data()
+
+    return jsonify(result), 200 if result else ({"error": "No se encontraron miembros"}, 400)
+
+@app.route('/miembro/<int:id>', methods=['GET'])
+@jwt_required()
+def get_member(id):
+    '''
+    obtiene un miembro por su id
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    result = services.get_member_data(id)
+
+    if result:
+        return jsonify(result), 200
+    else:
+        return jsonify({"error": "Miembro no encontrado"}), 400
+
+@app.route('/miembro/<int:id>', methods=['PATCH'])
+@jwt_required()
+def update_member(id):
+    '''
+    cuerpo requerido (al menos uno):
+        - id_organismo
+        - nro_circuito
+        - id_rol
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    data = request.get_json()
+    allowed_fields = {'id_organismo', 'nro_circuito', 'id_rol'}
+    
+    if not allowed_fields & data.keys():
+        return jsonify({"error": "Debe proporcionar al menos un campo para actualizar"}), 400
+    
+    # Filtra solo los campos permitidos
+    update_data = {field: data[field] for field in allowed_fields if field in data}
+
+    result = services.update_member(id, update_data)
+
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    return jsonify({"message": "Miembro actualizado exitosamente"}), 200
+
+@app.route('/miembro/<int:id>', methods=['DELETE'])
+@jwt_required()
+def delete_member(id):
+    '''
+    elimina un miembro por su id
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    result = services.delete_member(id)
+
+    if result[0] < 0:
+        return result[1], 400
+    else:
+        return jsonify({"message": "Miembro eliminado exitosamente"}), 200
     
 
-    
+
 
 if __name__ == "__main__":
     app.run(debug=True)
