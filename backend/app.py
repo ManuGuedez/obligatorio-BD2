@@ -21,9 +21,7 @@ def registrar_usuario():
     cuerpo requerido:
         - nombre_usuario
         - password
-        - ci
-        - nombre
-        - apellido
+        - id_miembro
         - no se pide rol porque solo se pueden registrsr miembros de mesa, el admin ya existe
     '''
     data = request.get_json()
@@ -33,15 +31,16 @@ def registrar_usuario():
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
     
-    required_fields = ['nombre_usuario', 'password', 'ci', 'nombre', 'apellido']
+    required_fields = {'nombre_usuario', 'password', 'id_miembro'}
     
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"error": f"{field} es requerido"}), 400
+    if data.keys() != required_fields:
+        return jsonify({"error": "Faltan campos requeridos"}), 400
     
     result = services.register_user(data)
     
-    return result[1], 400 if result[0] < 0 else 200
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    return jsonify({"message": "Usuario registrado exitosamente"}), 200
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -58,6 +57,7 @@ def login():
         return jsonify({"error": "Nombre de usuario y contraseña son requeridos"}), 400
     
     resultado = services.login_user(nombre_usuario, password)
+    print("resultado: ",resultado)
     
     if resultado[0] < 0:
         return resultado[1], 400
@@ -66,10 +66,10 @@ def login():
     
     if resultado[1]['role_description'] == "miembroMesa":           
         person_data = services.get_person_data(nombre_usuario)
-        usuario = {"ci": person_data['ci'], "nombre_usuario": nombre_usuario, "nombre": person_data['nombre'], "apellido": person_data['apellido']}
+        usuario = {"ci": person_data['ci'], "nombre_usuario": nombre_usuario, "nombre": person_data['nombre'], "apellido": person_data['apellido'], "id": resultado[1]['id']}
         datos_usuario["user"] = usuario 
         
-    access_token = create_access_token(identity=str(resultado[1]['id']), additional_claims={'role_description': resultado[1]['role_description']})
+    access_token = create_access_token(identity=str(resultado[1]['id']), additional_claims={'role_description': resultado[1]['role_description'],"id": resultado[1]['id']})
 
     datos_usuario["access_token"] = access_token
     datos_usuario["role_description"] = resultado[1]['role_description']
@@ -92,11 +92,10 @@ def crear_establecimiento():
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
     
-    required_fields = ['nombre', 'tipo', 'direccion', 'id_zona']
+    required_fields = {'nombre', 'tipo', 'direccion', 'id_zona'}
     
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"error": f"{field} es requerido"}), 400
+    if data.keys() != required_fields:
+        return jsonify({"error": "Faltan campos requeridos"}), 400
     
     result = services.create_establishment(data)
     
@@ -154,8 +153,8 @@ def update_establishment(id):
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
 
-    allowed_fields = ['nombre', 'tipo', 'direccion', 'id_zona']
-    if not any(field in data for field in allowed_fields):
+    allowed_fields = {'nombre', 'tipo', 'direccion', 'id_zona'}
+    if not allowed_fields & data.keys(): # si la interseccion es vacía
         return jsonify({"error": "Debe proporcionar al menos un campo para actualizar"}), 400
 
     # Filtra solo los campos permitidos
@@ -200,9 +199,9 @@ def get_circuitos():
 
     return jsonify(result), 200 if result else ({"error": "No se encontraron circuitos"}, 404)
 
-@app.route('/circuitos/<int:id>', methods=['GET'])
+@app.route('/circuitos/<int:nro>', methods=['GET'])
 @jwt_required()
-def get_circuito(id):
+def get_circuito(nro):
     '''
     obtiene un circuito por su id
     '''
@@ -212,7 +211,7 @@ def get_circuito(id):
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
 
-    result = services.get_circuito(id)
+    result = services.get_circuito(nro)
 
     if result:
         return jsonify(result), 200
@@ -235,41 +234,84 @@ def crear_circuito():
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
 
-    required_fields = ['nro', 'es_accesible', 'id_establecimiento']
-
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"error": f"{field} es requerido"}), 400
+    required_fields = {'nro', 'es_accesible', 'id_establecimiento'}
+    
+    if data.keys() != required_fields:
+        return jsonify({"error": "Faltan campos requeridos"}), 400
 
     result = services.create_circuito(data)
 
     return result[1], 400 if result[0] < 0 else 200
 
-@app.route('/circuitos/<int:id>', methods=['PATCH'])
+@app.route('/circuitos/<int:nro>', methods=['PATCH'])
 @jwt_required()
-def update_circuito(id):
+def update_circuito(nro):
     '''
     cuerpo requerido (al menos uno):
         - es_accesible
         - id_establecimiento
+        - es_accesible 
     '''
     data = request.get_json()
     claims = get_jwt()
     role_description = claims.get('role_description')
 
     if role_description != "admin":
-        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+        return jsonify({"error": "No tiene permisos para realizar esta acción"}), 400
 
-    allowed_fields = ['es_accesible', 'id_establecimiento']
-    if not any(field in data for field in allowed_fields):
+    admin_allowed_fields = {'es_accesible', 'id_establecimiento'}
+    
+    if (role_description == "admin" and 
+        not admin_allowed_fields & data.keys()): 
         return jsonify({"error": "Debe proporcionar al menos un campo para actualizar"}), 400
 
     # Filtra solo los campos permitidos
-    update_data = {field: data[field] for field in allowed_fields if field in data}
+    update_data = {}
+    for field in data.keys():
+        if field in admin_allowed_fields and role_description == "admin":
+            update_data[field] = data[field]
 
-    result = services.update_circuito(id, update_data)
+    result = services.update_circuito(nro, update_data)
+    
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    return jsonify({"message": result[1]}), 200
 
-    return result[1], 400 if result[0] < 0 else 200
+@app.route('/circuitos/<int:nro>/abrir', methods=['POST'])
+@jwt_required()
+def abrir_circuito(nro):
+    '''
+    abre un circuito
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+
+    if role_description != "miembroMesa":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por un miembro de mesa."}), 400
+
+    result = services.abrir_circuito(claims.get('id'), nro)
+
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    return jsonify({"message": "Circuito abierto exitosamente"}), 200
+
+@app.route('/circuitos/<int:nro>/cerrar', methods=['POST'])
+@jwt_required()
+def cerrar_circuito(nro):
+    '''
+    cierra un circuito
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+
+    if role_description != "miembroMesa":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por un miembro de mesa."}), 400
+
+    result = services.cerrar_circuito(claims.get('id'), nro)
+
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    return jsonify({"message": "Circuito cerrado exitosamente"}), 200
 
 @app.route('/circuitos/<int:id>', methods=['DELETE'])
 @jwt_required()
@@ -668,6 +710,32 @@ def delete_citizen(ci):
         return jsonify({"message": "Ciudadano eliminado exitosamente"}), 200
 
     
+@app.route('/miembro', methods=['POST'])
+@jwt_required()
+def add_member():
+    '''
+    cuerpo requerido:
+        - id_organismo (público en el que trabaja)
+        - ci
+        - nro_circuito (al que es asignado para trabajar)
+        - id_rol (presi, vice, secre)
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+    
+    data = request.get_json()
+    required_fields = {'id_organismo', 'ci', 'nro_circuito', 'id_rol'}
+    if data.keys() != required_fields:
+        return jsonify({"error": "Todos los campos son requeridos"}), 400
+    
+    result = services.add_member(data['id_organismo'], data['ci'], data['nro_circuito'], data['id_rol'])
+    
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    return jsonify({"message": "Miembro agregado exitosamente"}), 200
     
     
 

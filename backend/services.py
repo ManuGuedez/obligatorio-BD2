@@ -30,6 +30,19 @@ def verify_person(nombre, apellido, ci):
     if result:
         return True
     return False
+
+def veriby_member(id):
+    '''
+    verifica si el miembro ya existe en la base de datos
+    retorna True si existe, False si no
+    '''
+    query = 'SELECT 1 FROM Miembro_mesa WHERE id_miembro = %s'
+    cursor.execute(query, (id,))
+    result = cursor.fetchone()
+    
+    if result:
+        return True
+    return False
     
 def get_role_id(role_name):
     '''
@@ -45,8 +58,8 @@ def get_role_id(role_name):
     return None
 
 def register_user(data, role_name='miembroMesa'):
-    if not verify_person(data['nombre'], data['apellido'], data['ci']):
-        message = f"La persona {data['nombre']} {data['apellido']} no está registrada en la base de datos como ciudadano."
+    if not veriby_member(data['id_miembro']):
+        message = f"No se encontró el miembro con ID {data['id_miembro']} en la base de datos."
         return -1, message
 
     hashed_password, salt = encrypt.encrypt_password(data['password'])
@@ -61,8 +74,8 @@ def register_user(data, role_name='miembroMesa'):
         values = (data['nombre_usuario'], hashed_password, salt.hex(), current_role_id)
         cursor.execute(query, values)
 
-        query = 'INSERT INTO Usuario_ciudadano (id_usuario, ci_ciudadano) VALUES (LAST_INSERT_ID(), %s)'
-        cursor.execute(query, (data['ci'],))
+        query = 'INSERT INTO Usuario_miembro (id_usuario, id_miembro) VALUES (LAST_INSERT_ID(), %s)'
+        cursor.execute(query, (data['id_miembro'],))
 
         cnx.commit()
         message = "Usuario registrado exitosamente"
@@ -97,7 +110,11 @@ def login_user(nombre_usuario, password):
     verifica si el usuario existe y si la contraseña es correcta
     retorna el nombre del usuario y el id del rol si es correcto, None en caso contrario
     '''
-    query = 'SELECT id, contraseña, salt, id_rol_usuario FROM Usuario WHERE nombre_usuario = %s'
+    query = '''SELECT m.id_miembro as id, u.contraseña, u.salt, u.id_rol_usuario 
+                    FROM Usuario u
+                    JOIN Usuario_miembro um ON u.id = um.id_usuario
+                    JOIN Miembro_mesa m ON um.id_miembro = m.id_miembro
+                    WHERE u.nombre_usuario = %s'''
     cursor.execute(query, (nombre_usuario,))
     result = cursor.fetchone()
     
@@ -120,9 +137,11 @@ def get_person_data(nombre_usuario):
     obtiene los datos de la persona dado su nombre de usuario
     retorna un diccionario con los datos de la persona
     '''
-    query = """SELECT c.ci, c.nombre, c.apellido, r.descripcion_rol FROM Ciudadano c 
-                JOIN Usuario_ciudadano uc ON (c.ci = uc.ci_ciudadano)  
-                JOIN Usuario u ON (uc.id_usuario = u.id) 
+    query = """SELECT c.ci, c.nombre, c.apellido, r.descripcion_rol 
+                FROM Ciudadano c 
+                JOIN Miembro_mesa m ON (c.ci = m.ci_ciudadano)
+                JOIN Usuario_miembro um ON (m.id_miembro = um.id_miembro)  
+                JOIN Usuario u ON (um.id_usuario = u.id) 
                 JOIN Rol_usuario r ON (u.id_rol_usuario = r.id)
                 WHERE u.nombre_usuario = %s
                 """
@@ -157,7 +176,7 @@ def create_establishment(data):
         valores = (
             data['nombre'],
             data['tipo'],
-            data['direccion'],
+            data['direccion'].capitalize(),
             data['id_zona']
         )
         cursor.execute(query, valores)
@@ -181,7 +200,14 @@ def get_establishments():
     '''
     obtiene todos los establecimientos
     '''
-    query = 'SELECT * FROM Establecimiento'
+    query = '''
+        SELECT e.id as id_est, e.nombre as nombre_est, e.tipo as tipo_est, e.direccion as direccion_est,
+                z.nombre as nombre_zona, c.nombre as ciudad, d.nombre as departamento
+            FROM Establecimiento e
+            JOIN Zona z ON e.id_zona = z.id
+            JOIN Ciudad c ON z.id_ciudad = c.id
+            JOIN Departamento d ON c.id_departamento = d.id'''
+            
     cursor.execute(query)
     result = cursor.fetchall()
 
@@ -193,7 +219,14 @@ def get_establishment(id):
     '''
     obtiene un establecimiento por su id
     '''
-    query = 'SELECT * FROM Establecimiento WHERE id = %s'
+    query = '''
+        SELECT e.id as id_est, e.nombre as nombre_est, e.tipo as tipo_est, e.direccion as direccion_est,
+            z.nombre as nombre_zona, c.nombre as ciudad, d.nombre as departamento
+        FROM Establecimiento e
+        JOIN Zona z ON e.id_zona = z.id
+        JOIN Ciudad c ON z.id_ciudad = c.id
+        JOIN Departamento d ON c.id_departamento = d.id
+        WHERE e.id = %s'''
     cursor.execute(query, (id,))
     result = cursor.fetchone()
 
@@ -250,12 +283,12 @@ def get_circuitos():
         return result
     return None
 
-def get_circuito(id):
+def get_circuito(nro):
     '''
     obtiene un circuito por su id
     '''
     query = 'SELECT * FROM Circuito WHERE nro = %s'
-    cursor.execute(query, (id,))
+    cursor.execute(query, (nro,))
     result = cursor.fetchone()
 
     if result:
@@ -267,7 +300,7 @@ def create_circuito(data):
     crea un circuito
     '''
     try:
-        query = 'INSERT INTO Circuito (nro, es_accesible, id_establecimiento) VALUES (%s, %s, %s)'
+        query = 'INSERT IGNORE INTO Circuito (nro, es_accesible, id_establecimiento) VALUES (%s, %s, %s)' # ignora si se intenta insertar un circuito con el mismo nro
         valores = (data['nro'], data['es_accesible'], data['id_establecimiento'])
         cursor.execute(query, valores)
 
@@ -285,26 +318,88 @@ def create_circuito(data):
 
     except Exception as e:
         return -1, f"Error inesperado: {str(e)}"
+
+def is_member_assigned_to_circuito(id_miembro, nro):
+    '''
+    verifica si un miembro de mesa está asignado a un circuito
+    retorna True si está asignado, False si no
+    '''
+    query = '''
+        SELECT 1
+        FROM Miembro_mesa
+        WHERE id_miembro = %s AND nro_circuito = %s
+    '''
+    cursor.execute(query, (id_miembro, nro))
+    result = cursor.fetchone()
     
-def update_circuito(id, data):
+    return result is not None
+
+def abrir_circuito(id_miembro, nro):
+    '''
+    abre un circuito por su nro
+    '''
+
+    if not is_member_assigned_to_circuito(id_miembro, nro):
+        return -1, "El miembro de mesa no está asignado a este circuito"
+    
+    query = '''
+        UPDATE Circuito
+        SET se_abrio = TRUE, es_cerrado = FALSE
+        WHERE nro = %s AND se_abrio = FALSE AND es_cerrado = TRUE
+    '''
+    cursor.execute(query, (nro,))
+    cnx.commit()
+    
+    if cursor.rowcount > 0:
+        return 1, "Circuito abierto exitosamente"
+    elif cursor.rowcount == 0:
+        return -1, "El circuito ya está abierto."
+    else:
+        return -1, "No se encontró el circuito."    
+
+def cerrar_circuito(id_miembro, nro):
+    '''
+    cierra un circuito por su nro
+    '''
+
+    if not is_member_assigned_to_circuito(id_miembro, nro):
+        return -1, "El miembro de mesa no está asignado a este circuito"
+    
+    query = '''
+        UPDATE Circuito
+        SET es_cerrado = TRUE
+        WHERE nro = %s AND es_cerrado = FALSE
+    '''
+    cursor.execute(query, (nro,))
+    cnx.commit()
+    
+    if cursor.rowcount > 0:
+        return 1, "Circuito cerrado exitosamente"
+    else:
+        return -1, "No se encontró el circuito."
+
+def update_circuito(nro, data):
     '''
     Actualiza un circuito por su id.
     Solo actualiza los campos presentes en el diccionario data.
     '''
     if not data:
         return -1, "No se proporcionaron datos para actualizar"
+    
     fields = []
     values = []
     for key in ['es_accesible', 'id_establecimiento']:
         if key in data:
             fields.append(f"{key} = %s")
             values.append(data[key])
+            
     if not fields:
         return -1, "No se proporcionaron campos válidos para actualizar"
     query = f"UPDATE Circuito SET {', '.join(fields)} WHERE nro = %s"
     values.append(id)
     cursor.execute(query, values)
     cnx.commit()
+    
     if cursor.rowcount > 0:
         return 1, "Circuito actualizado exitosamente"
     else:
@@ -637,3 +732,35 @@ def update_citizen(ci, update_data):
 def delete_citizen(ci):
     return None
 
+def add_member(id_organismo,ci, nro_circuito, id_rol):
+    '''
+    Agrega un miembro a la base de datos.
+    Si el miembro ya existe, no se agrega y se retorna un mensaje de error.
+    '''
+    try:
+        query = '''
+            INSERT INTO Miembro_mesa (id_organismo, ci_ciudadano, nro_circuito, id_rol)
+            SELECT %s, %s, %s, %s
+            FROM DUAL
+            WHERE NOT EXISTS (
+                SELECT 1 FROM Miembro_mesa
+                WHERE nro_circuito = %s AND id_rol = %s
+            )
+        '''
+        values = (id_organismo, ci, nro_circuito, id_rol, nro_circuito, id_rol)
+        cursor.execute(query, values)
+
+        cnx.commit()
+        if cursor.rowcount > 0:
+            return 1, "Miembro agregado exitosamente"
+        else:
+            return -1, "Ya existe un miembro con ese rol en el circuito"
+
+    except IntegrityError as e:
+        if "Duplicate entry" in str(e):
+            return -1, f"El miembro con CI {ci} ya fue ingresado."
+        else:
+            return -1, f"Error de integridad: {str(e)}"
+
+    except Exception as e:
+        return -1, str(e)
