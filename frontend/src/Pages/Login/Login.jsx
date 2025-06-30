@@ -1,3 +1,4 @@
+import React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import classes from "./Login.module.css";
@@ -62,7 +63,7 @@ function Login() {
         // Redirigir según el rol
         if (user.data.role_description === "admin") {
             console.log("Redirigiendo a HomeAdministrador");
-          navigate("/HomeAdministrador");
+          navigate("/HomeAdministrador/Datos");
         } else if (user.data.role_description === "miembroMesa") {
           navigate("/HomeMiembroMesa");
         } else {
@@ -89,7 +90,7 @@ function Login() {
         </div>
         <h2 className={classes.loginTitle}>Inicio de Sesión</h2>
         <p>
-          Inicia sesión tu usuario de la <b>corte electoral</b>.
+          Inicia sesión con tu usuario de la <b>corte electoral</b>.
         </p>
 
         <form onSubmit={handleSubmit} className={classes.loginForm}>

@@ -1,0 +1,33 @@
+.cardPanel {
+    background-color: #a5bff1;
+    border-radius: 20px;
+    padding: 20px;
+    width: 230px;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.cardTitle {
+    margin-bottom: 15px;
+    font-size: 1.2em !important;
+}
+
+.cardButton {
+    background-color: #cdddf5;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    margin: 5px 0;
+    cursor: pointer;
+    font-weight: bold;
+    color: #2c3e50;
+    width: 100%;
+    transition: background 0.2s ease;
+    font-size: 0.95em;
+}
+
+.cardButton:hover {
+    background-color: #b9d0f5;
+}
