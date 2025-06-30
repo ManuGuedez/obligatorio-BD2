@@ -545,3 +545,95 @@ def delete_candidato(id):
         return 1, "Candidato eliminado exitosamente"
     else:
         return -1, "No se encontró el candidato o no se realizaron cambios"
+    
+
+def format_citizen_data(nombre, apellido, serie_credencial, nro_credencial, nro_circuito):
+    '''
+    Formatea los datos del ciudadano para ser insertados en la base de datos.
+    Convierte el nombre y apellido a mayúsculas y la serie de credencial a mayúsculas.
+    '''
+    nombre = nombre.capitalize()
+    apellido = apellido.capitalize()
+    serie_credencial = serie_credencial.upper()
+    
+    return {
+        'nombre': nombre,
+        'apellido': apellido,
+        'serie_credencial': serie_credencial,
+        'nro_credencial': int(nro_credencial),
+        'nro_circuito': int(nro_circuito)
+    }
+
+def add_citizen(ci, nombre, apellido, serie_credencial, nro_credencial, nro_circuito):
+    '''
+    Agrega un ciudadano a la base de datos.
+    Si el ciudadano ya existe, no se agrega y se retorna un mensaje de error.
+    '''
+    # Formatear los datos del ciudadano
+    citizen_data = format_citizen_data(nombre, apellido, serie_credencial, nro_credencial, nro_circuito)
+   
+    if verify_person(citizen_data['nombre'], citizen_data['apellido'], ci):
+        return -1, f"El ciudadano {citizen_data['nombre']} {citizen_data['apellido']} ya está registrado en la base de datos."
+
+    try:
+        query = 'INSERT INTO Ciudadano (ci, nombre, apellido, serie_credencial, nro_credencial, nro_circuito) VALUES (%s, %s, %s, %s, %s, %s)'
+        values = (
+            ci,
+            citizen_data['nombre'],
+            citizen_data['apellido'],
+            citizen_data['serie_credencial'],
+            citizen_data['nro_credencial'],
+            citizen_data['nro_circuito']
+        )
+        cursor.execute(query, values)
+
+        cnx.commit()
+        return 1, "Ciudadano agregado exitosamente"
+
+    except IntegrityError as e:
+        if "Duplicate entry" in str(e):
+            return -1, f"El ciudadano con CI {ci} ya fue ingresado o se repite la credencial."
+        else:
+            return -1, f"Error de integridad: {str(e)}"
+
+    except Exception as e:
+        return -1, str(e)
+    
+
+def update_citizen(ci, update_data):
+    '''
+    Actualiza los datos de un ciudadano.
+    '''
+    
+    fields = []
+    values = []
+    for key in ['nombre', 'apellido', 'serie_credencial', 'nro_credencial', 'nro_circuito']:
+        if key in update_data:
+            fields.append(f"{key} = %s")
+            if key == 'nombre' or key == 'apellido':
+                value = update_data[key].capitalize()
+            elif key == 'serie_credencial':
+                value = update_data[key].upper()
+            elif key == 'nro_credencial' or key == 'nro_circuito':
+                value = int(update_data[key])
+            print(f"Actualizando {key} a: {value}")
+            values.append(value)
+    
+    if not fields:
+        return -1, "No se proporcionaron campos válidos para actualizar"
+
+    query = f"UPDATE Ciudadano SET {', '.join(fields)} WHERE ci = %s"
+    values.append(ci)
+    
+    cursor.execute(query, values)
+    cnx.commit()
+    
+    if cursor.rowcount > 0:
+        return 1, "Ciudadano actualizado exitosamente"
+    else:
+        return -1, "No se encontraron cambios o el ciudadano no existe"
+    
+
+def delete_citizen(ci):
+    return None
+

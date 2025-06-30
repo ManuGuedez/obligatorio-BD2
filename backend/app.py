@@ -19,7 +19,7 @@ jwt = JWTManager(app)
 def registrar_usuario():
     data = request.get_json()
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -48,18 +48,10 @@ def login():
     datos_usuario = dict()
     if resultado[1]['role_description'] == "miembroMesa":
         person_data = services.get_person_data(nombre_usuario)
-        usuario = {
-            "ci": person_data['ci'],
-            "nombre_usuario": nombre_usuario,
-            "nombre": person_data['nombre'],
-            "apellido": person_data['apellido']
-        }
-        datos_usuario["user"] = usuario
-
-    access_token = create_access_token(
-        identity=str(resultado[1]['id']),
-        additional_claims={'role_descripcion': resultado[1]['role_description']}
-    )
+        usuario = {"ci": person_data['ci'], "nombre_usuario": nombre_usuario, "nombre": person_data['nombre'], "apellido": person_data['apellido']}
+        datos_usuario["user"] = usuario 
+        
+    access_token = create_access_token(identity=str(resultado[1]['id']), additional_claims={'role_description': resultado[1]['role_description']})
 
     datos_usuario["access_token"] = access_token
     datos_usuario["role_description"] = resultado[1]['role_description']
@@ -77,7 +69,7 @@ def crear_establecimiento():
     '''
     data = request.get_json()
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
     
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -99,7 +91,7 @@ def get_establishments():
     obtiene todos los establecimientos
     '''
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -115,7 +107,7 @@ def get_establishment(id):
     obtiene un establecimiento por su id
     '''
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -139,7 +131,7 @@ def update_establishment(id):
     '''
     data = request.get_json()
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -162,7 +154,7 @@ def delete_establishment(id):
     elimina un establecimiento por su id
     '''
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -181,7 +173,7 @@ def get_circuitos():
     obtiene todos los circuitos
     '''
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -197,7 +189,7 @@ def get_circuito(id):
     obtiene un circuito por su id
     '''
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -220,7 +212,7 @@ def crear_circuito():
     '''
     data = request.get_json()
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -245,7 +237,7 @@ def update_circuito(id):
     '''
     data = request.get_json()
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -268,7 +260,7 @@ def delete_circuito(id):
     elimina un circuito por su id
     '''
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -287,7 +279,7 @@ def get_comisarias():
     obtiene todas las comisarias
     '''
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -303,7 +295,7 @@ def get_comisaria(id):
     obtiene una comisaria por su id
     '''
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -326,7 +318,7 @@ def crear_comisaria():
     '''
     data = request.get_json()
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -352,7 +344,7 @@ def update_comisaria(id):
     '''
     data = request.get_json()
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -375,7 +367,7 @@ def delete_comisaria(id):
     elimina una comisaria por su id
     '''
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -394,7 +386,7 @@ def get_policias():
     obtiene todos los policias
     '''
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -410,7 +402,7 @@ def get_policia(id):
     obtiene un policia por su id
     '''
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -433,7 +425,7 @@ def crear_policia():
     '''
     data = request.get_json()
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -458,7 +450,7 @@ def update_policia(id):
     '''
     data = request.get_json()
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -481,7 +473,7 @@ def delete_policia(id):
     elimina un policia por su id
     '''
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -500,7 +492,7 @@ def get_candidatos():
     obtiene todos los candidatos
     '''
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -516,7 +508,7 @@ def get_candidato(id):
     obtiene un candidato por su id
     '''
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -537,7 +529,7 @@ def crear_candidato():
     '''
     data = request.get_json()
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -559,7 +551,7 @@ def delete_candidato(id):
     elimina un candidato por su id
     '''
     claims = get_jwt()
-    role_description = claims.get('role_descripcion')
+    role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
@@ -570,6 +562,98 @@ def delete_candidato(id):
         return result[1], 400
     else:
         return jsonify({"message": "Candidato eliminado exitosamente"}), 200
+    
+    
+@app.route('/ciudadano/add-citizen', methods=['POST'])
+@jwt_required()
+def add_citizen():
+    '''
+    cuerpo requerido:
+        - ci
+        - nombre
+        - apellido
+        - serie_credencial
+        - nro_credencial
+        - nro_circuito
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+    
+    data = request.get_json()
+    required_fields = {'ci', 'nombre', 'apellido', 'serie_credencial', 'nro_credencial', 'nro_circuito'} # set con los campos requeridos
+    
+    if data.keys() != required_fields:
+        return jsonify({"error": "Todos los campos son requeridos"}), 400
+    
+    result = services.add_citizen(data['ci'], data['nombre'], data['apellido'], data['serie_credencial'], data['nro_credencial'], data['nro_circuito'])
+    
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    else:
+        return jsonify({"message": "Ciudadano agregado exitosamente"}), 200
+    
+
+@app.route('/ciudadano/update-citizen/<int:ci>', methods=['PATCH'])
+@jwt_required()
+def update_citizen(ci):
+    '''
+    cuerpo requerido (al menos uno):
+        - nombre
+        - apellido
+        - serie_credencial
+        - nro_credencial
+        - nro_circuito
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+    
+    data = request.get_json()
+    allowed_fields = {'nombre', 'apellido', 'serie_credencial', 'nro_credencial', 'nro_circuito'}
+    if not any(field in data for field in allowed_fields):
+        return jsonify({"error": "Debe proporcionar al menos un campo para actualizar"}), 400
+    
+    # Filtra solo los campos permitidos
+    update_data = {field: data[field] for field in allowed_fields if field in data} 
+    
+    result = services.update_citizen(ci, update_data)
+    
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    else:
+        return jsonify({"message": "Ciudadano actualizado exitosamente"}), 200
+
+
+# OJO: terminar luego, la idea es implementar un borrado lógico, no eliminar el ciudadano de la base de datos
+@app.route('/ciudadano/delete-citizen/<int:ci>', methods=['DELETE'])
+@jwt_required()
+def delete_citizen(ci):
+    '''
+    elimina un ciudadano por su ci
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+    
+    result = services.delete_citizen(ci)
+    
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    else:
+        return jsonify({"message": "Ciudadano eliminado exitosamente"}), 200
+
+    
+    
+    
+
+    
 
 if __name__ == "__main__":
     app.run(debug=True)
