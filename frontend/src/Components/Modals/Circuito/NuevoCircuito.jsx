@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import styles from "./NuevoCircuito.module.css";
 
-function NuevoCircuito({ onClose }) {
+function NuevoCircuito({ onClose, setModal }) {
   const overlayRef = useRef();
   const [accesible, setAccesible] = useState(false);
   const [establecimiento, setEstablecimiento] = useState("");
@@ -24,9 +24,10 @@ function NuevoCircuito({ onClose }) {
   };
 
   const handleCrearEstablecimiento = () => {
-    // abrir un modal futuro para crear establecimiento
-    console.log("Abrir modal nuevo establecimiento");
+    onClose(); // cerramos el modal actual
+    setTimeout(() => setModal("nuevoEstablecimiento"), 100); // abrimos el nuevo modal
   };
+
 
   return (
     <div ref={overlayRef} className={styles.modalOverlay} onClick={handleOverlayClick}>
