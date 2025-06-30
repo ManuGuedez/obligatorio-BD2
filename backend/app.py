@@ -375,15 +375,16 @@ def crear_comisaria():
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
 
-    required_fields = ['calle', 'numero', 'codigo_postal']
-
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"error": f"{field} es requerido"}), 400
-
+    required_fields = {'calle', 'numero', 'codigo_postal'}
+    
+    if data.keys() != required_fields:
+        return jsonify({"error": "Faltan campos requeridos"}), 400
+    
     result = services.create_comisaria(data)
 
-    return result[1], 400 if result[0] < 0 else 200
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    return jsonify({"message": "Comisaria creada exitosamente"}), 200
 
 @app.route('/comisarias/<int:id>', methods=['PATCH'])
 @jwt_required()
@@ -401,16 +402,18 @@ def update_comisaria(id):
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
 
-    allowed_fields = ['calle', 'numero', 'codigo_postal']
-    if not any(field in data for field in allowed_fields):
+    allowed_fields = {'calle', 'numero', 'codigo_postal'}
+    if not allowed_fields & data.keys():  # si la intersección es vacía
         return jsonify({"error": "Debe proporcionar al menos un campo para actualizar"}), 400
 
     # Filtra solo los campos permitidos
     update_data = {field: data[field] for field in allowed_fields if field in data}
 
     result = services.update_comisaria(id, update_data)
-
-    return result[1], 400 if result[0] < 0 else 200
+ 
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    return jsonify({"message": "Comisaria actualizada exitosamente"}), 200
 
 @app.route('/comisarias/<int:id>', methods=['DELETE'])
 @jwt_required()
@@ -482,15 +485,16 @@ def crear_policia():
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
 
-    required_fields = ['id_comisaria', 'ci_ciudadano', 'id_establecimiento']
+    required_fields = {'id_comisaria', 'ci_ciudadano', 'id_establecimiento'}
 
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"error": f"{field} es requerido"}), 400
+    if data.keys() != required_fields:
+        return jsonify({"error": "Faltan campos requeridos"}), 400
 
     result = services.create_policia(data)
 
-    return result[1], 400 if result[0] < 0 else 200
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    return jsonify({"message": "Policia creado exitosamente"}), 200
 
 @app.route('/police/<int:id>', methods=['PATCH'])
 @jwt_required()
@@ -507,8 +511,8 @@ def update_policia(id):
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
 
-    allowed_fields = ['id_comisaria', 'id_establecimiento']
-    if not any(field in data for field in allowed_fields):
+    allowed_fields = {'id_comisaria', 'id_establecimiento'}
+    if not allowed_fields & data.keys():  # si la intersección es vacía
         return jsonify({"error": "Debe proporcionar al menos un campo para actualizar"}), 400
 
     # Filtra solo los campos permitidos
@@ -616,7 +620,7 @@ def delete_candidato(id):
         return jsonify({"message": "Candidato eliminado exitosamente"}), 200
     
     
-@app.route('/ciudadano/add-citizen', methods=['POST'])
+@app.route('/ciudadano', methods=['POST'])
 @jwt_required()
 def add_citizen():
     '''
@@ -648,7 +652,7 @@ def add_citizen():
         return jsonify({"message": "Ciudadano agregado exitosamente"}), 200
     
 
-@app.route('/ciudadano/update-citizen/<int:ci>', methods=['PATCH'])
+@app.route('/ciudadano/<int:ci>', methods=['PATCH'])
 @jwt_required()
 def update_citizen(ci):
     '''
@@ -682,7 +686,7 @@ def update_citizen(ci):
 
 
 # OJO: terminar luego, la idea es implementar un borrado lógico, no eliminar el ciudadano de la base de datos
-@app.route('/ciudadano/delete-citizen/<int:ci>', methods=['DELETE'])
+@app.route('/ciudadano/<int:ci>', methods=['DELETE'])
 @jwt_required()
 def delete_citizen(ci):
     '''

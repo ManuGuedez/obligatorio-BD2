@@ -593,9 +593,14 @@ def get_candidatos():
     '''
     obtiene todos los candidatos
     '''
-    query = 'SELECT * FROM Candidato'
+    query = '''
+        SELECT c.nombre, c.apellido, can.id
+            FROM Candidato can
+            JOIN Ciudadano c ON can.ci_ciudadano = c.ci
+        '''
     cursor.execute(query)
     result = cursor.fetchall()
+    
     if result:
         return result
     return None
@@ -604,7 +609,12 @@ def get_candidato(id):
     '''
     obtiene un candidato por su id
     '''
-    query = 'SELECT * FROM Candidato WHERE id = %s'
+    query = '''
+        SELECT c.nombre, c.apellido, can.id
+            FROM Candidato can
+            JOIN Ciudadano c ON can.ci_ciudadano = c.ci
+            WHERE id = %s
+    '''
     cursor.execute(query, (id,))
     result = cursor.fetchone()
     if result:
