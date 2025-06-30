@@ -1,0 +1,65 @@
+.pageContainer {
+    display: flex;
+    width: 100vw;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.pageContent {
+    width: 100vw;
+    height: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    padding: 0 2.5rem 2.5rem 2.5rem;
+    justify-content: center;
+}
+
+.cardPanel {
+    background-color: #a5bff1;
+    border-radius: 20px;
+    padding-top: 20px;
+    width: 230px;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.upperPanel {
+    border-radius: 20px 20px 0 0;
+    padding-left: 15px;
+    padding-right: 15px;
+    width: 230px;
+    display: flex;
+    flex-direction: column;
+}
+
+.panelSubtitle {
+    font-size: 0.9rem;
+    color: #3b4b71;
+    margin-bottom: 0.2rem;
+    text-align: left;
+}
+
+.percentageText {
+    font-size: 0.9rem;
+    color: #3b4b71;
+    font-weight: bold;
+    margin-top: 0.3rem;
+    align-self: flex-end;
+}
+.timePanel {
+    background-color: #E8C06C;
+    border-radius: 20px;
+    padding: 20px;
+    width: 230px;
+    height: 140px;
+    display: flex;
+    flex-direction: column;
+    align-self: center;
+    justify-self: flex-end;
+    margin-top: auto;
+    align-items: center;
+}

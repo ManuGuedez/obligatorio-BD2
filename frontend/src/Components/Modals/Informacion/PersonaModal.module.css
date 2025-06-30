@@ -13,7 +13,7 @@
 
 .modalBox {
   background-color: #ffffff;
-  padding: 30px 20px;
+  padding: 30px 25px;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   width: 90%;
@@ -22,35 +22,43 @@
 }
 
 .modalBox h2 {
-  margin-bottom: 25px;
+  margin-bottom: 20px;
   font-size: 1.3rem;
   color: #1e2a4a;
 }
 
-.modalBox button {
-  padding: 10px 20px;
+.modalBox p {
+  margin: 8px 0;
   font-size: 1rem;
-  margin: 0 10px;
-  border-radius: 8px;
+  color: #333;
+}
+
+.votarButton {
+  background-color: #003366;
+  color: white;
   border: none;
+  padding: 10px 20px;
+  margin: 20px 10px 10px 10px;
+  border-radius: 8px;
   cursor: pointer;
   transition: background 0.3s ease;
 }
 
-.modalBox button:first-of-type {
-  background-color: #003366;
-  color: white;
-}
-
-.modalBox button:first-of-type:hover {
+.votarButton:hover {
   background-color: #002244;
 }
 
-.modalBox button:last-of-type {
-  background-color: #cccccc;
-  color: #222;
+.cerrarButton {
+  background-color: #ccc;
+  color: #333;
+  border: none;
+  padding: 10px 20px;
+  margin: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
 }
 
-.modalBox button:last-of-type:hover {
-  background-color: #bbbbbb;
+.cerrarButton:hover {
+  background-color: #bbb;
 }

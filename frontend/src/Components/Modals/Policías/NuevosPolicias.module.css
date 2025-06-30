@@ -1,0 +1,74 @@
+/* NuevosCiudadanos.module.css */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background-color: #a2c0f0;
+  padding: 2rem;
+  border-radius: 20px;
+  width: 400px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #495E92;
+  margin-bottom: 1.5rem;
+}
+
+.dropArea {
+  background-color: white;
+  color: #495E92;
+  padding: 1rem;
+  border-radius: 30px;
+  text-align: center;
+  width: 100%;
+  position: relative;
+  cursor: pointer;
+  margin-bottom: 2rem;
+}
+
+.fileInput {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.submitButton {
+  align-self: flex-end;
+  background-color: #495E92;
+  color: #E8C06C;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 30px;
+  cursor: pointer;
+}
+
+.closeButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+}

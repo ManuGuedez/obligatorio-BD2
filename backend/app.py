@@ -3,14 +3,14 @@ from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity
 import services
 from datetime import timedelta
 from flask_cors import CORS
+import os
+import mysql.connector
 
 app = Flask(__name__)
-
-# Configura CORS para todo el servidor
 CORS(app)
 
 app.config['JWT_SECRET_KEY'] = 'obligatorio-bd-2025'
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=30) # esto para que el token expire cada 30 min
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=30)
 
 jwt = JWTManager(app)
 
@@ -27,7 +27,7 @@ def registrar_usuario():
     data = request.get_json()
     claims = get_jwt()
     role_description = claims.get('role_description')
-    
+
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
     
@@ -44,27 +44,21 @@ def registrar_usuario():
 
 @app.route('/login', methods=['POST'])
 def login():
-    '''
-    cuerpo requerido:
-        - nombre de usuario
-        - password
-    '''
     data = request.get_json()
     nombre_usuario = data.get('nombre_usuario')
     password = data.get('password')
-    
+
     if not nombre_usuario or not password:
         return jsonify({"error": "Nombre de usuario y contraseña son requeridos"}), 400
-    
+
     resultado = services.login_user(nombre_usuario, password)
     print("resultado: ",resultado)
     
     if resultado[0] < 0:
         return resultado[1], 400
-    
+
     datos_usuario = dict()
-    
-    if resultado[1]['role_description'] == "miembroMesa":           
+    if resultado[1]['role_description'] == "miembroMesa":
         person_data = services.get_person_data(nombre_usuario)
         usuario = {"ci": person_data['ci'], "nombre_usuario": nombre_usuario, "nombre": person_data['nombre'], "apellido": person_data['apellido'], "id": resultado[1]['id']}
         datos_usuario["user"] = usuario 
