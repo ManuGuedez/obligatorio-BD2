@@ -110,11 +110,9 @@ def login_user(nombre_usuario, password):
     verifica si el usuario existe y si la contraseña es correcta
     retorna el nombre del usuario y el id del rol si es correcto, None en caso contrario
     '''
-    query = '''SELECT m.id_miembro as id, u.contraseña, u.salt, u.id_rol_usuario 
-                    FROM Usuario u
-                    JOIN Usuario_miembro um ON u.id = um.id_usuario
-                    JOIN Miembro_mesa m ON um.id_miembro = m.id_miembro
-                    WHERE u.nombre_usuario = %s'''
+    query = '''SELECT id, contraseña, salt, id_rol_usuario 
+                FROM Usuario 
+                WHERE nombre_usuario = %s'''
     cursor.execute(query, (nombre_usuario,))
     result = cursor.fetchone()
     
@@ -128,6 +126,12 @@ def login_user(nombre_usuario, password):
         current_role = get_role(result['id_rol_usuario'])
         if current_role is None:
             return -1, "Hubo un error al iniciar sesión, ingrese nuevamente las credenciales"
+        query = 'SELECT id_miembro FROM Usuario_miembro WHERE id_usuario = %s'
+        cursor.execute(query, (result['id'],))
+        member_id = cursor.fetchone()
+        if member_id:
+            result['id'] = member_id['id_miembro']
+            print(f"Usuario {nombre_usuario} con ID {result['id']} ha iniciado sesión correctamente.")
         user_details = {"user_name": nombre_usuario, "role_description": current_role ,"id": result['id']}
         return 1, user_details
     return -1, "Hubo un error al iniciar sesión, ingrese nuevamente las credenciales" 

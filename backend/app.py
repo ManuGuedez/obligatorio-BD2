@@ -244,7 +244,6 @@ def update_circuito(nro):
     cuerpo requerido (al menos uno):
         - es_accesible
         - id_establecimiento
-        - es_accesible 
     '''
     data = request.get_json()
     claims = get_jwt()
@@ -255,8 +254,7 @@ def update_circuito(nro):
 
     admin_allowed_fields = {'es_accesible', 'id_establecimiento'}
     
-    if (role_description == "admin" and 
-        not admin_allowed_fields & data.keys()): 
+    if (not admin_allowed_fields & data.keys()): 
         return jsonify({"error": "Debe proporcionar al menos un campo para actualizar"}), 400
 
     # Filtra solo los campos permitidos
