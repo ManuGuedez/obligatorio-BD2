@@ -1,9 +1,9 @@
-// NuevosCiudadanos.jsx
+// NuevosMiembros.jsx
 import React, { useRef, useState } from "react";
 import * as XLSX from "xlsx";
-import styles from "./NuevosCiudadanos.module.css";
+import styles from "./NuevosMiembros.module.css";
 
-function NuevosCiudadanos({ onClose }) {
+function NuevosMiembros({ onClose }) {
   const overlayRef = useRef();
   const [fileName, setFileName] = useState("");
 
@@ -26,7 +26,7 @@ function NuevosCiudadanos({ onClose }) {
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
       const json = XLSX.utils.sheet_to_json(sheet);
-      console.log("Ciudadanos cargados:", json);
+      console.log("Miembros cargados:", json);
     };
     reader.readAsArrayBuffer(file);
   };
@@ -45,7 +45,7 @@ function NuevosCiudadanos({ onClose }) {
       onDragOver={(e) => e.preventDefault()}
     >
       <div className={styles.modalContent}>
-        <h2 className={styles.title}>Cargar nuevos ciudadanos</h2>
+        <h2 className={styles.title}>Cargar nuevos miembros de mesa</h2>
         <div className={styles.dropZone}>
           <p>Arrastrá y soltá un archivo .xlsx aquí</p>
           <p>o</p>
@@ -60,4 +60,4 @@ function NuevosCiudadanos({ onClose }) {
   );
 }
 
-export default NuevosCiudadanos;
+export default NuevosMiembros;

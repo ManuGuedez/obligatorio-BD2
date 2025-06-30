@@ -4,8 +4,17 @@ import { useState } from "react";
 import AdminCard from "../../Components/Cards/HomeAdminCard/AdminCard";
 import NuevoCiudadano from "../../Components/Modals/Ciudadano/NuevoCiudadano";
 import EditarCiudadano from "../../Components/Modals/Ciudadano/EditarCiudadano";
-import NuevosCiudadanos
- from "../../Components/Modals/Ciudadano/NuevosCiudadanos";
+import NuevosCiudadanos from "../../Components/Modals/Ciudadano/NuevosCiudadanos";
+import NuevoCircuito from "../../Components/Modals/Circuito/NuevoCircuito";
+import EditarCircuito from "../../Components/Modals/Circuito/EditarCircuito";
+import NuevosCircuitos from "../../Components/Modals/Circuito/NuevosCircuitos";
+import NuevoMiembro from "../../Components/Modals/MiembroMesa/NuevoMiembro";
+import EditarMiembro from "../../Components/Modals/MiembroMesa/EditarMiembro";
+import NuevosMiembros from "../../Components/Modals/MiembroMesa/NuevosMiembros";
+import NuevoEstablecimiento from "../../Components/Modals/Establecimiento/NuevoEstablecimiento";
+import EditarEstablecimiento from "../../Components/Modals/Establecimiento/EditarEstablecimiento";
+import NuevosEstablecimientos from "../../Components/Modals/Establecimiento/NuevosEstablecimientos";
+
 function Datos() {
   const [modal, setModal] = useState(null);
 
@@ -37,15 +46,15 @@ function Datos() {
           buttons={[
             {
               label: "Nuevo Circuito",
-              onClick: () => setModal("nuevoCiudadano"),
+              onClick: () => setModal("nuevoCircuito"),
             },
             {
               label: "Editar Circuito",
-              onClick: () => setModal("editarCiudadano"),
+              onClick: () => setModal("editarCircuito"),
             },
             {
               label: "Nuevos Circuitos",
-              onClick: () => setModal("listaCiudadanos"),
+              onClick: () => setModal("nuevosCircuitos"),
             },
           ]}
         />
@@ -54,15 +63,15 @@ function Datos() {
           buttons={[
             {
               label: "Nuevo Establecimiento",
-              onClick: () => setModal("nuevoCiudadano"),
+              onClick: () => setModal("nuevoEstablecimiento"),
             },
             {
               label: "Editar Establecimiento",
-              onClick: () => setModal("editarCiudadano"),
+              onClick: () => setModal("editarEstablecimiento"),
             },
             {
               label: "Nuevos Establecimientos",
-              onClick: () => setModal("listaCiudadanos"),
+              onClick: () => setModal("nuevosEstablecimientos"),
             },
           ]}
         />
@@ -71,15 +80,15 @@ function Datos() {
           buttons={[
             {
               label: "Nuevo Miembro",
-              onClick: () => setModal("nuevoCiudadano"),
+              onClick: () => setModal("nuevoMiembro"),
             },
             {
               label: "Editar Miembro",
-              onClick: () => setModal("editarCiudadano"),
+              onClick: () => setModal("editarMiembro"),
             },
             {
               label: "Nuevos Miembros",
-              onClick: () => setModal("listaCiudadanos"),
+              onClick: () => setModal("nuevosMiembros"),
             },
           ]}
         />
@@ -87,6 +96,15 @@ function Datos() {
       {modal === "nuevoCiudadano" && <NuevoCiudadano onClose={handleClose} />}
       {modal === "editarCiudadano" && <EditarCiudadano onClose={handleClose} />}
       {modal === "nuevosCiudadanos" && <NuevosCiudadanos onClose={handleClose} />}
+      {modal === "nuevoCircuito" && <NuevoCircuito onClose={handleClose} />}
+      {modal === "editarCircuito" && <EditarCircuito onClose={handleClose} />}
+      {modal === "nuevosCircuitos" && <NuevosCircuitos onClose={handleClose} />}
+      {modal === "nuevoMiembro" && <NuevoMiembro onClose={handleClose} />}
+      {modal === "editarMiembro" && <EditarMiembro onClose={handleClose} />}
+      {modal === "nuevosMiembros" && <NuevosMiembros onClose={handleClose} />}
+      {modal === "nuevoEstablecimiento" && <NuevoEstablecimiento onClose={handleClose} />}
+      {modal === "editarEstablecimiento" && <EditarEstablecimiento onClose={handleClose} />}
+      {modal === "nuevosEstablecimientos" && <NuevosEstablecimientos onClose={handleClose} />}
     </div>
   );
 }

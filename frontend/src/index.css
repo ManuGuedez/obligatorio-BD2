@@ -15,3 +15,16 @@
     --bulma-danger-s: 58%;
     --bulma-danger-l: 39%;
 }
+
+#root, body, html {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+body {
+  background-color: #f9f9fb;
+}
