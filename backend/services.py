@@ -368,13 +368,15 @@ def cerrar_circuito(id_miembro, nro):
     query = '''
         UPDATE Circuito
         SET es_cerrado = TRUE
-        WHERE nro = %s AND es_cerrado = FALSE
+        WHERE nro = %s AND es_cerrado = FALSE 
     '''
     cursor.execute(query, (nro,))
     cnx.commit()
     
     if cursor.rowcount > 0:
         return 1, "Circuito cerrado exitosamente"
+    elif cursor.rowcount == 0:  
+        return -1, "El circuito ya está cerrado"
     else:
         return -1, "No se encontró el circuito."
 
