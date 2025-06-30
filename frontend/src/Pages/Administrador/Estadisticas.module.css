@@ -1,0 +1,40 @@
+.pageContainer {
+    display: flex;
+    width: 100vw;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.pageContent {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+    padding: 0 2.5rem 2.5rem 2.5rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.cardPanel {
+    background-color: #C4D1E7;
+    padding: 20px;
+    padding-right: 40px;
+}
+
+.consultaPanel {
+    padding: 30px;
+    align-items: center;
+    flex-direction: column;
+}
+
+.cardPanel,
+.consultaPanel,
+.mapaPanel {
+    border-radius: 20px;
+    height: 250px;
+    display: flex;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    flex-grow: 0;
+}
