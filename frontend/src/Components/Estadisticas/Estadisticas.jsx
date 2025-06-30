@@ -1,3 +1,4 @@
+import React from "react";
 function Estadisticas(){
     return <h1>Aquí irán las estadísticas de la mesa</h1>;
 }

@@ -16,8 +16,8 @@ function App() {
             <Route path="/Login" element={<Login />} />
             <Route path="/HomeMiembroMesa" element={<HomeMiembroMesa />} />
             <Route path="/HomeAdministrador/*" element={<HomeAdministrador />} />
-           <Route path="/Estadisticas" element={<Estadisticas />} />
-           <Route path="/Configuracion" element={<Configuracion />} />
+            <Route path="/Estadisticas" element={<Estadisticas />} />
+            <Route path="/Configuracion" element={<Configuracion />} />
 
         </Routes>
     )

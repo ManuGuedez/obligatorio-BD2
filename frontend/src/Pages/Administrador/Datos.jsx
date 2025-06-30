@@ -1,5 +1,5 @@
 import React from "react";
-import classes from "./AdminContent.module.css";
+import classes from "./Datos.module.css";
 import { useState } from "react";
 import AdminCard from "../../Components/Cards/HomeAdminCard/AdminCard";
 import NuevoCiudadano from "../../Components/Modals/Ciudadano/NuevoCiudadano";

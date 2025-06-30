@@ -5,7 +5,7 @@ function CountdownToEvening() {
 
     useEffect(() => {
         const targetTime = new Date();
-        targetTime.setHours(19, 30, 0, 0); // Hoy a las 19:30:00
+        targetTime.setHours(23, 30, 0, 0); // Hoy a las 19:30:00
 
         const interval = setInterval(() => {
             const now = new Date();
