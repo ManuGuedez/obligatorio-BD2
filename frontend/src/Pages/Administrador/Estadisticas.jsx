@@ -2,7 +2,6 @@ import React, {useEffect} from 'react';
 import { PieChart } from '@mui/x-charts/PieChart';
 import classes from './Estadisticas.module.css'; 
 import MapaUruguay from './VotosPorDepartamento';
-import { fontSize } from '@mui/system';
 
 function Estadisticas() {
     const plebiscitoSí = 500;
@@ -10,8 +9,8 @@ function Estadisticas() {
 
     const papeleta = {
         color: "#ffd166",
-        text: "Plebiscito",
-        descripcion: "Sí por la reforma constitucional",
+        text: "Votos por Sí",
+        descripcion: "Plebiscito Artículo 11",
     };
     
     const getTotal = () => { 
@@ -23,10 +22,7 @@ function Estadisticas() {
     };
 
     useEffect(() => {
-        const total = getTotal();
-        if (total) {
-            console.log(`El porcentaje de votos a favor del plebiscito es: ${total}%`);
-        }
+        getTotal();
     }, [plebiscitoSí, votosPlebiscito]);
 
     return (
@@ -55,8 +51,8 @@ function Estadisticas() {
                 </div>
                 <div className={classes.consultaPanel} style={{ backgroundColor: papeleta.color }}>
                     <p className="title is-1 mt-3" style={{fontSize: '60px'}}>{getTotal().toFixed(2)}%</p>
-                    <p className="title is-4 mt-5">{papeleta.text}</p>
-                    <p className="subtitle is-6 mt-3">{papeleta.descripcion}</p>
+                    <p className="title is-4">{papeleta.text}</p>
+                    <p className="subtitle is-6 mt-6">{papeleta.descripcion}</p>
                 </div>
                 <MapaUruguay className={classes.mapaPanel}/>
             </div>

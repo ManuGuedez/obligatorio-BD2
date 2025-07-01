@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 
 export default function MapaUruguay() {
-
+    const [tooltip, setTooltip] = useState({ visible: false, content: '', x: 0, y: 0 });
     const votosPorDepartamento = {
         Dep1: { PartidoA: 760, PartidoB: 529, PartidoC: 791 },
         Dep2: { PartidoA: 890, PartidoB: 786, PartidoC: 869 },
@@ -16,7 +16,7 @@ export default function MapaUruguay() {
         Dep10: { PartidoA: 964, PartidoB: 974, PartidoC: 703 },
         Dep11: { PartidoA: 991, PartidoB: 111, PartidoC: 915 },
         Dep12: { PartidoA: 436, PartidoB: 224, PartidoC: 397 },
-        Dep13: { PartidoA: 519, PartidoB: 3001, PartidoC: 982 },
+        Dep13: { PartidoA: 519, PartidoB: 301, PartidoC: 982 },
         Dep14: { PartidoA: 369, PartidoB: 841, PartidoC: 515 },
         Dep15: { PartidoA: 896, PartidoB: 476, PartidoC: 948 },
         Dep16: { PartidoA: 661, PartidoB: 420, PartidoC: 688 },
@@ -35,12 +35,34 @@ export default function MapaUruguay() {
         return Object.entries(votos).reduce((a, b) => (b[1] > a[1] ? b : a))[0];
     };
 
+    const calcularPorcentajeGanador = (votos) => {
+        const totalVotos = Object.values(votos).reduce((sum, voto) => sum + voto, 0);
+        const ganador = getGanador(votos);
+        const votosGanador = votos[ganador];
+        const porcentaje = ((votosGanador / totalVotos) * 100).toFixed(1);
+        return { ganador, votosGanador, porcentaje, totalVotos };
+    };
+
     useEffect(() => {
         Object.entries(votosPorDepartamento).forEach(([depId, votos]) => {
-            const ganador = getGanador(votos);
+            const { ganador, porcentaje } = calcularPorcentajeGanador(votos);
             const path = document.getElementById(depId);
             if (path) {
                 path.setAttribute('fill', coloresPorPartido[ganador]);
+                path.addEventListener('mouseenter', (e) => {
+                    setTooltip({ 
+                        visible: true, 
+                        content: `${ganador}: ${porcentaje}%`, 
+                        x: e.clientX, 
+                        y: e.clientY 
+                    });
+                });
+                path.addEventListener('mousemove', (e) => {
+                    setTooltip(prev => ({ ...prev, x: e.clientX, y: e.clientY }));
+                });
+                path.addEventListener('mouseleave', (e) => {
+                    setTooltip(prev => ({ ...prev, visible: false }));
+                });
             }
         });
     }, []);
@@ -48,6 +70,7 @@ export default function MapaUruguay() {
 
     return (
         <div style={{ position: 'relative', width: '100%', maxWidth: '710px', height: '100%', backgroundColor: '#C4D1E7', borderRadius: '20px', overflow: 'hidden', flexShrink: 0, flexGrow: 0}}>
+            <style>{`.maplabels1 { user-select: none; }`}</style>
             <svg xmlns="http://www.w3.org/2000/svg" version="1.1" baseProfile="full" viewBox="0 0 800 533" width="100%" height="100%">
                 <path id="Dep18" d="M 498.8564 192.1411 L 512.7405 206.3613 L 516.7351 209.3605 L 520.2643 212.8768 L 522.7852 214.0661 L 524.8795 211.946 L 527.7106 211.6875 L 530.309 213.3422 L 532.7135 216.1862 L 537.445 217.4273 L 540.3149 219.9093 L 541.1681 222.65 L 544.8136 225.856 L 549.0797 226.8902 L 550.5534 228.8034 L 550.5534 231.906 L 552.4926 237.077 L 556.0218 242.7651 L 557.224 248.1947 L 557.3404 252.59 L 563.4292 262.5183 L 569.5956 267.7927 L 573.7065 272.8603 L 577.7787 274.4116 L 580.8813 276.48 L 584.4493 276.9971 L 589.1032 279.7894 L 591.1586 281.7544 L 590.4218 285.6844 L 584.2554 288.9938 L 577.7787 289.4075 L 580.6486 291.7344 L 575.6457 292.6135 L 572.737 291.0622 L 568.82 290.4417 L 567.036 288.8904 L 559.2019 289.5626 L 554.8583 288.8904 L 542.6806 289.4592 L 540.2373 288.5284 L 535.7385 284.5984 L 533.0625 284.1331 L 531.0071 285.219 L 527.982 288.5801 L 528.6801 291.5276 L 527.2452 291.8895 L 521.1951 288.0113 L 509.8706 285.5292 L 507.7376 284.0296 L 500.7568 286.9254 L 494.6292 287.1839 L 492.6512 290.028 L 489.5487 290.1831 L 487.1054 292.8203 L 480.7838 292.0447 L 477.371 293.3891 L 470.8943 293.9579 L 466.5507 296.0781 L 463.1378 299.1289 L 457.0877 302.5418 L 455.5752 304.5068 L 456.7387 309.9363 L 453.0156 309.3675 L 445.9184 309.109 L 444.6386 307.3508 L 437.8129 302.6969 L 434.4 297.8879 L 434.8654 292.6652 L 432.8099 287.8562 L 435.2145 286.2532 L 435.5247 284.4433 L 433.6632 278.3933 L 436.0677 270.1197 L 435.835 266.138 L 434.4 263.2423 L 440.9155 260.2948 L 443.4363 260.1914 L 450.6111 262.7252 L 455.4589 261.3807 L 458.9881 258.1747 L 461.6641 254.5033 L 464.2625 253.7793 L 466.0853 251.1938 L 470.3513 247.8844 L 473.3376 241.6275 L 472.368 238.7317 L 473.4152 235.7843 L 475.7809 232.7334 L 476.8668 229.7859 L 481.5595 232.3197 L 484.2355 231.8026 L 489.0445 230.7684 L 490.4019 227.9244 L 489.7038 226.5282 L 492.341 224.0461 L 492.6125 221.5123 L 489.316 219.961 L 491.9144 216.3414 L 495.7926 207.6024 L 495.909 203.931 L 494.8231 197.9843 L 498.8564 192.1411 Z" fill="none" fillOpacity="1" stroke="#000000" strokeWidth="0.4545454446934474" paintOrder="fill" strokeOpacity="1" strokeDasharray="" strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit="10" transform="matrix(1.100000023841858,0,0,1.100000023841858,-40.000003814697266,-26.649986267089844)" clipPath="none"/>
                 <path id="Dep10" d="M 434.4 263.2423 L 435.835 266.138 L 436.0677 270.1197 L 433.6632 278.3933 L 435.5247 284.4433 L 435.2145 286.2532 L 432.8099 287.8562 L 434.8654 292.6652 L 434.4 297.8879 L 437.8129 302.6969 L 444.6386 307.3508 L 445.9184 309.109 L 453.0156 309.3675 L 456.7387 309.9363 L 454.6057 312.7804 L 450.5335 315.3659 L 449.2537 317.9513 L 444.3283 320.7437 L 438.4722 325.6044 L 435.2145 324.5185 L 427.9621 328.345 L 425.8679 330.8271 L 411.9838 338.5319 L 410.3161 339.2041 L 405.0805 338.9973 L 401.3962 342.0482 L 396.9362 344.0649 L 392.9028 344.7888 L 389.296 343.5995 L 383.0521 344.582 L 380.9966 347.6328 L 377.7001 349.6495 L 372.193 348.3051 L 366.7247 348.0982 L 365.057 344.5302 L 363.3894 343.858 L 359.007 344.0131 L 354.9736 341.5311 L 354.3918 342.1516 L 354.6245 347.426 L 351.871 349.8047 L 346.17 349.6495 L 344.3084 347.0123 L 343.8042 343.0824 L 335.5436 332.4818 L 331.5102 330.9305 L 326.3134 330.1549 L 323.521 327.5694 L 322.629 324.4668 L 320.9226 323.174 L 314.3684 321.8813 L 310.4513 322.4501 L 306.6894 320.5368 L 303.2766 317.124 L 303.0439 312.9872 L 299.5147 312.1081 L 303.8971 308.1265 L 306.4568 306.9371 L 310.7616 308.5401 L 314.7174 308.5919 L 313.5539 305.8512 L 317.3934 305.2307 L 318.6344 302.8003 L 321.3492 305.0756 L 322.3576 304.2999 L 322.3576 301.0422 L 325.8868 300.6285 L 326.6624 296.7503 L 328.2913 295.1473 L 331.7429 294.475 L 333.9923 292.7686 L 336.6683 292.7686 L 338.8401 294.0614 L 342.7959 292.1481 L 350.9402 291.7344 L 354.004 294.2682 L 355.5553 294.4233 L 358.8906 290.39 L 363.6609 291.1656 L 368.8189 291.1656 L 369.2843 288.5801 L 372.8911 282.7369 L 379.135 281.1856 L 384.2155 280.5651 L 390.6146 273.1706 L 393.9112 272.1881 L 397.6343 274.9287 L 400.3878 272.7052 L 401.9003 269.3957 L 401.4349 265.5692 L 403.7231 265.3106 L 406.4379 267.5342 L 408.9975 266.8619 L 410.9366 263.1388 L 417.1418 264.4316 L 420.322 263.8628 L 422.2223 258.7952 L 424.0451 257.2956 L 425.9454 258.2781 L 426.9926 261.1221 L 432.1119 263.6042 L 434.4 263.2423 Z" fill="none" fillOpacity="1" stroke="#000000" strokeWidth="0.4545454446934474" paintOrder="fill" strokeOpacity="1" strokeDasharray="" strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit="10" transform="matrix(1.100000023841858,0,0,1.100000023841858,-40.000003814697266,-26.649986267089844)" clipPath="none"/>
@@ -89,6 +112,24 @@ export default function MapaUruguay() {
                 <text transform="matrix(1 0 0 1 258.2611 218.6347)" style={{fontFamily:'Tahoma', fontSize: '13px'}} className="maplabels1">Paysandú</text>
                 <text transform="matrix(1 0 0 1 236.9947 300.5717)" style={{fontFamily:'Tahoma', fontSize: '13px'}} className="maplabels1">Río Negro</text>
             </svg>
+            {tooltip.visible && (
+                <div style={{
+                    position: 'fixed',
+                    top: tooltip.y - 15,
+                    left: tooltip.x + 5,
+                    background: 'rgba(0, 0, 0, 0.75)',
+                    color: 'white',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    pointerEvents: 'none',
+                    zIndex: 1000,
+                    whiteSpace: 'nowrap'
+                }}>
+                    {tooltip.content}
+                </div>
+            )}
         </div>
     );
 }
