@@ -5,6 +5,9 @@ import classes from "./Tables.module.css";
 const Tables = ({ reportsArray }) => {
     const [selectedTabIndex, setSelectedTabIndex] = useState(0);
     const [circuito, setCircuito] = useState("");
+    const circuitos = ["101", "102", "103", "104", "105", "106", "107", "108", "109", "110"];
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [circuitoInput, setCircuitoInput] = useState("");
 
     const renderContent = () => {
         if (!reportsArray || !Array.isArray(reportsArray) || reportsArray.length < 3) {
@@ -84,23 +87,51 @@ const Tables = ({ reportsArray }) => {
         }
     };
 
-
-
     if (!circuito) {
         return (
-            <div className={classes.tablesPanel}>
+            <div className={classes.selectCircuito}>
                 <h2 className="title is-5 mb-4">Seleccioná un circuito</h2>
-                <div className="select is-link is-rounded is-medium">
-                    <select onChange={(e) => setCircuito(e.target.value)} defaultValue="">
-                    <option value="" disabled>Elegí un circuito</option>
-                    <option value="101">Circuito 101</option>
-                    <option value="102">Circuito 102</option>
-                    <option value="103">Circuito 103</option>
-                    </select>
+                <div className={`dropdown ${showDropdown ? "is-active" : ""}`} style={{ width: "300px" }}>
+                    <div className="dropdown-trigger" style={{ width: "100%" }}>
+                        <input
+                            className="input is-rounded"
+                            type="text"
+                            placeholder="Buscar nº de circuito"
+                            value={circuitoInput}
+                            onFocus={() => setShowDropdown(true)}
+                            onChange={(e) => {
+                            setCircuitoInput(e.target.value);
+                            setShowDropdown(true);
+                            }}
+                        />
+                    </div>
+                    <div className="dropdown-menu" style={{ width: "100%" }}>
+                        <div className={`dropdown-content`} style={{ maxHeight: "150px", overflowY: "auto" }}>
+                            {circuitos
+                            .filter((c) => c.includes(circuitoInput))
+                            .map((c) => (
+                                <a
+                                key={c}
+                                className="dropdown-item"
+                                onClick={() => {
+                                    setCircuito(c);
+                                    setCircuitoInput(c);
+                                    setShowDropdown(false);
+                                }}
+                                >
+                                Circuito {c}
+                                </a>
+                            ))}
+                            {circuitos.filter((c) => c.toLowerCase().includes(circuitoInput)).length === 0 && (
+                                <div className="dropdown-item has-text-grey">Sin resultados</div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
         );
     }
+
 
     return (
         <div className={classes.tablesPanel}>
@@ -108,7 +139,7 @@ const Tables = ({ reportsArray }) => {
                 <h1 className={`${classes.header}`}>Resultados</h1>
                 <div className="select is-link ml-auto mt-auto is-rounded is-small">
                     <select onChange={(e) => setCircuito(e.target.value)} defaultValue={circuito}>
-                        <option value="" disabled>Elegir circuito</option>
+                        <option value="">Volver a inicio</option>
                         <option value="101">Circuito 101</option>
                         <option value="102">Circuito 102</option>
                         <option value="103">Circuito 103</option>

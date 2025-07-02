@@ -45,7 +45,6 @@ function NuevoPolicia({ onClose }) {
           </label>
           <div className={styles.buttonRow}>
             <button type="button" className={styles.cancelButton} onClick={onClose}>Cancelar</button>
-
             <button type="submit" className={styles.submitButton}>Añadir Policía</button>
           </div>
         </form>
