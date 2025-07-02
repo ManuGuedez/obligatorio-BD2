@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './Eleccion.module.css'; 
 import AdminCard from '../../Components/Cards/HomeAdminCard/AdminCard';
-import CountdownToEvening from '../../Components/Countdown';
+import CountdownToEvening from '../../Components/AdminStats/Countdown';
 
 function Eleccion() {
     const [progress, setProgress] = React.useState(90);

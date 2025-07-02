@@ -1,60 +1,50 @@
 import React, {useEffect} from 'react';
-import { PieChart } from '@mui/x-charts/PieChart';
 import classes from './Estadisticas.module.css'; 
-import MapaUruguay from './VotosPorDepartamento';
+import MapaUruguay from '../../Components/AdminStats/VotosPorDepartamento';
+import Presidente from '../../Components/AdminStats/Presidente';
+import Tables from '../../Components/AdminStats/Tables';
+import Consulta from '../../Components/AdminStats/Consulta';
+import PieChartComponent from '../../Components/AdminStats/PieChart';
 
 function Estadisticas() {
-    const plebiscitoSí = 500;
-    const votosPlebiscito = 700;
-
-    const papeleta = {
-        color: "#ffd166",
-        text: "Votos por Sí",
-        descripcion: "Plebiscito Artículo 11",
-    };
-    
-    const getTotal = () => { 
-        if (!votosPlebiscito) return 0;
-        if (plebiscitoSí > votosPlebiscito) {
-            return alert("El número de votos del plebiscito no puede ser menor que el número de votos a favor del plebiscito");
-        }
-        return (plebiscitoSí) * 100 / votosPlebiscito;
-    };
-
-    useEffect(() => {
-        getTotal();
-    }, [plebiscitoSí, votosPlebiscito]);
-
     return (
         <div className={classes.pageContainer}>
             <p className="title h1 has-text-link ">Estadísticas</p>
             <div className={classes.pageContent}>
-                <div className={`${classes.cardPanel}`}>
-                    <PieChart
-                        series={[
-                            {
-                            data: [
-                                { id: 0, value: 10, label: 'Partido 1', color: '#ef476f' },
-                                { id: 1, value: 15, label: 'Partido 2', color: '#ffd166' },
-                                { id: 2, value: 20, label: 'Partido 3', color: '#06d6a0' },
-                                { id: 3, value: 25, label: 'Partido 4', color: '#118ab2' },
-                                { id: 4, value: 30, label: 'Partido 5', color: '#073b4c' },
-                            ],
-                            highlightScope: { fade: 'global', highlight: 'item'},
-                            faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
-                            valueFormatter: (value) => `${value}%`,
-                            }
-                        ]}
-                        width={250}
-                        height={200}
-                    />
-                </div>
-                <div className={classes.consultaPanel} style={{ backgroundColor: papeleta.color }}>
-                    <p className="title is-1 mt-3" style={{fontSize: '60px'}}>{getTotal().toFixed(2)}%</p>
-                    <p className="title is-4">{papeleta.text}</p>
-                    <p className="subtitle is-6 mt-6">{papeleta.descripcion}</p>
-                </div>
+                <PieChartComponent 
+                    data={[
+                        { votosFavor: 300, votosTotal: 1000, color: '#ef476f', texto: 'Partido 1' },
+                        { votosFavor: 200, votosTotal: 1000, color: '#ffd166', texto: 'Partido 2' },
+                        { votosFavor: 500, votosTotal: 1000, color: '#06d6a0', texto: 'Partido 3' },
+                        { votosFavor: 400, votosTotal: 1000, color: '#118ab2', texto: 'Partido 4' },
+                        { votosFavor: 100, votosTotal: 1000, color: '#073b4c', texto: 'Partido 5' }
+                    ]}
+                    title="Distribución de Votos por Partido"
+                />
+                <Consulta votosFavor={300} votosTotal={1000} color="#ef476f" texto="Partido 1" descripcion="Descripción del Partido 1"/>
+                <Consulta votosFavor={200} votosTotal={1000} color="#ffd166" texto="Partido 2" descripcion="Descripción del Partido 2"/>
+                <Presidente className={classes.presidentePanel}/>
                 <MapaUruguay className={classes.mapaPanel}/>
+                <Tables reportsArray={[
+                    [
+                        { lista: 'Lista 1', partido: 'Partido A', votos: 300, porcentaje: '30%' },
+                        { lista: 'Lista 2', partido: 'Partido B', votos: 200, porcentaje: '20%' },
+                    ],
+                    [
+                        { partido: 'Partido A', votos: 300, porcentaje: '30%' },
+                        { partido: 'Partido B', votos: 200, porcentaje: '20%' },
+                    ],
+                    [
+                        { partido: 'Partido A', candidato: 'Candidato 1', votos: 150, porcentaje: '15%' },
+                        { partido: 'Partido B', candidato: 'Candidato 2', votos: 100, porcentaje: '10%' },
+                        { partido: 'Partido C', candidato: 'Candidato 3', votos: 50, porcentaje: '5%' },
+                        { partido: 'Partido D', candidato: 'Candidato 4', votos: 200, porcentaje: '20%' },
+                        { partido: 'Partido E', candidato: 'Candidato 5', votos: 250, porcentaje: '25%' },
+                        { partido: 'Partido F', candidato: 'Candidato 6', votos: 100, porcentaje: '10%' },
+                        { partido: 'Partido G', candidato: 'Candidato 7', votos: 50, porcentaje: '5%' },
+                        { partido: 'Partido H', candidato: 'Candidato 8', votos: 50, porcentaje: '5%' },
+                    ]
+                ]}/>
             </div>
         </div>
     );

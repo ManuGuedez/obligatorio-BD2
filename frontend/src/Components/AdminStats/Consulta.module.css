@@ -1,0 +1,12 @@
+.consultaPanel {
+    padding: 30px;
+    align-items: center;
+    flex-direction: column;
+    border-radius: 20px;
+    width: 270px;
+    height: 250px;
+    display: flex;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    flex-grow: 0;
+}
