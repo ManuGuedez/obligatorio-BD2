@@ -14,7 +14,6 @@ import NuevosMiembros from "../../Components/Modals/MiembroMesa/NuevosMiembros";
 import NuevoEstablecimiento from "../../Components/Modals/Establecimiento/NuevoEstablecimiento";
 import EditarEstablecimiento from "../../Components/Modals/Establecimiento/EditarEstablecimiento";
 import NuevosEstablecimientos from "../../Components/Modals/Establecimiento/NuevosEstablecimientos";
-import NuevosCiudadanos from "../../Components/Modals/Ciudadano/NuevosCiudadanos";
 import NuevoPolicia from "../../Components/Modals/Policías/NuevoPolicia";
 import EditarPolicia from "../../Components/Modals/Policías/EditarPolicia";
 import NuevosPolicias from "../../Components/Modals/Policías/NuevosPolicias";
@@ -159,7 +158,7 @@ function Datos() {
       {modal === "nuevosCiudadanos" && <NuevosCiudadanos onClose={handleClose} />}
       {modal === "nuevoCircuito" && <NuevoCircuito onClose={handleClose} />}
       {modal === "editarCircuito" && <EditarCircuito onClose={handleClose} />}
-      {modal === "nuevoCircuito" && (<NuevoCircuito onClose={() => setModal(null)} setModal={setModal} />)}
+      {modal === "nuevosCircuito" && <NuevosCircuitos onClose={handleClose}/>}
       {modal === "nuevoMiembro" && <NuevoMiembro onClose={handleClose} />}
       {modal === "editarMiembro" && <EditarMiembro onClose={handleClose} />}
       {modal === "nuevosMiembros" && <NuevosMiembros onClose={handleClose} />}
