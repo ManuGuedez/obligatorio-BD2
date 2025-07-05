@@ -75,7 +75,8 @@ function HomeMiembroMesa() {
 
 
   return (
-    <div className={classes.container}>
+    <div className={classes.homeContainer}>
+
       <aside className={classes.sidebar}>
         <img src={escudo} alt="logo" className={classes.logo} />
         <nav className={classes.nav}>

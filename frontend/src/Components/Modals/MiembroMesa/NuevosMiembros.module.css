@@ -1,4 +1,4 @@
-/* NuevosCiudadanos.module.css */
+/* NuevosMiembros.module.css */
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -22,50 +22,6 @@
 
 .title {
   font-size: 1.5rem;
-  font-weight: bold;
-  color: #495E92;
-  margin-bottom: 1rem;
-}
-
-.dropZone {
-  border: 2px dashed #34495e;
-  padding: 2rem;
-  border-radius: 20px;
-  background-color: #ecf0f1;
-  margin-bottom: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-input[type="file"] {
-  margin-top: 0.5rem;
-  cursor: pointer;
-}
-
-.submitButton {
-  align-self: flex-end;
-  background-color: #495E92;
-  color: #E8C06C;
-}
-
-.fileName {
-  margin-top: 1rem;
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-.buttonRow {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 1rem;
-}
-
-.cancelButton {
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 30px;
   font-weight: bold;
   color: #34495e;
   margin-bottom: 1rem;
@@ -105,6 +61,7 @@ input[type="file"] {
   padding: 0.6rem 1.2rem;
   border-radius: 30px;
   font-weight: bold;
+  background-color: #cfd8dc;
+  color: #34495e;
   cursor: pointer;
-  color: #2c3e50;
 }

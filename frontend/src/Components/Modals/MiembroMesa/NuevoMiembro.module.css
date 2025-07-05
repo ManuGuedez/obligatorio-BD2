@@ -1,0 +1,83 @@
+/* NuevoMiembro.module.css */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background-color: #a2c0f0;
+  padding: 2rem;
+  border-radius: 20px;
+  width: 400px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+}
+
+.label {
+  font-weight: bold;
+  margin-top: 1rem;
+  color: #34495e;
+}
+
+.input,
+.select {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 20px;
+  border: none;
+  outline: none;
+  margin-top: 0.25rem;
+  background-color: white;
+}
+
+.buttonRow {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+}
+
+.cancelButton {
+  background-color: #ccc;
+  color: #333;
+  border: none;
+  border-radius: 20px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.submitButton {
+  background-color: #3949ab;
+  color: gold;
+  border: none;
+  border-radius: 20px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.closeButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  color: #2c3e50;
+}

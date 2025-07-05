@@ -27,3 +27,15 @@ services:
       - /app/node_modules
     stdin_open: true
     tty: true
+
+  frontend-votante:
+    build: ./frontend-votante
+    depends_on:
+      - backend
+    ports:
+      - "5174:5174"
+    volumes:
+      - ./frontend-votante:/app
+      - /app/node_modules
+    stdin_open: true
+    tty: true

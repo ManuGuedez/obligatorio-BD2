@@ -1,0 +1,111 @@
+/* EditarEstablecimiento.module.css */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background-color: #a2c0f0;
+  padding: 2rem;
+  border-radius: 20px;
+  width: 600px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  color: #34495e;
+  margin-bottom: 1rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.searchInput {
+  flex: 1;
+  border-radius: 20px;
+  padding: 0.5rem 1rem;
+  border: none;
+  outline: none;
+  background-color: white;
+  font-size: 1rem;
+}
+
+.searchIcon {
+  background-color: #3b4da0;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.3rem;
+}
+
+.input {
+  border-radius: 20px;
+  padding: 0.5rem 1rem;
+  border: none;
+  outline: none;
+  background-color: white;
+  font-size: 1rem;
+}
+
+.buttonRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.cancelButton,
+.saveButton {
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 30px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.cancelButton {
+  background-color: #cfd8dc;
+  color: #34495e;
+}
+
+.saveButton {
+  background-color: #3b4da0;
+  color: white;
+}

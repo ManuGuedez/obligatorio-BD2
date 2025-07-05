@@ -1,8 +1,19 @@
-.container {
-  display: flex;
-  height: 100vh;
-  background-color: #f9f9fb;
+.homeContainer {
+  display: flex !important;
+  height: 100vh !important;
+  background-color: #f9f9fb !important;
 }
+
+.main {
+  flex-grow: 1 !important;
+  padding: 2rem !important;
+  overflow-y: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+}
+
 
 .sidebar {
   width: 220px;
@@ -33,7 +44,7 @@
   padding: 10px;
   font-size: 0.95rem;
   cursor: pointer;
-  color: #1e2a4a;
+  color: #234a1e;
 }
 
 .active {
@@ -43,14 +54,20 @@
 
 .main {
   flex-grow: 1;
+  width: 100%;
   padding: 2rem;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
+  max-width: 1000px;
 }
 
 .statusBox {
@@ -64,9 +81,9 @@
   background-color: #3b518a;
   color: white;
   padding: 1rem;
-  border-radius: 80%;
+  border-radius: 50%;
   width: 100px;
-  height: 95px;
+  height: 100px;
   text-align: center;
   font-weight: bold;
   font-size: 0.9rem;
@@ -78,7 +95,8 @@
 .searchBox {
   position: relative;
   margin: 1.5rem 0;
-  max-width: 500px;
+  width: 100%;
+  max-width: 1000px;
 }
 
 .searchBox input {
@@ -88,6 +106,7 @@
   border: none;
   background-color: #f3f3f7;
   font-size: 1rem;
+  box-sizing: border-box;
 }
 
 .searchIcon {
@@ -102,7 +121,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-width: 600px;
+  width: 100%;
+  max-width: 1000px;
 }
 
 .votante {
@@ -147,7 +167,8 @@
   font-size: 0.85rem;
 }
 
-.abrirBtn, .cerrarBtn {
+.abrirBtn,
+.cerrarBtn {
   margin-top: 2rem;
   padding: 12px 20px;
   font-size: 1rem;
@@ -156,6 +177,9 @@
   cursor: pointer;
   color: white;
   width: 200px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .abrirBtn {
