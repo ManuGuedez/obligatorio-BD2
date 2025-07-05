@@ -402,7 +402,7 @@ def update_circuito(nro, data):
     if not fields:
         return -1, "No se proporcionaron campos válidos para actualizar"
     query = f"UPDATE Circuito SET {', '.join(fields)} WHERE nro = %s"
-    values.append(id)
+    values.append(nro)
     cursor.execute(query, values)
     cnx.commit()
     
@@ -411,12 +411,12 @@ def update_circuito(nro, data):
     else:
         return -1, "No se encontró el circuito o no se realizaron cambios"
     
-def delete_circuito(id):
+def delete_circuito(nro):
     '''
-    elimina un circuito por su id
+    elimina un circuito por su nro
     '''
     query = 'DELETE FROM Circuito WHERE nro = %s'
-    cursor.execute(query, (id,))
+    cursor.execute(query, (nro,))
     cnx.commit()
     if cursor.rowcount > 0:
         return 1, "Circuito eliminado exitosamente"
@@ -877,3 +877,136 @@ def delete_member(id):
         return 1, "Miembro eliminado exitosamente"
     else:
         return -1, "No se encontró el miembro o no se realizaron cambios"
+    
+def crear_partido(calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente):
+    '''
+    argega un nuevo partido político
+    '''
+    try:
+        query = '''
+            INSERT INTO Partido_politico (calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        '''
+        values = (calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente)
+        cursor.execute(query, values)
+
+        cnx.commit()
+        return 1, "Partido creado exitosamente"
+
+    except IntegrityError as e:
+        if "Duplicate entry" in str(e):
+            return -1, f"El partido '{nombre}' ya fue ingresado."
+        else:
+            return -1, f"Error de integridad: {str(e)}"
+
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"
+
+def get_partidos_politicos():
+    '''
+    Obtiene todos los partidos políticos.
+    '''
+    query = '''
+        SELECT pp.id, pp.nombre, pp.calle, pp.numero, pp.telefono, pp.codigo_postal,
+               c.nombre AS presidente_nombre, c.apellido AS presidente_apellido,
+               v.nombre AS vicepresidente_nombre, v.apellido AS vicepresidente_apellido
+        FROM Partido_politico pp
+        JOIN Ciudadano c ON pp.ci_presidente = c.ci
+        JOIN Ciudadano v ON pp.ci_vicepresidente = v.ci
+    '''
+    cursor.execute(query)
+    result = cursor.fetchall()
+    
+    if result:
+        return result
+    return None
+
+def bulk_add_citizens(ciudadanos):
+    '''
+    Inserta muchos ciudadanos usando executemany.
+    '''
+    try:
+        query = '''
+            INSERT IGNORE INTO Ciudadano (ci, nombre, apellido, serie_credencial, nro_credencial, nro_circuito)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        '''
+        cursor.executemany(query, ciudadanos)
+        cnx.commit()
+        return 1, cursor.rowcount
+    except Exception as e:
+        return -1, str(e)
+    
+def bulk_add_circuitos(circuitos):
+    '''
+    Inserta muchos circuitos usando executemany.
+    '''
+    try:
+        query = '''
+            INSERT IGNORE INTO Circuito (nro, es_accesible, id_establecimiento)
+            VALUES (%s, %s, %s)
+        '''
+        cursor.executemany(query, circuitos)
+        cnx.commit()
+        return 1, cursor.rowcount
+    except Exception as e:
+        return -1, str(e)
+
+def bulk_add_members(miembros):
+    '''
+    Inserta muchos miembros de mesa usando executemany.
+    '''
+    try:
+        query = '''
+            INSERT IGNORE INTO Miembro_mesa (id_organismo, ci_ciudadano, nro_circuito, id_rol)
+            VALUES (%s, %s, %s, %s)
+        '''
+        cursor.executemany(query, miembros)
+        cnx.commit()
+        return 1, cursor.rowcount
+    except Exception as e:
+        return -1, str(e)
+
+def bulk_add_policias(policias):
+    '''
+    Inserta muchos policías usando executemany.
+    '''
+    try:
+        query = '''
+            INSERT IGNORE INTO Policia (id_comisaria, ci_ciudadano, id_establecimiento)
+            VALUES (%s, %s, %s)
+        '''
+        cursor.executemany(query, policias)
+        cnx.commit()
+        return 1, cursor.rowcount
+    except Exception as e:
+        return -1, str(e)
+
+def bulk_add_candidatos(candidatos):
+    '''
+    Inserta muchos candidatos usando executemany.
+    '''
+    try:
+        query = '''
+            INSERT IGNORE INTO Candidato (ci_ciudadano)
+            VALUES (%s)
+        '''
+        cursor.executemany(query, candidatos)
+        cnx.commit()
+        return 1, cursor.rowcount
+    except Exception as e:
+        return -1, str(e)
+
+def bulk_add_partidos(partidos):
+    '''
+    Inserta muchos partidos políticos usando executemany.
+    '''
+    try:
+        query = '''
+            INSERT IGNORE INTO Partido_politico (calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        '''
+        cursor.executemany(query, partidos)
+        cnx.commit()
+        return 1, cursor.rowcount
+    except Exception as e:
+        return -1, str(e)

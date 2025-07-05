@@ -3,6 +3,7 @@ from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity
 import services
 from datetime import timedelta
 from flask_cors import CORS
+import pandas as pd
 import os
 import mysql.connector
 
@@ -236,6 +237,39 @@ def crear_circuito():
     result = services.create_circuito(data)
 
     return result[1], 400 if result[0] < 0 else 200
+
+@app.route('/circuitos/bulk', methods=['POST'])
+@jwt_required()
+def bulk_add_circuitos():
+    '''
+    Recibe un archivo .xlsx con circuitos y los agrega en lote.
+    Columnas: nro, es_accesible, id_establecimiento
+    '''
+    claims = get_jwt()
+    if claims.get('role_description') != "admin":
+        return jsonify({"error": "Solo el administrador puede realizar esta acción."}), 400
+
+    if 'file' not in request.files:
+        return jsonify({"error": "No se ha proporcionado un archivo"}), 400
+
+    file = request.files['file']
+    try:
+        df = pd.read_excel(file)
+        required_cols = {'nro', 'es_accesible', 'id_establecimiento'}
+        if not required_cols.issubset(df.columns):
+            return jsonify({"error": "El archivo debe contener las columnas: " + ", ".join(required_cols)}), 400
+
+        circuitos = [
+            (int(row['nro']), bool(row['es_accesible']), int(row['id_establecimiento']))
+            for _, row in df.iterrows()
+        ]
+        result = services.bulk_add_circuitos(circuitos)
+        if result[0] < 0:
+            return jsonify({"error": result[1]}), 400
+        return jsonify({"message": "Circuitos agregados exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    
 
 @app.route('/circuitos/<int:nro>', methods=['PATCH'])
 @jwt_required()
@@ -496,6 +530,38 @@ def crear_policia():
         return jsonify({"error": result[1]}), 400
     return jsonify({"message": "Policia creado exitosamente"}), 200
 
+@app.route('/police/bulk', methods=['POST'])
+@jwt_required()
+def bulk_add_policias():
+    '''
+    Recibe un archivo .xlsx con policías y los agrega en lote.
+    Columnas: id_comisaria, ci_ciudadano, id_establecimiento
+    '''
+    claims = get_jwt()
+    if claims.get('role_description') != "admin":
+        return jsonify({"error": "Solo el administrador puede realizar esta acción."}), 400
+
+    if 'file' not in request.files:
+        return jsonify({"error": "No se ha proporcionado un archivo"}), 400
+
+    file = request.files['file']
+    try:
+        df = pd.read_excel(file)
+        required_cols = {'id_comisaria', 'ci_ciudadano', 'id_establecimiento'}
+        if not required_cols.issubset(df.columns):
+            return jsonify({"error": "El archivo debe contener las columnas: " + ", ".join(required_cols)}), 400
+
+        policias = [
+            (int(row['id_comisaria']), int(row['ci_ciudadano']), int(row['id_establecimiento']))
+            for _, row in df.iterrows()
+        ]
+        result = services.bulk_add_policias(policias)
+        if result[0] < 0:
+            return jsonify({"error": result[1]}), 400
+        return jsonify({"message": "Policías agregados exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
 @app.route('/police/<int:id>', methods=['PATCH'])
 @jwt_required()
 def update_policia(id):
@@ -600,6 +666,38 @@ def crear_candidato():
 
     return result[1], 400 if result[0] < 0 else 200
 
+@app.route('/candidatos/bulk', methods=['POST'])
+@jwt_required()
+def bulk_add_candidatos():
+    '''
+    Recibe un archivo .xlsx con candidatos y los agrega en lote.
+    Columnas: ci_ciudadano
+    '''
+    claims = get_jwt()
+    if claims.get('role_description') != "admin":
+        return jsonify({"error": "Solo el administrador puede realizar esta acción."}), 400
+
+    if 'file' not in request.files:
+        return jsonify({"error": "No se ha proporcionado un archivo"}), 400
+
+    file = request.files['file']
+    try:
+        df = pd.read_excel(file)
+        required_cols = {'ci_ciudadano'}
+        if not required_cols.issubset(df.columns):
+            return jsonify({"error": "El archivo debe contener la columna: ci_ciudadano"}), 400
+
+        candidatos = [
+            (int(row['ci_ciudadano']),)
+            for _, row in df.iterrows()
+        ]
+        result = services.bulk_add_candidatos(candidatos)
+        if result[0] < 0:
+            return jsonify({"error": result[1]}), 400
+        return jsonify({"message": "Candidatos agregados exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
 @app.route('/candidatos/<int:id>', methods=['DELETE'])
 @jwt_required()
 def delete_candidato(id):
@@ -650,6 +748,53 @@ def add_citizen():
         return jsonify({"error": result[1]}), 400
     else:
         return jsonify({"message": "Ciudadano agregado exitosamente"}), 200
+    
+@app.route('/ciudadano/bulk', methods=['POST'])
+@jwt_required()
+def bulk_add_citizens():
+    '''
+    Recible un archivo .xlsx con ciudadanos y los agrega en lote. El archivo debe tener las siguientes columnas:
+        - ci
+        - nombre
+        - apellido
+        - serie_credencial
+        - nro_credencial
+        - nro_circuito
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+   
+    if 'file' not in request.files:
+        return jsonify({"error": "No se ha proporcionado un archivo"}), 400
+    
+    file = request.files['file']
+    try:
+        df = pd.read_excel(file)
+        required_cols = {'ci', 'nombre', 'apellido', 'serie_credencial', 'nro_credencial', 'nro_circuito'}
+        if not required_cols.issubset(df.columns):
+            return jsonify({"error": "El archivo debe contener las columnas: " + ", ".join(required_cols)}), 400
+        
+        ciudadanos = []
+        for _, row in df.iterrows():
+            ciudadanos.append(
+                (int(row['ci']),
+                str(row['nombre']).capitalize(),
+                str(row['apellido']).capitalize(),
+                str(row['serie_credencial']).upper(),
+                int(row['nro_credencial']),
+                int(row['nro_circuito']))
+            )
+        
+        result = services.bulk_add_citizens(ciudadanos)
+        if result[0] < 0:
+            return jsonify({"error": result[1]}), 400
+        return jsonify({"message": "Ciudadanos agregados exitosamente"}), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+        
     
 
 @app.route('/ciudadano/<int:ci>', methods=['PATCH'])
@@ -732,6 +877,38 @@ def add_member():
     if result[0] < 0:
         return jsonify({"error": result[1]}), 400
     return jsonify({"message": "Miembro agregado exitosamente"}), 200
+
+@app.route('/miembro/bulk', methods=['POST'])
+@jwt_required()
+def bulk_add_members():
+    '''
+    Recibe un archivo .xlsx con miembros de mesa y los agrega en lote.
+    Columnas: id_organismo, ci, nro_circuito, id_rol
+    '''
+    claims = get_jwt()
+    if claims.get('role_description') != "admin":
+        return jsonify({"error": "Solo el administrador puede realizar esta acción."}), 400
+
+    if 'file' not in request.files:
+        return jsonify({"error": "No se ha proporcionado un archivo"}), 400
+
+    file = request.files['file']
+    try:
+        df = pd.read_excel(file)
+        required_cols = {'id_organismo', 'ci', 'nro_circuito', 'id_rol'}
+        if not required_cols.issubset(df.columns):
+            return jsonify({"error": "El archivo debe contener las columnas: " + ", ".join(required_cols)}), 400
+
+        miembros = [
+            (int(row['id_organismo']), int(row['ci']), int(row['nro_circuito']), int(row['id_rol']))
+            for _, row in df.iterrows()
+        ]
+        result = services.bulk_add_members(miembros)
+        if result[0] < 0:
+            return jsonify({"error": result[1]}), 400
+        return jsonify({"message": "Miembros agregados exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
     
 @app.route('/miembro', methods=['GET'])    
 @jwt_required()
@@ -817,8 +994,96 @@ def delete_member(id):
     else:
         return jsonify({"message": "Miembro eliminado exitosamente"}), 200
     
+@app.route('/partido-politico', methods=['POST'])
+@jwt_required()
+def crear_partido_politico():
+    '''
+    cuerpo requerido:
+        -  calle
+        -  numero
+        -  telefono
+        -  codigo_postal
+        -  nombre
+        -  ci_presidente
+        -  ci_vicepresidente
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+    
+    data = request.get_json()
+    required_fields = {'calle', 'numero', 'telefono', 'codigo_postal', 'nombre', 'ci_presidente', 'ci_vicepresidente'}
+    if data.keys() != required_fields :
+        return jsonify({"error": "Todos los campos son requeridos"}), 400
+    elif data['ci_presidente'] == data['ci_vicepresidente']:
+        return jsonify({"error": "El presidente y el vicepresidente no pueden ser la misma persona"}), 400
+    
+    result = services.crear_partido(data['calle'], data['numero'], data['telefono'], data['codigo_postal'], data['nombre'], data['ci_presidente'], data['ci_vicepresidente'])
 
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    return jsonify({"message": "Partido político creado exitosamente"}), 200
 
+@app.route('/partido-politico/bulk', methods=['POST'])
+@jwt_required()
+def bulk_add_partidos():
+    '''
+    Recibe un archivo .xlsx con partidos políticos y los agrega en lote.
+    Columnas: calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente
+    '''
+    claims = get_jwt()
+    if claims.get('role_description') != "admin":
+        return jsonify({"error": "Solo el administrador puede realizar esta acción."}), 400
+
+    if 'file' not in request.files:
+        return jsonify({"error": "No se ha proporcionado un archivo"}), 400
+
+    file = request.files['file']
+    try:
+        df = pd.read_excel(file)
+        required_cols = {'calle', 'numero', 'telefono', 'codigo_postal', 'nombre', 'ci_presidente', 'ci_vicepresidente'}
+        if not required_cols.issubset(df.columns):
+            return jsonify({"error": "El archivo debe contener las columnas: " + ", ".join(required_cols)}), 400
+
+        partidos = []
+        for _, row in df.iterrows():
+            if row['ci_presidente'] == row['ci_vicepresidente']:
+                return jsonify({"error": "El presidente y el vicepresidente no pueden ser la misma persona"}), 400
+            partidos.append(
+                (
+                    str(row['calle']),
+                    int(row['numero']),
+                    str(row['telefono']),
+                    str(row['codigo_postal']),
+                    str(row['nombre']),
+                    int(row['ci_presidente']),
+                    int(row['ci_vicepresidente'])
+                )
+            )
+        result = services.bulk_add_partidos(partidos)
+        if result[0] < 0:
+            return jsonify({"error": result[1]}), 400
+        return jsonify({"message": "Partidos políticos agregados exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    
+@app.route('/partido-politico', methods=['GET'])
+@jwt_required()
+def get_partidos_politicos():
+    '''
+    obtiene todos los partidos políticos
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    result = services.get_partidos_politicos()
+
+    return jsonify(result), 200 if result else ({"error": "No se encontraron partidos políticos"}, 400)
 
 if __name__ == "__main__":
     app.run(debug=True)
