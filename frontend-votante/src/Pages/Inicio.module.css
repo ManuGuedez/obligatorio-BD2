@@ -1,0 +1,36 @@
+.inicioContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    padding: 2.5rem;
+}
+
+.titulo {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #000000;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.logo {
+    width: 70px;
+    height: auto;
+    margin-bottom: 15px;
+}
+
+.button {
+    padding-left: 50px;
+    padding-right: 50px;
+    margin-top: 10rem;
+    font-size: 10px;
+}
+
+.inicioText {
+    color: #ffffff;
+    font-weight: bold;
+    margin-right: 10px;
+    font-size: 70px;
+    margin-right: 20px;
+}
