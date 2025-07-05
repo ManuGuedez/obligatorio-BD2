@@ -1,0 +1,36 @@
+/* EstadisticasMesa.module.css */
+.container {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .container {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.card {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.fullWidth {
+  grid-column: span 1;
+}
+
+@media (min-width: 768px) {
+  .fullWidth {
+    grid-column: span 2;
+  }
+}
