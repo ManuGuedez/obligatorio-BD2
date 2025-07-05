@@ -1010,3 +1010,28 @@ def bulk_add_partidos(partidos):
         return 1, cursor.rowcount
     except Exception as e:
         return -1, str(e)
+    
+def get_citizen(ci):
+    '''
+    Obtiene los datos de un ciudadano por su CI.
+    '''
+    query = '''
+        SELECT 
+            c.nombre,
+            c.apellido,
+            c.serie_credencial,
+            c.nro_circuito,
+            c.nro_credencial,
+            EXISTS (
+                SELECT 1 FROM Registro_votacion rv WHERE rv.ci_ciudadano = c.ci
+            ) AS voto_realizado
+        FROM Ciudadano c
+        WHERE c.ci = %s
+    '''
+    cursor.execute(query, (ci,))
+    result = cursor.fetchone()
+    result['voto_realizado'] = result['voto_realizado'] == 1
+    
+    if result:
+        return result
+    return None

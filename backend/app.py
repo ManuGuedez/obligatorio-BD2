@@ -850,6 +850,24 @@ def delete_citizen(ci):
     else:
         return jsonify({"message": "Ciudadano eliminado exitosamente"}), 200
 
+@app.route('/ciudadano/<int:ci>', methods=['GET'])
+@jwt_required()
+def get_citizen(ci):
+    '''
+    obtiene un ciudadano por su ci
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+
+    if role_description != "miembroMesa" and role_description != "admin":
+        return jsonify({"error": "No tiene credenciales para realizar esta acción."}), 400
+
+    result = services.get_citizen(ci)
+
+    if result:
+        return jsonify(result), 200
+    else:
+        return jsonify({"error": "Ciudadano no encontrado"}), 400
     
 @app.route('/miembro', methods=['POST'])
 @jwt_required()
