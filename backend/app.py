@@ -850,7 +850,7 @@ def delete_citizen(ci):
     else:
         return jsonify({"message": "Ciudadano eliminado exitosamente"}), 200
 
-@app.route('/ciudadano/<int:ci>', methods=['GET'])
+@app.route('/ciudadano/get-by-ci/<int:ci>', methods=['GET'])
 @jwt_required()
 def get_citizen(ci):
     '''
@@ -869,6 +869,46 @@ def get_citizen(ci):
     else:
         return jsonify({"error": "Ciudadano no encontrado"}), 400
     
+@app.route('/ciudadano/get-by-cc/<string:cc>', methods=['GET'])
+@jwt_required()
+def get_citizen_by_cc(cc):
+    '''
+    obtiene un ciudadano por su nro de credencial
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+
+    if role_description != "miembroMesa" and role_description != "admin":
+        return jsonify({"error": "No tiene credenciales para realizar esta acción."}), 400
+
+    result = services.get_citizen_by_cc(cc)
+
+    if result:
+        return jsonify(result), 200
+    else:
+        return jsonify({"error": "Ciudadano no encontrado"}), 400
+    
+@app.route('/ciudadano', methods=['GET'])
+@jwt_required()
+def get_citizens_by_member_circuit():
+    '''
+    obtiene todos los ciudadanos de un circuito del circuito del miembro de mesa que consulta
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    member_id = get_jwt_identity()
+
+    if role_description != "miembroMesa":
+        return jsonify({"error": "No tiene credenciales para realizar esta acción."}), 400
+
+    result = services.get_citizens_by_member_circuit(member_id)
+
+    if result:
+        return jsonify(result), 200
+    else:
+        return jsonify({"error": "No se encontraron ciudadanos en el circuito especificado"}), 400
+
+
 @app.route('/miembro', methods=['POST'])
 @jwt_required()
 def add_member():

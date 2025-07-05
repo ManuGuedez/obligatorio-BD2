@@ -1035,3 +1035,53 @@ def get_citizen(ci):
     if result:
         return result
     return None
+
+def get_citizen_by_cc(cc):
+    '''
+    Obtiene los datos de un ciudadano por su CC.
+    '''
+    serie_credencial = cc[:3].upper()  
+    nro_credencial = cc[3:] 
+    
+    query = '''
+        SELECT 
+            c.nombre,
+            c.apellido,
+            c.serie_credencial,
+            c.nro_circuito,
+            c.nro_credencial,
+            EXISTS (
+                SELECT 1 FROM Registro_votacion rv WHERE rv.ci_ciudadano = c.ci
+            ) AS voto_realizado
+        FROM Ciudadano c
+        WHERE c.serie_credencial = %s AND c.nro_credencial = %s
+    '''
+    cursor.execute(query, (serie_credencial, nro_credencial))
+    result = cursor.fetchone()
+    result['voto_realizado'] = result['voto_realizado'] == 1
+    
+    if result:
+        return result
+    return None
+
+def get_citizens_by_member_circuit(member_id):
+    query = '''
+        SELECT 
+            c.nombre,
+            c.apellido,
+            c.serie_credencial,
+            c.nro_circuito,
+            c.nro_credencial,
+            EXISTS (
+                SELECT 1 FROM Registro_votacion rv WHERE rv.ci_ciudadano = c.ci
+            ) AS voto_realizado
+        FROM Ciudadano c 
+        JOIN Miembro_mesa m ON c.nro_circuito = m.nro_circuito
+        WHERE m.id_miembro = %s
+    '''
+    cursor.execute(query, (member_id,))    
+    result = cursor.fetchall()
+    
+    if result:
+        return result
+    return None
