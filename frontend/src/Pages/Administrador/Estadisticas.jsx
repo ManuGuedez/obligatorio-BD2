@@ -21,8 +21,8 @@ function Estadisticas() {
                     ]}
                     title="Distribución de Votos por Partido"
                 />
-                <Consulta votosFavor={300} votosTotal={1000} color="#ef476f" texto="Partido 1" descripcion="Descripción del Partido 1"/>
-                <Consulta votosFavor={200} votosTotal={1000} color="#ffd166" texto="Partido 2" descripcion="Descripción del Partido 2"/>
+                <Consulta votosFavor={300} votosTotal={1000} color="#ef476f" texto="Votos por Sí" descripcion="Plebiscito Artículo 11"/>
+                <Consulta votosFavor={200} votosTotal={1000} color="#023047" texto="Votos por No" descripcion="Referéndum Ley 11.111"/>
                 <Presidente className={classes.presidentePanel}/>
                 <MapaUruguay className={classes.mapaPanel}/>
                 <Tables reportsArray={[
