@@ -862,7 +862,7 @@ def get_members_data():
         return result
     return None
 
-def get_member_data(id):
+def get_member_data(ci):
     '''
     Obtiene los datos de un miembro de mesa por su ID.
     '''
@@ -871,9 +871,9 @@ def get_member_data(id):
             FROM Miembro_mesa m
             JOIN Ciudadano c ON m.ci_ciudadano = c.ci
             JOIN Rol_mesa rm ON m.id_rol = rm.id
-            WHERE m.id_miembro = %s
+            WHERE m.ci_ciudadano = %s
     '''
-    cursor.execute(query, (id,))
+    cursor.execute(query, (ci,))
     result = cursor.fetchone()
     
     if result:
@@ -1670,3 +1670,40 @@ def get_roles_miembro():
     query = 'select * from Rol_mesa '
     cursor.execute(query)
     return cursor.fetchall()
+
+def get_departamentos():
+    query = 'select * from Departamento '
+    cursor.execute(query)
+    return cursor.fetchall()
+
+def get_ciudades():
+    query = 'select * from Ciudad '
+    cursor.execute(query)
+    return cursor.fetchall()
+
+def get_zonas():
+    query = 'select * from Zona '
+    cursor.execute(query)
+    return cursor.fetchall()
+
+def add_ciudad(nombre, id_departamento):
+    try:
+        query = 'INSERT INTO Ciudad (nombre, id_departamento) VALUES (%s, %s)'
+        cursor.execute(query, (nombre, id_departamento))
+        cnx.commit()
+        return 1, "Ciudad agregada exitosamente"
+    except mysql.connector.errors.IntegrityError as e:
+        return -1, f"Error de integridad al agregar ciudad: {str(e)}"
+    except Exception as e:
+        return -1, f"Error inesperado al agregar ciudad: {str(e)}"
+
+def add_zona(nombre, id_ciudad):
+    try:
+        query = 'INSERT INTO Zona (nombre, id_ciudad) VALUES (%s, %s)'
+        cursor.execute(query, (nombre, id_ciudad))
+        cnx.commit()
+        return 1, "Zona agregada exitosamente"
+    except mysql.connector.errors.IntegrityError as e:
+        return -1, "Error de integridad: posiblemente el id_ciudad no existe o ya existe una zona con ese nombre"
+    except Exception as e:
+        return -1, f"Error inesperado al agregar zona: {str(e)}"

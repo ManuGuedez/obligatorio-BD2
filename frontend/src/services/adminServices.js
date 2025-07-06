@@ -271,6 +271,57 @@ const adminService = {
         }
     },
 
+    agregarMiembro: async (token, data) => {
+        try {
+            const response = await ApiService.post(
+            "/miembro",
+            {
+                id_organismo: data.id_organismo,
+                ci: data.ci,
+                nro_circuito: data.nro_circuito,
+                id_rol: data.id_rol,
+            },
+            "application/json",
+            token
+            );
+
+            console.log("Miembro agregado:", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error agregando miembro:", error);
+            throw error;
+        }
+    },
+
+    getMiembroByCi: async (token, ci) => {
+        try {
+            const response = await ApiService.get(`/miembro/${ci}`, token);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching policia by CI:", error);
+            throw error;
+        }
+    },
+
+    updateMiembro: async (token, idMiembro, data) => {
+        try {
+            const response = await ApiService.patch(
+            `miembro/${idMiembro}`,
+            data,
+            token
+            );
+
+            if (response.code !== 200) {
+            throw new Error(response.data?.error || "Error al actualizar miembro");
+            }
+
+            console.log("Miembro actualizado:", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error en updateMiembro:", error);
+            throw error;
+        }
+    },
 }
 
 export default adminService;

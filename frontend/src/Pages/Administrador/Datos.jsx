@@ -77,10 +77,6 @@ function Datos() {
               label: "Editar Miembro",
               onClick: () => setModal("editarMiembro"),
             },
-            {
-              label: "Nuevos Miembros",
-              onClick: () => setModal("listaCiudadanos"),
-            },
           ]}
         />
         <AdminCard
