@@ -7,6 +7,7 @@ import ConfirmarCierreModal from "../../Components/Modals/ConfirmarCierreMesa/Co
 import EsperandoVoto from "./EsperandoVoto";
 import { FaUser, FaSearch } from "react-icons/fa";
 import escudo from "../../../public/Escudo20Uruguay_19.png"
+import useSocket from "../../hooks/useSocket";
 
 
 function HomeMiembroMesa() {
@@ -19,6 +20,25 @@ function HomeMiembroMesa() {
     { nombre: "Ana López", ci: "BBBY123", voto: true },
     { nombre: "Carlos Gómez", ci: "CCCZ789", voto: false },
   ]);
+
+  // Socket para recibir actualizaciones en tiempo real
+  useSocket({
+    onVotanteHabilitado: ({ ciCiudadano }) => {
+      setVotantes((prev) =>
+        prev.map((v) =>
+          v.id === ciCiudadano ? { ...v, habilitado: true } : v
+        )
+      );
+    },
+    onVotoEmitido: ({ ciCiudadano }) => {
+      setVotantes((prev) =>
+        prev.map((v) =>
+          v.id === ciCiudadano ? { ...v, yaVoto: true } : v
+        )
+      );
+    }
+  });
+
   const [persona, setPersona] = useState(null);
   const [isPersonaOpen, setIsPersonaOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
