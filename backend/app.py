@@ -1458,7 +1458,7 @@ def emitir_voto():
     return jsonify({"status": "ok"}), 200
 
 @app.route('/organismo-publico', methods=["GET"])
-@jwt_required
+@jwt_required()
 def get_organismos_publicos():
     '''
     obtiene todas las comisarias
@@ -1472,7 +1472,7 @@ def get_organismos_publicos():
     result = services.get_organismos_publicos()
 
     return jsonify(result), 200 if result else ({"error": "No se encontraron organismos públicos"}, 400)
-    
+
 @app.route('/resultados/listas', methods=['GET'])
 @jwt_required()
 def get_resultados_por_listas():
