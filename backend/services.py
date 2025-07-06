@@ -1411,4 +1411,51 @@ def obtener_resultado_final(id_miembro):
         "votosObservados": observados,
         "votosAFavorConsulta": votos_consulta
     }
+
+def obtener_votos_por_lista_con_porcentaje(nro_circuito=None):
+    # Armar filtro dinámico
+    where_clause = ""
+    params = []
+
+    if nro_circuito is not None:
+        where_clause = "WHERE V.nro_circuito = %s"
+        params = [nro_circuito]
     
+    # Total de votos
+    cursor.execute(f"SELECT COUNT(*) AS total FROM Voto V {where_clause}", params)
+    total_votos = cursor.fetchone()["total"]
+
+    if total_votos == 0:
+        return -1, "No se registraron votos."
+        
+    query = f'''
+        SELECT
+                P.descripcion AS lista,
+                PP.nombre AS partido,
+                COUNT(*) AS votos
+            FROM Voto V
+            JOIN Papeleta P ON V.id_papeleta = P.id
+            JOIN Lista L ON P.id = L.id_papeleta
+            JOIN Partido_politico PP ON L.id_partido_politico = PP.id
+            {where_clause}
+            GROUP BY P.descripcion, PP.nombre
+    '''
+
+    # Votos por lista
+    cursor.execute(query, params)
+
+    resultados = cursor.fetchall()
+
+    for r in resultados:
+        porcentaje = (r["votos"] / total_votos) * 100
+        r["porcentaje"] = f"{porcentaje:.2f}%"
+
+    return 1, resultados
+
+def get_organismos_publicos():
+    query = '''SELECT * FROM Organismo_publico'''
+    cursor.execute(query)
+    result = cursor.fetchall()
+    if result:
+        return result
+    return None

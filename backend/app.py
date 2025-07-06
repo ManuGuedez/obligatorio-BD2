@@ -401,7 +401,6 @@ def obtener_resultado_final():
         return jsonify({"error": result[1]}), 400
     return jsonify({"message":result[1]}), 200
 
-
 @app.route('/circuitos/<int:id>', methods=['DELETE'])
 @jwt_required()
 def delete_circuito(id):
@@ -1437,6 +1436,46 @@ def emitir_voto():
         votos_temporales.clear()
 
     return jsonify({"status": "ok"}), 200
+
+@app.route('/organismo-publico', methods=["GET"])
+@jwt_required
+def get_organismos_publicos():
+    '''
+    obtiene todas las comisarias
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    result = services.get_organismos_publicos()
+
+    return jsonify(result), 200 if result else ({"error": "No se encontraron organismos públicos"}, 400)
+    
+@app.route('/resultados/lista', methods=["GET"])
+@jwt_required
+def get_resultados_por_lista():
+    '''
+    cuerpo opcional:
+        - nro_circuito (int)
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    
+    if role_description != 'admin':
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+    
+    data = request.get_json()
+    result = services.obtener_votos_por_lista_con_porcentaje(data.get('nro_circuito'))
+    
+    if result[0] < 0:
+        return jsonify({"error":result[1]}), 400
+    else:
+        return jsonify({"message": "Consulta eliminada exitosamente"}), 200
+    
+
+
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000, debug=True)
