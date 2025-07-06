@@ -1,7 +1,8 @@
 // EditarCircuito.jsx
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import styles from "./EditarCircuito.module.css";
 import { FaSearch, FaPen, FaTrashAlt } from "react-icons/fa";
+import adminService from "../../../services/adminServices";
 
 function EditarCircuito({ onClose }) {
   const overlayRef = useRef();
@@ -11,19 +12,48 @@ function EditarCircuito({ onClose }) {
     accesible: false,
     establecimiento: false,
   });
+  const[busqueda, setBusqueda] = useState("");
+  const [establecimiento, setEstablecimiento] = useState();
+  const [establecimientos, setEstablecimientos] = useState([]);
 
   const handleOverlayClick = (e) => {
     if (e.target === overlayRef.current) onClose();
   };
 
-  const handleBuscar = (e) => {
+  const fetchCircuito = async (e) => {
     e.preventDefault();
-    if (numero === "123") {
-      setCircuito({ numero: "123", accesible: true, establecimiento: "Liceo 1" });
-    } else {
-      alert("Circuito no encontrado (simulado)");
+    console.log("Ejecutando fetchCircuito con número:", numero);
+    try {
+      const token = localStorage.getItem("token");
+      const data = await adminService.getCircuitoById(token, numero);
+      console.log("Respuesta del backend:", data);
+      setCircuito(data);
+    } catch (error) {
+      console.error("Error al traer el circuito:", error);
     }
   };
+
+  useEffect(() => {
+    const fetchEstablecimientos = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const data = await adminService.getEstablecimientos(token);
+        setEstablecimientos([...data]);
+        console.log("Establecimientos traídos:", [...data]);
+      } catch (error) {
+        console.error("Error al traer los establecimientos:", error);
+      }
+    };
+
+    fetchEstablecimientos();
+  }, []);
+
+    const establecimientosFiltrados = establecimientos.filter(
+      (est) =>
+        est?.nombre_est?.toLowerCase().includes(busqueda.toLowerCase()) ||
+        est?.ciudad?.toLowerCase().includes(busqueda.toLowerCase()) ||
+        est?.departamento?.toLowerCase().includes(busqueda.toLowerCase())
+    );
 
   const habilitarCampo = (campo) => {
     setEditFields((prev) => ({ ...prev, [campo]: true }));
@@ -31,13 +61,40 @@ function EditarCircuito({ onClose }) {
 
   const hayCambios = Object.values(editFields).some((v) => v);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
+    formData.append("numero", numero);
     const data = Object.fromEntries(formData);
-    console.log("Circuito actualizado:", data);
-    onClose();
+
+    const token = localStorage.getItem("token");
+    const nroInt = parseInt(data.numero);
+
+    // Construimos un objeto solo con los campos editados
+    const payload = {};
+
+    if (editFields.accesible) {
+      payload.es_accesible = data.accesible === "true";
+    }
+
+    if (editFields.establecimiento) {
+      const estId = parseInt(data.establecimiento);
+      if (!isNaN(estId)) {
+        payload.id_establecimiento = estId;
+      }
+    }
+
+    console.log("Payload enviado:", payload);
+
+    try {
+      await adminService.updateCircuito(token, nroInt, payload.es_accesible, payload.id_establecimiento);
+      console.log("Actualización exitosa");
+      onClose();
+    } catch (error) {
+      console.error("Error al actualizar circuito:", error);
+    }
   };
+
 
   const handleEliminar = () => {
     console.log("Circuito eliminado:", numero);
@@ -48,7 +105,7 @@ function EditarCircuito({ onClose }) {
     <div className={styles.modalOverlay} ref={overlayRef} onClick={handleOverlayClick}>
       <div className={styles.modalContent}>
         <h2 className={styles.title}>Editar información de un circuito</h2>
-        <form className={styles.form} onSubmit={circuito ? handleSubmit : handleBuscar}>
+        <form className={styles.form} onSubmit={circuito ? handleSubmit : fetchCircuito}>
           <label className={styles.label}>N° Circuito</label>
           <div className={styles.inputRow}>
             <input
@@ -59,9 +116,11 @@ function EditarCircuito({ onClose }) {
               required
               disabled={!!circuito}
             />
-            <button type="submit" className={styles.iconButton}>
+            {!circuito && 
+            (<button type="submit" className={styles.iconButton}>
               <FaSearch />
-            </button>
+            </button>)
+            }
           </div>
 
           {circuito && (
@@ -71,7 +130,7 @@ function EditarCircuito({ onClose }) {
                 <select
                   name="accesible"
                   className={styles.input}
-                  defaultValue={circuito.accesible ? "true" : "false"}
+                  defaultValue={circuito.es_accesible ? "true" : "false"}
                   disabled={!editFields.accesible}
                 >
                   <option value="true">Sí</option>
@@ -82,25 +141,55 @@ function EditarCircuito({ onClose }) {
 
               <label className={styles.label}>Establecimiento</label>
               <div className={styles.inputRow}>
-                <input
-                  name="establecimiento"
-                  defaultValue={circuito.establecimiento}
-                  className={styles.input}
-                  required
-                  disabled={!editFields.establecimiento}
-                />
+                {editFields.establecimiento ? (
+                  <div className="field is-fullwidth" style={{ flex: 1 }}>
+                    <input
+                      className="input mb-2"
+                      type="text"
+                      placeholder="Buscar..."
+                      value={busqueda}
+                      onChange={(e) => setBusqueda(e.target.value)}
+                    />
+                    <div className="select is-fullwidth">
+                      <select
+                        name="establecimiento"
+                        value={establecimiento || ""}
+                        onChange={(e) => setEstablecimiento(Number(e.target.value))}
+                        required
+                      >
+                        <option value="" disabled>Seleccionar...</option>
+                        {establecimientosFiltrados.map((est) => (
+                          <option key={est.id_est} value={est.id_est}>
+                            {est.nombre_est} - {est.ciudad} - {est.departamento}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <input
+                      name="establecimiento"
+                      defaultValue={circuito.establecimiento_nombre}
+                      className={styles.input}
+                      disabled
+                      required
+                    />
+                  </>
+                )}
                 <FaPen className={styles.editIcon} onClick={() => habilitarCampo("establecimiento")} />
               </div>
 
+
               <div className={styles.actionRow}>
+                <button type="button" className="button is-danger has-text-white is-rounded" style={{gap: "2px"}} onClick={handleEliminar}>
+                  <FaTrashAlt/> Eliminar Circuito
+                </button>
                 {hayCambios && (
                   <button type="submit" className={styles.deleteButton}>
                     Guardar cambios
                   </button>
                 )}
-                <button type="button" className={styles.deleteButton} onClick={handleEliminar}>
-                  <FaTrashAlt /> Eliminar Circuito
-                </button>
               </div>
             </>
           )}

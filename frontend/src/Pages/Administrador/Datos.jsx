@@ -156,7 +156,9 @@ function Datos() {
       {modal === "nuevoCiudadano" && <NuevoCiudadano onClose={handleClose} />}
       {modal === "editarCiudadano" && <EditarCiudadano onClose={handleClose} />}
       {modal === "nuevosCiudadanos" && <NuevosCiudadanos onClose={handleClose} />}
-      {modal === "nuevoCircuito" && <NuevoCircuito onClose={handleClose} />}
+      {modal === "nuevoCircuito" && (
+        <NuevoCircuito onClose={handleClose} setModal={setModal} />
+      )}
       {modal === "editarCircuito" && <EditarCircuito onClose={handleClose} />}
       {modal === "nuevosCircuito" && <NuevosCircuitos onClose={handleClose}/>}
       {modal === "nuevoMiembro" && <NuevoMiembro onClose={handleClose} />}

@@ -33,7 +33,7 @@ function Header({ selected, setSelected }) {
     return (
         <div className={classes.header}>
             <img
-                src="../../../public/Escudo20Uruguay_19.png"
+                src="../Escudo20Uruguay_19.png"
                 alt="Logo"
                 className={classes.logo}
                 draggable="false"

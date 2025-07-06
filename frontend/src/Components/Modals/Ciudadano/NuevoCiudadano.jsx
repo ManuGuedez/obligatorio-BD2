@@ -51,6 +51,10 @@ function NuevoCiudadano({ onClose }) {
             Nº Credencial
             <input name="numero" type="text" className={styles.input} required />
           </label>
+          <label>
+            Nº Circuito
+            <input name="circuito" type="text" className={styles.input} required />
+          </label>
           <div className={styles.buttonRow}>
             <button type="button" className={styles.cancelButton} onClick={onClose}>Cancelar</button>
 

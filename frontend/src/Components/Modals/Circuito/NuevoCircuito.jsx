@@ -1,11 +1,15 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import styles from "./NuevoCircuito.module.css";
+import adminService from "../../../services/adminServices";
+
 
 function NuevoCircuito({ onClose, setModal }) {
   const overlayRef = useRef();
   const [accesible, setAccesible] = useState(false);
-  const [establecimiento, setEstablecimiento] = useState("");
+  const [establecimiento, setEstablecimiento] = useState();
   const [numero, setNumero] = useState("");
+  const [establecimientos, setEstablecimientos] = useState([]);
+  const [busqueda, setBusqueda] = useState("");
 
   const handleOverlayClick = (e) => {
     if (e.target === overlayRef.current) onClose();
@@ -13,13 +17,35 @@ function NuevoCircuito({ onClose, setModal }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Validaciones básicas
+    if (!numero.trim()) {
+      alert("El número de circuito es obligatorio.");
+      return;
+    }
+
+    if (isNaN(numero)) {
+      alert("El número de circuito debe ser un número válido.");
+      return;
+    }
+
+    if (!establecimiento) {
+      alert("Debes seleccionar un establecimiento.");
+      return;
+    }
+
     const circuito = {
-      numero,
+      numero: Number(numero),
       accesible,
-      establecimiento
+      establecimiento: Number(establecimiento)
     };
     console.log("Nuevo circuito:", circuito);
-    // lógica para enviar al backend
+    adminService.crearCircuito(
+      localStorage.getItem("token"),
+      circuito.numero,
+      circuito.accesible,
+      circuito.establecimiento
+    )
     onClose();
   };
 
@@ -28,6 +54,27 @@ function NuevoCircuito({ onClose, setModal }) {
     setTimeout(() => setModal("nuevoEstablecimiento"), 100); // abrimos el nuevo modal
   };
 
+  useEffect(() => {
+    const fetchEstablecimientos = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const data = await adminService.getEstablecimientos(token);
+        setEstablecimientos([...data]);
+        console.log("Establecimientos traídos:", [...data]);
+      } catch (error) {
+        console.error("Error al traer los establecimientos:", error);
+      }
+    };
+
+    fetchEstablecimientos();
+  }, []);
+
+    const establecimientosFiltrados = establecimientos.filter(
+      (est) =>
+        est?.nombre_est?.toLowerCase().includes(busqueda.toLowerCase()) ||
+        est?.ciudad?.toLowerCase().includes(busqueda.toLowerCase()) ||
+        est?.departamento?.toLowerCase().includes(busqueda.toLowerCase())
+    );
 
   return (
     <div ref={overlayRef} className={styles.modalOverlay} onClick={handleOverlayClick}>
@@ -51,16 +98,33 @@ function NuevoCircuito({ onClose, setModal }) {
             <div className={styles.knob}></div>
           </div>
 
-          <label className={styles.label}>Establecimiento</label>
-          <select
-            className={styles.select}
-            value={establecimiento}
-            onChange={(e) => setEstablecimiento(e.target.value)}
-          >
-            <option value="" disabled>Seleccionar...</option>
-            <option value="liceo1">Liceo 1</option>
-            <option value="liceo2">Liceo 2</option>
-          </select>
+          <label className="label">Establecimiento</label>
+          <div className="control">
+            <input
+              className="input"
+              type="text"
+              placeholder="Buscar..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+            />
+          </div>
+          <div className="control mt-2">
+            <div className="select is-fullwidth">
+              <select
+                value={establecimiento || ""}
+                onChange={(e) => setEstablecimiento(Number(e.target.value))}
+              >
+                <option value="" disabled>
+                  Seleccionar...
+                </option>
+                {establecimientosFiltrados.map((est) => (
+                  <option key={est.id_est} value={est.id_est}>
+                    {est.nombre_est} - {est.ciudad} - {est.departamento}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
           <p className={styles.subLink} onClick={handleCrearEstablecimiento}>
             ¿No encontrás el establecimiento? Crear uno

@@ -244,7 +244,7 @@ def crear_circuito():
 
     result = services.create_circuito(data)
 
-    return result[1], 400 if result[0] < 0 else 200
+    return jsonify({"message": result[1]}), 400 if result[0] < 0 else 200
 
 @app.route('/circuitos/bulk', methods=['POST'])
 @jwt_required()
@@ -1368,4 +1368,4 @@ def emitir_voto():
     return jsonify({"status": "ok"}), 200
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+    socketio.run(app, host="0.0.0.0", port=5001, debug=True)

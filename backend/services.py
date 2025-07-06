@@ -291,7 +291,22 @@ def get_circuito(nro):
     '''
     obtiene un circuito por su id
     '''
-    query = 'SELECT * FROM Circuito WHERE nro = %s'
+    query = '''SELECT 
+        C.nro AS circuito_nro,
+        C.es_accesible,
+        C.es_cerrado,
+        C.se_abrio,
+        E.nombre AS establecimiento_nombre,
+        Z.nombre AS zona_nombre,
+        CI.nombre AS ciudad_nombre,
+        D.nombre AS departamento_nombre
+        FROM Circuito C
+        JOIN Establecimiento E ON C.id_establecimiento = E.id
+        JOIN Zona Z ON E.id_zona = Z.id
+        JOIN Ciudad CI ON Z.id_ciudad = CI.id
+        JOIN Departamento D ON CI.id_departamento = D.id
+        WHERE C.nro = %s;
+        '''
     cursor.execute(query, (nro,))
     result = cursor.fetchone()
 
