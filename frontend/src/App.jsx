@@ -7,7 +7,7 @@ import Estadisticas from "./Components/Estadisticas/Estadisticas";
 import Configuracion from "./Components/Configuracion/Configuracion";
 import './global.css';
 
-export const url = "http://localhost:5001";
+export const url = "http://localhost:5000";
 
 function App() {
     return (

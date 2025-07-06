@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { io } from "socket.io-client";
 
-    const SOCKET_URL = "http://localhost:5001"; // puerto donde corre el backend
+    const SOCKET_URL = "http://localhost:5000"; // puerto donde corre el backend
 
 export default function useSocket({ onVotanteHabilitado, onVotoEmitido }) {
   useEffect(() => {
