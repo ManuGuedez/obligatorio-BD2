@@ -51,8 +51,10 @@ export default function Resumen() {
 
     const handleSiguienteClick = async () => {
         console.log("Confirmando votación...");
-        await votarService.emitirVoto(respuestas);
-        navigate ("/confirmacion");
+        let resupesta1 = [{ "id_estado": 1, "es_observado": 1, "nro_circuito": 1034, "id_papeleta": 9 }]
+        await votarService.emitirVoto(resupesta1);
+        // await votarService.emitirVoto(respuestas);
+        navigate("/confirmacion");
     };
 
 
@@ -60,30 +62,30 @@ export default function Resumen() {
         <div className="section">
             <h1 className="title is-2">Resumen de tu voto</h1>
             <div className="box">
-            {hayVotoAnulado ? (
-                <div className="has-text-danger">
-                <p className="title is-3">Voto Anulado</p>
-                </div>
-            ) : (
-                respuestas.map((r, index) => (
-                <div key={`${r.tipo}-${index}`} className="mb-5">
-                    <h2 className="title is-4 has-text-link">
-                    {formatearTitulo(r.tipo)}
-                    </h2>
-                    {renderOpcion(r.tipo, r.opcion)}
-                    <hr />
-                </div>
-                ))
-            )}
+                {hayVotoAnulado ? (
+                    <div className="has-text-danger">
+                        <p className="title is-3">Voto Anulado</p>
+                    </div>
+                ) : (
+                    respuestas.map((r, index) => (
+                        <div key={`${r.tipo}-${index}`} className="mb-5">
+                            <h2 className="title is-4 has-text-link">
+                                {formatearTitulo(r.tipo)}
+                            </h2>
+                            {renderOpcion(r.tipo, r.opcion)}
+                            <hr />
+                        </div>
+                    ))
+                )}
             </div>
             <button className="button is-success is-large is-fullwidth" onClick={handleSiguienteClick}>
-            Confirmar votación
+                Confirmar votación
             </button>
         </div>
     );
 }
 
-    function formatearTitulo(tipo)  {
+function formatearTitulo(tipo) {
     if (tipo.startsWith("articulo")) {
         return "Plebiscito Artículo " + tipo.replace("articulo", "");
     }

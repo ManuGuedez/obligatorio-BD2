@@ -1,34 +1,55 @@
-import React, {useState, useEffect} from 'react';
-import classes from './Estadisticas.module.css'; 
-import MapaUruguay from '../../Components/AdminStats/VotosPorDepartamento';
-import Presidente from '../../Components/AdminStats/Presidente';
-import Tables from '../../Components/AdminStats/Tables';
-import Consulta from '../../Components/AdminStats/Consulta';
+import React, { useState, useEffect } from 'react';
+import classes from './Estadisticas.module.css';
 import PieChartComponent from '../../Components/AdminStats/PieChart';
-import adminService from '../../services/adminServices';
+import miembroService from '../../services/miembroServices';
 
 function Estadisticas() {
-    return (
-        <div className={classes.pageContainer}>
-            <p className="title h1 has-text-link ">Estadísticas</p>
-            <div className={classes.pageContent}>
-                <PieChartComponent 
-                    data={[
-                        { votosFavor: 300, votosTotal: 1000, color: '#ef476f', texto: 'Partido 1' },
-                        { votosFavor: 200, votosTotal: 1000, color: '#ffd166', texto: 'Partido 2' },
-                        { votosFavor: 500, votosTotal: 1000, color: '#06d6a0', texto: 'Partido 3' },
-                        { votosFavor: 400, votosTotal: 1000, color: '#118ab2', texto: 'Partido 4' },
-                        { votosFavor: 100, votosTotal: 1000, color: '#073b4c', texto: 'Partido 5' }
-                    ]}
-                    title="Distribución de Votos por Partido"
-                />
-                <Consulta votosFavor={300} votosTotal={1000} color="#ef476f" texto="Votos por Sí" descripcion="Plebiscito Artículo 11"/>
-                <Consulta votosFavor={200} votosTotal={1000} color="#023047" texto="Votos por No" descripcion="Referéndum Ley 11.111"/>
-                <Presidente className={classes.presidentePanel}/>
-                <MapaUruguay className={classes.mapaPanel}/>
-                <Tables />
-            </div>
+  const [stats, setStats] = useState({ total: 0, votados: 0 });
+  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem('token');
+
+  useEffect(() => {
+    // Traer todos los ciudadanos del circuito y contar quiénes votaron
+    miembroService.getCiudadanos(token)
+      .then(ciudadanos => {
+        const total = ciudadanos.length;
+        const votados = ciudadanos.filter(c => c.voto_realizado).length;
+        setStats({ total, votados });
+      })
+      .catch(err => {
+        console.error('Error cargando estadísticas:', err);
+        setStats({ total: 0, votados: 0 });
+      })
+      .finally(() => setLoading(false));
+  }, [token]);
+
+  if (loading) {
+    return <p className={classes.loading}>Cargando estadísticas...</p>;
+  }
+
+  const { total, votados } = stats;
+  const noVotaron = total - votados;
+
+  return (
+    <div className={classes.pageContainer}>
+      <p className="title h1 has-text-link">Estadísticas</p>
+      <div className={classes.pageContent}>
+        <PieChartComponent
+          data={[
+            { votosFavor: votados, votosTotal: total, color: '#06d6a0', texto: 'Votaron' },
+            { votosFavor: noVotaron, votosTotal: total, color: '#ef476f', texto: 'Sin votar' },
+          ]}
+          title="Estado de votación del circuito"
+        />
+
+        <div className={classes.resumen}>
+          <p><strong>Total de electores:</strong> {total}</p>
+          <p><strong>Ya votaron:</strong> {votados}</p>
+          <p><strong>Aún no votan:</strong> {noVotaron}</p>
         </div>
-    );
+      </div>
+    </div>
+  );
 }
+
 export default Estadisticas;

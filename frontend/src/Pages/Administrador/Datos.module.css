@@ -1,17 +1,22 @@
+/* AdminContent.module.css */
 .pageContainer {
-    display: flex;
-    width: 100vw;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
+  display: flex;
+  width: 100vw;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
 }
 
 .pageContent {
-    width: 100vw;
-    height: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 30px;
-    padding: 0 2.5rem 2.5rem 2.5rem;
-    justify-content: center;
+  width: 100vw;
+  height: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  padding: 0 2.5rem 2.5rem 2.5rem;
+  justify-content: center;
+}
+
+.pageContent .ciudadano-card .title {
+  color: red !important;
 }

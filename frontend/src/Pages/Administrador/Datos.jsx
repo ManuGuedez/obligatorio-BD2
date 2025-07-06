@@ -35,17 +35,19 @@ function Datos() {
       <div className={classes.pageContent}>
         <AdminCard
           title="Ciudadano"
+          className="ciudadano-card"
+
           buttons={[
             {
-              label: "Nuevo Ciudadano",
+              label: "Nuevo",
               onClick: () => setModal("nuevoCiudadano"),
             },
             {
-              label: "Editar Ciudadano",
+              label: "Editar",
               onClick: () => setModal("editarCiudadano"),
             },
             {
-              label: "Nuevos Ciudadanos",
+              label: "Nuevos",
               onClick: () => setModal("nuevosCiudadanos"),
             },
           ]}
@@ -54,15 +56,15 @@ function Datos() {
           title="Circuito"
           buttons={[
             {
-              label: "Nuevo Circuito",
+              label: "Nuevo",
               onClick: () => setModal("nuevoCircuito"),
             },
             {
-              label: "Editar Circuito",
+              label: "Editar",
               onClick: () => setModal("editarCircuito"),
             },
             {
-              label: "Nuevos Circuitos",
+              label: "Nuevos",
               onClick: () => setModal("nuevosCircuitos"),
             },
           ]}
@@ -71,15 +73,15 @@ function Datos() {
           title="Establecimiento"
           buttons={[
             {
-              label: "Nuevo Establecimiento",
+              label: "Nuevo",
               onClick: () => setModal("nuevoEstablecimiento"),
             },
             {
-              label: "Editar Establecimiento",
+              label: "Editar",
               onClick: () => setModal("editarEstablecimiento"),
             },
             {
-              label: "Nuevos Establecimientos",
+              label: "Nuevos",
               onClick: () => setModal("nuevosEstablecimientos"),
             },
           ]}
@@ -88,14 +90,16 @@ function Datos() {
           title="Miembro de Mesa"
           buttons={[
             {
-              label: "Nuevo Miembro",
+              label: "Nuevo",
               onClick: () => setModal("nuevoMiembro"),
             },
             {
-              label: "Editar Miembro",
+              label: "Editar",
               onClick: () => setModal("editarMiembro"),
             },
             {
+              label: "Nuevos",
+              onClick: () => setModal("nuevosMiembros"),
               label: "Nuevos Miembros",
               onClick: () => setModal("listaCiudadanos"),
             },
