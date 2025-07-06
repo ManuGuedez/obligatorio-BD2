@@ -148,6 +148,17 @@ const adminService = {
         }
     },
 
+    getOrganismoPublico: async (token) => {
+        try {
+            const response = await ApiService.get("/organismo-publico", token);
+            console.log("Organismo público fetched successfully: ", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching organismos:", error);
+            throw error;
+        }
+    },
+
     crearPolicia: async (token, ci, comisaria, establecimiento) => {
         try {
             console.log("Creando policía:", ci, comisaria, establecimiento);
@@ -206,6 +217,34 @@ const adminService = {
             return response.data;
         } catch (error) {
             console.error("Error creando partido:", error);
+            throw error;
+        }
+    },
+
+    deleteCiudadano: async (token, ci) => {
+        try {
+            const response = await ApiService.delete(`ciudadano/${ci}`, token);
+            if (response.code !== 200) {
+            throw new Error(response.data?.error || "No se pudo eliminar el ciudadano");
+            }
+            console.log("Ciudadano eliminado:", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error eliminando ciudadano:", error);
+            throw error;
+        }
+    },
+
+    deleteCircuito: async (token, nro) => {
+        try {
+            const response = await ApiService.delete(`circuitos/${nro}`, token);
+            if (response.code !== 200) {
+            throw new Error(response.data?.error || "No se pudo eliminar el circuito");
+            }
+            console.log("Circuito eliminado:", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error eliminando circuito:", error);
             throw error;
         }
     },

@@ -108,10 +108,22 @@ function EditarCiudadano({ onClose }) {
       }
   };
 
-  const handleEliminar = () => {
-    console.log("Eliminar ciudadano con CI:", ci);
+const handleEliminar = async () => {
+  const confirmacion = window.confirm("¿Estás seguro de que querés eliminar este ciudadano?");
+  if (!confirmacion) return;
+
+  const token = localStorage.getItem("token");
+
+  try {
+    await adminService.deleteCiudadano(token, ci);
+    alert("Ciudadano eliminado correctamente.");
     onClose();
-  };
+  } catch (error) {
+    console.error("Error eliminando ciudadano:", error);
+    alert("Error al eliminar el ciudadano. Verificá si está asociado a otros registros.");
+  }
+};
+
 
   return (
     <div

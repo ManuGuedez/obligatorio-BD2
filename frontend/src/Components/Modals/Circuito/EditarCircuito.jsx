@@ -96,10 +96,19 @@ function EditarCircuito({ onClose }) {
   };
 
 
-  const handleEliminar = () => {
-    console.log("Circuito eliminado:", numero);
-    onClose();
+  const handleEliminar = async () => {
+    if (!confirmacion) return;
+
+    const token = localStorage.getItem("token");
+
+    try {
+      await adminService.deleteCircuito(token, numero);
+      onClose();
+    } catch (error) {
+      console.error("Error eliminando circuito:", error);
+    }
   };
+
 
   return (
     <div className={styles.modalOverlay} ref={overlayRef} onClick={handleOverlayClick}>
