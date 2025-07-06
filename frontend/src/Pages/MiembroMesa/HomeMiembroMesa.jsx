@@ -81,7 +81,7 @@ function HomeMiembroMesa() {
         <img src={escudo} alt="logo" className={classes.logo} />
         <nav className={classes.nav}>
           <button className={classes.active}>Mi circuito</button>
-          <button onClick={() => navigate("/configuracion")}>
+          <button onClick={() => navigate("/configuracion")} className={classes.active}>
             Configuración
           </button>
         </nav>
@@ -169,30 +169,21 @@ function HomeMiembroMesa() {
           <PersonaModal
             persona={persona}
             onClose={() => setIsPersonaOpen(false)}
-            onVotar={() => {
+            onVotar={(observado) => {
               setIsPersonaOpen(false);
-              setEsperandoVoto(true);
+              setEsperandoVoto(observado ? "observado" : "comun");
             }}
           />
+
         )}
 
         {esperandoVoto && persona && (
           <EsperandoVoto
             persona={persona}
-            onConfirmVoto={() => {
+            onConfirm={() => {
               const actualizados = votantes.map((v) =>
                 v.ci === persona.ci
-                  ? { ...v, voto: true, tipoVoto: "comun" }
-                  : v
-              );
-              setVotantes(actualizados);
-              setEsperandoVoto(false);
-              setPersona(null);
-            }}
-            onConfirmObservado={() => {
-              const actualizados = votantes.map((v) =>
-                v.ci === persona.ci
-                  ? { ...v, voto: true, tipoVoto: "observado" }
+                  ? { ...v, voto: true, tipoVoto: esperandoVoto }
                   : v
               );
               setVotantes(actualizados);
@@ -205,6 +196,7 @@ function HomeMiembroMesa() {
             }}
           />
         )}
+
 
         {isConfirmOpen && (
           <ConfirmarCierreModal

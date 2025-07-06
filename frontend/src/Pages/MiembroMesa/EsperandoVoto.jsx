@@ -1,28 +1,32 @@
 import React from "react";
-import classes from "./EsperandoVoto.module.css";
+import styles from "./EsperandoVoto.module.css";
 
-function EsperandoVoto({ persona, onConfirmVoto, onConfirmObservado, onClose}) {
+function EsperandoVoto({ persona, onConfirm, onClose }) {
+  if (!persona) return null;
+
   const handleBackdropClick = (e) => {
-    // Si clickeaste directamente sobre el fondo
     if (e.target === e.currentTarget) {
       onClose();
     }
   };
-  return (
-    <div className={classes.modal} onClick={handleBackdropClick} >
-      <div className={classes.modalBox}>
-        <h2>Esperando votación</h2>
-        <p>{persona.nombre} está votando…</p>
-      
-        {/*         ACA HABRIA QUE VER EL TEMA DE QUE VOTA EL CIUDADANO Y YA SE CONFIRMA EN
-        LA VISTA DEL MIEMBRO
-      */}
 
-        {/*     <button className={classes.confirmarBtn} onClick={onConfirmVoto}>
-          Confirmar que votó
-        </button> */}
-        <button className={classes.cancelarBtn} onClick={onConfirmObservado}>
-          Voto observado
+  return (
+    <div className={styles.modal} onClick={handleBackdropClick}>
+      <div className={styles.modalBox}>
+        <h2>Esperando confirmación</h2>
+        <p>
+          <strong>{persona.nombre}</strong> está emitiendo su voto.
+        </p>
+
+        {persona.tipoVoto === "observado" && (
+          <p style={{ color: "#dc2626", fontWeight: "bold", marginTop: "10px" }}>
+            Voto observado
+          </p>
+        )}
+
+      
+        <button className={styles.cancelarBtn} onClick={onClose}>
+          Cancelar
         </button>
       </div>
     </div>

@@ -8,7 +8,7 @@
   --color-info: #17a2b8;
   --color-light: #f8f9fa;
   --color-dark: #343a40;
-  --color-white: #ffffff;
+  --color-white: #ecb9b9;
   --color-black: #000000;
   
   --bg-primary: #ffffff;
@@ -38,6 +38,17 @@
   --color-info: #74c0fc;
   --color-light: #495057;
   --color-dark: #f8f9fa;
+  
+  /* Colores neón para botones */
+
+  --neon-primary: #00d4ff;
+  --neon-secondary: #b3b3b3;
+  --neon-success: #00ff88;
+  --neon-danger: #ff3366;
+  --neon-warning: #ffff00;
+  --neon-info: #00ccff;
+  --neon-light: #ffffff;
+  --neon-dark: #cccccc;
 }
 
 .modo-oscuro * {
@@ -61,19 +72,141 @@
 }
 
 
-/* Comentar o eliminar estas reglas para mantener los colores originales de los botones */
-/*
-.modo-oscuro button:not(.abrirBtn):not(.cerrarBtn) {
-  background-color: var(--color-primary) !important;
-  color: var(--color-white) !important;
-  border: 1px solid var(--color-primary) !important;
+/* Estilos neón reducidos para botones en modo oscuro */
+.modo-oscuro button {
+  background-color: transparent !important;
+  color: var(--neon-primary) !important;
+
+
+
+
+
+  border: 1px solid var(--neon-primary) !important;
+  text-shadow: 0 0 3px var(--neon-primary) !important;
+  box-shadow: 0 0 5px rgba(0, 212, 255, 0.3) !important;
+  transition: all 0.3s ease !important;
 }
 
 .modo-oscuro button:hover {
-  background-color: var(--color-secondary) !important;
-  border-color: var(--color-secondary) !important;
+  background-color: var(--neon-primary) !important;
+  color: #000000 !important;
+  text-shadow: none !important;
+
+
+
+
+  box-shadow: 0 0 8px var(--neon-primary) !important;
 }
-*/
+
+/* Botones con clases específicas en modo oscuro */
+.modo-oscuro .btn-primary,
+.modo-oscuro button.primary {
+  color: var(--neon-primary) !important;
+  border-color: var(--neon-primary) !important;
+
+
+  text-shadow: 0 0 3px var(--neon-primary) !important;
+  box-shadow: 0 0 5px rgba(0, 212, 255, 0.3) !important;
+}
+
+.modo-oscuro .btn-primary:hover,
+.modo-oscuro button.primary:hover {
+  background-color: var(--neon-primary) !important;
+
+  box-shadow: 0 0 8px var(--neon-primary) !important;
+}
+
+.modo-oscuro .btn-success,
+.modo-oscuro button.success {
+  color: var(--neon-success) !important;
+  border-color: var(--neon-success) !important;
+
+
+  text-shadow: 0 0 3px var(--neon-success) !important;
+  box-shadow: 0 0 5px rgba(0, 255, 136, 0.3) !important;
+}
+
+.modo-oscuro .btn-success:hover,
+.modo-oscuro button.success:hover {
+  background-color: var(--neon-success) !important;
+  color: #000000 !important;
+
+  box-shadow: 0 0 8px var(--neon-success) !important;
+}
+
+.modo-oscuro .btn-danger,
+.modo-oscuro button.danger {
+  color: var(--neon-danger) !important;
+  border-color: var(--neon-danger) !important;
+
+
+  text-shadow: 0 0 3px var(--neon-danger) !important;
+  box-shadow: 0 0 5px rgba(255, 51, 102, 0.3) !important;
+}
+
+.modo-oscuro .btn-danger:hover,
+.modo-oscuro button.danger:hover {
+  background-color: var(--neon-danger) !important;
+  color: #000000 !important;
+
+  box-shadow: 0 0 8px var(--neon-danger) !important;
+}
+
+.modo-oscuro .btn-warning,
+.modo-oscuro button.warning {
+  color: var(--neon-warning) !important;
+  border-color: var(--neon-warning) !important;
+
+
+  text-shadow: 0 0 3px var(--neon-warning) !important;
+  box-shadow: 0 0 5px rgba(255, 255, 0, 0.3) !important;
+}
+
+.modo-oscuro .btn-warning:hover,
+.modo-oscuro button.warning:hover {
+  background-color: var(--neon-warning) !important;
+  color: #000000 !important;
+
+  box-shadow: 0 0 8px var(--neon-warning) !important;
+}
+
+.modo-oscuro .btn-info,
+.modo-oscuro button.info {
+  color: var(--neon-info) !important;
+  border-color: var(--neon-info) !important;
+
+
+  text-shadow: 0 0 3px var(--neon-info) !important;
+  box-shadow: 0 0 5px rgba(0, 204, 255, 0.3) !important;
+}
+
+.modo-oscuro .btn-info:hover,
+.modo-oscuro button.info:hover {
+  background-color: var(--neon-info) !important;
+  color: #000000 !important;
+
+  box-shadow: 0 0 8px var(--neon-info) !important;
+}
+
+.modo-oscuro .btn-secondary,
+.modo-oscuro button.secondary {
+  color: var(--neon-secondary) !important;
+  border-color: var(--neon-secondary) !important;
+
+
+  text-shadow: 0 0 3px var(--neon-secondary) !important;
+  box-shadow: 0 0 5px rgba(179, 179, 179, 0.3) !important;
+}
+
+.modo-oscuro .btn-secondary:hover,
+.modo-oscuro button.secondary:hover {
+  background-color: var(--neon-secondary) !important;
+  color: #000000 !important;
+
+  box-shadow: 0 0 8px var(--neon-secondary) !important;
+}
+
+
 
 /* LETRA GRANDE */
 .letra-grande {
@@ -184,6 +317,32 @@
   background-color: var(--bg-primary) !important;
   color: var(--text-primary) !important;
   border-color: var(--border-color) !important;
+}
+
+
+/* Botones neón reducidos para modo oscuro + alto contraste */
+.modo-oscuro.alto-contraste button {
+  background-color: transparent !important;
+  color: var(--color-primary) !important;
+
+
+
+
+
+  border: 1px solid var(--color-primary) !important;
+  text-shadow: 0 0 4px var(--color-primary) !important;
+  box-shadow: 0 0 6px rgba(0, 255, 255, 0.4) !important;
+  font-weight: bold !important;
+}
+
+.modo-oscuro.alto-contraste button:hover {
+  background-color: var(--color-primary) !important;
+  color: #000000 !important;
+  text-shadow: none !important;
+
+
+
+  box-shadow: 0 0 10px var(--color-primary) !important;
 }
 
 /* Asegurar que los elementos mantengan el contraste adecuado */

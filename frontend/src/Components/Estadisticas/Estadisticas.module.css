@@ -11,12 +11,28 @@
   }
 }
 
-.card {
-  background-color: white;
-  padding: 1rem;
-  border-radius: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.cardSmall {
+  background-color: #a2c0f0;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
+
+.botonFin {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.botonFin:hover {
+  background-color: #0056b3;
+}
+
 
 .title {
   text-align: center;
@@ -33,4 +49,72 @@
   .fullWidth {
     grid-column: span 2;
   }
+}
+
+
+.votosOpcionesRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.cardSi,
+.cardNo,
+.cardFormula {
+  flex: 1;
+  min-width: 220px;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  color: white;
+}
+
+.cardSi {
+  background-color: #f44366; /* rojo intenso */
+}
+
+.cardNo {
+  background-color: #f4c430; /* amarillo fuerte */
+  color: #333;
+}
+
+.cardFormula {
+  background-color: #36A2EB; /* azul vibrante */
+}
+
+.valor {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.subtitulo {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.detalle {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.detalleSecundario {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+
+.wrapper {
+  margin-top: 2rem;
+  padding-bottom: 3rem; 
+}
+
+.finWrapper {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 1rem;
+  margin-left: 1rem;
 }

@@ -1,13 +1,23 @@
-import React from "react";
+import React, { useState } from "react";
 import classes from "./PersonaModal.module.css";
 
 function PersonaModal({ persona, onClose, onVotar }) {
+  const [observado, setObservado] = useState(false);
+
   const handleBackdropClick = (e) => {
-    // Si clickeaste directamente sobre el fondo
     if (e.target === e.currentTarget) {
       onClose();
     }
   };
+
+  const handleToggle = () => {
+    setObservado((prev) => !prev);
+  };
+
+  const handleVotar = () => {
+    onVotar(observado); // podemos enviar el estado de observado si querés manejarlo afuera también
+  };
+
   if (!persona) return null;
 
   return (
@@ -25,9 +35,23 @@ function PersonaModal({ persona, onClose, onVotar }) {
         </p>
 
         {!persona.voto && (
-          <button className={classes.votarButton} onClick={onVotar}>
-            Votar
-          </button>
+          <>
+            <div className={classes.switchContainer}>
+              <label className={classes.switchLabel}>
+                <input
+                  type="checkbox"
+                  checked={observado}
+                  onChange={handleToggle}
+                />
+                <span className={classes.switchSlider}></span>
+              </label>
+              <span>Voto Observado</span>
+            </div>
+
+            <button className={classes.votarButton} onClick={handleVotar}>
+              Siguiente
+            </button>
+          </>
         )}
 
         <button className={classes.cerrarButton} onClick={onClose}>
