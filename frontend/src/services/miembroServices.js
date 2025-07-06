@@ -52,6 +52,27 @@ const miembroService = {
         }
     },
 
+    abrirCircuito: async (token, nroCircuito) => {
+        try {
+            const res = await ApiService.post(`/circuitos/${nroCircuito}/abrir`, {}, "application/json", token);
+            return res.data;
+        } catch (err) {
+            console.error("Error abriendo circuito:", err);
+            throw err;
+        }
+    },
+
+    cerrarCircuito: async (token, nroCircuito) => {
+        try {
+            const res = await ApiService.post(`/circuitos/${nroCircuito}/cerrar`, {}, "application/json", token);
+            return res.data;
+        } catch (err) {
+            console.error("Error cerrando circuito:", err);
+            throw err;
+        }
+    },
+
+
 
 }
 

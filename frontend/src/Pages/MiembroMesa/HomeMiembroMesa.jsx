@@ -9,22 +9,17 @@ import escudo from "../../../public/Escudo20Uruguay_19.png";
 import useSocket from "../../hooks/useSocket";
 import miembroService from "../../services/miembroServices";
 
-// TODO: Conectar Estadísticas con el back; manejar JSON {
-//   message: {
-//     totalVotantes: number,
-//     votaron: number,
-//     votosAFavorConsulta: [],
-//     votosObservados: number,
-//     votosPorLista: []
-//   }
-// }
-
 const formatearCredencial = (v) => `${v.serie_credencial}${v.nro_credencial}`;
+
+
+// Crear listas municipales y editar (borrado)
 
 export default function HomeMiembroMesa() {
   const [circuitoAbierto, setCircuitoAbierto] = useState(
     () => localStorage.getItem("circuitoAbierto") === "true"
   );
+
+
   const [tiempoRestante, setTiempoRestante] = useState(10 * 60 * 60);
   const [votantes, setVotantes] = useState([]);
   const [nroCircuito, setNroCircuito] = useState(null);
@@ -115,15 +110,51 @@ export default function HomeMiembroMesa() {
     if (esperandoVoto && persona) miembroService.habilitarVotante(token, persona.ci);
   }, [esperandoVoto, persona, token]);
 
-  const handleAbrirCircuito = () => setCircuitoAbierto(true);
+  const handleAbrirCircuito = async () => {
+    try {
+      await miembroService.abrirCircuito(token, nroCircuito);
+      setCircuitoAbierto(true);
+    } catch (err) {
+      alert("No se pudo abrir el circuito.");
+    }
+  };
+
   const handleSeleccionarPersona = v => { setPersona(v); setIsPersonaOpen(true); };
   const handleOnVotar = () => { setIsPersonaOpen(false); setEsperandoVoto(true); };
-  const handleConfirm = () => { setIsConfirmOpen(false); setCircuitoAbierto(false); navigate("/Estadisticas"); };
+  const handleConfirm = async () => {
+    setIsConfirmOpen(false);
+    try {
+      await miembroService.cerrarCircuito(token, nroCircuito);
+      setCircuitoAbierto(false);
+      navigate("/Estadisticas");
+    } catch (err) {
+      alert("No se pudo cerrar el circuito.");
+    }
+  };
+
 
   const votantesFiltrados = votantes.filter(v =>
     formatearCredencial(v).toLowerCase().includes(searchCred.toLowerCase())
   );
   const formatoTiempo = s => `${Math.floor(s / 3600)}hrs ${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}min`;
+
+  if (!circuitoAbierto) {
+    return (
+      <div className={classes.homeContainer}>
+        <aside className={classes.sidebar}>
+          <img src={escudo} alt="logo" className={classes.logo} />
+          <nav className={classes.nav}>
+            <button className={classes.active}>Mi circuito</button>
+            <button onClick={() => navigate("/configuracion")} className={classes.active}>Configuración</button>
+          </nav>
+        </aside>
+        <main className={classes.main}>
+          <button onClick={handleAbrirCircuito} className={classes.abrirBtn}>Abrir circuito</button>
+        </main>
+      </div>
+    );
+  }
+
 
   return (
     <div className={classes.homeContainer}>
@@ -140,12 +171,14 @@ export default function HomeMiembroMesa() {
             <h1>{nroCircuito ? `Circuito N°${nroCircuito}` : "Circuito N°…"}</h1>
             <p>Montevideo</p>
           </div>
-          {circuitoAbierto && (
-            <>
-              <div className={classes.statusBox}><strong>{formatoTiempo(tiempoRestante)}</strong><span>Para finalizar las elecciones.</span></div>
-              <div className={classes.contador}><span>{votantes.filter(v => v.habilitado).length}/{votantes.length}</span><small>Votantes registrados</small></div>
-            </>
-          )}
+          <div className={classes.statusBox}>
+            <strong>{formatoTiempo(tiempoRestante)}</strong>
+            <span>Para finalizar las elecciones.</span>
+          </div>
+          <div className={classes.contador}>
+            <span>{votantes.filter(v => v.habilitado).length}/{votantes.length}</span>
+            <small>Votantes registrados</small>
+          </div>
         </div>
         <h3>Votantes de mi circuito</h3>
         <div className={classes.searchBox}>
@@ -155,15 +188,19 @@ export default function HomeMiembroMesa() {
             value={searchCred}
             onChange={e => setSearchCred(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSearchExternal()}
-            disabled={!circuitoAbierto}
           />
-          <button onClick={handleSearchExternal} className={classes.searchIconButton} disabled={!circuitoAbierto || !searchCred.trim()}><FaSearch className={classes.searchIcon} /></button>
+          <button onClick={handleSearchExternal} className={classes.searchIconButton} disabled={!searchCred.trim()}>
+            <FaSearch className={classes.searchIcon} />
+          </button>
         </div>
         <div className={classes.lista}>
           {votantesFiltrados.map((v, i) => (
             <div key={i} className={classes.votante} onClick={() => handleSeleccionarPersona(v)}>
               <FaUser className={classes.userIcon} />
-              <div className={classes.votanteInfo}><p>{v.nombre}</p><span>{formatearCredencial(v)}</span></div>
+              <div className={classes.votanteInfo}>
+                <p>{v.nombre}</p>
+                <span>{formatearCredencial(v)}</span>
+              </div>
               {(v.tipoVoto === "observado") ? (
                 <span className={classes.statusLabelObservado}>Voto observado</span>
               ) : v.yaVoto ? (
@@ -174,7 +211,10 @@ export default function HomeMiembroMesa() {
           {externalCitizen && (
             <div className={classes.votante} onClick={() => handleSeleccionarPersona(externalCitizen)}>
               <FaUser className={classes.userIcon} />
-              <div className={classes.votanteInfo}><p>{externalCitizen.nombre} {externalCitizen.apellido}</p><span>{externalCitizen.serie_credencial}{externalCitizen.nro_credencial}</span></div>
+              <div className={classes.votanteInfo}>
+                <p>{externalCitizen.nombre} {externalCitizen.apellido}</p>
+                <span>{externalCitizen.serie_credencial}{externalCitizen.nro_credencial}</span>
+              </div>
               {externalCitizen.tipoVoto === "observado" ? (
                 <span className={classes.statusLabelObservado}>Voto observado</span>
               ) : externalCitizen.yaVoto ? (
@@ -182,10 +222,10 @@ export default function HomeMiembroMesa() {
               ) : null}
             </div>
           )}
+
         </div>
-        {!circuitoAbierto ? (<button onClick={handleAbrirCircuito} className={classes.abrirBtn}>Abrir circuito</button>) : (
-          <button onClick={() => setIsConfirmOpen(true)} className={classes.cerrarBtn}>Cerrar circuito</button>
-        )}
+        <button onClick={() => setIsConfirmOpen(true)} className={classes.cerrarBtn}>Cerrar circuito</button>
+
         {isPersonaOpen && persona && <PersonaModal persona={persona} onClose={() => setIsPersonaOpen(false)} onVotar={handleOnVotar} />}
         {esperandoVoto && persona && <EsperandoVoto persona={persona} observadoMarcado={persona.tipoVoto === "observado"} onToggleObservado={() => { }} onConfirmVoto={() => { setVotantes(prev => prev.map(x => x.ci === persona.ci ? { ...x, yaVoto: true, tipoVoto: "comun" } : x)); setPersona(null); }} onConfirmObservado={() => { setVotantes(prev => prev.map(x => x.ci === persona.ci ? { ...x, tipoVoto: "observado" } : x)); }} onClose={() => { setEsperandoVoto(false); setPersona(null); }} />}
         {isConfirmOpen && <ConfirmarCierreModal onConfirm={handleConfirm} onCancel={() => setIsConfirmOpen(false)} onClose={() => setIsConfirmOpen(false)} />}
