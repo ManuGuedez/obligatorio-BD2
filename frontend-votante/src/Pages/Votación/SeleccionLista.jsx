@@ -6,11 +6,18 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGear } from "@fortawesome/free-solid-svg-icons";
 import ListaCard from "../../Components/Cards/Lista";
 import { useFlujo } from "../../Context/FlujoContext";
+import votarService from "../../Services/votarService";
 
 function SeleccionLista() {
     const [selectedItem, setSelectedItem] = React.useState(null);
     const { etapa, guardarVoto, siguiente } = useFlujo();
     const tipo = etapa.tipo;
+
+    // use effect que haga el fetch de las listas
+
+    useEffect(async () => {
+        const getListas = await votarService.getListas()
+    }, [])
 
 
     const listasPorTipo = {
@@ -95,6 +102,7 @@ function SeleccionLista() {
             .flatMap((partido) => partido.listas.map((l) => ({ ...l, partido: partido.partido })))
             .find((l) => l.id === selectedItem);
 
+            // guardar el voto acá, obtener id papeleta y hacer nuevo voto con el id de la papeleta
         if (listaElegida) {
             guardarVoto({
             nro: listaElegida.nro,

@@ -127,15 +127,16 @@ function HomeMiembroMesa() {
     console.log("Votantes filtrados:", votantesFiltrados);
   }, [circuitoAbierto, votantes, votantesFiltrados]);
 
-  const handleOnVotar = () => {
+  const handleOnVotar = (observado) => {
     setIsPersonaOpen(false);
     setEsperandoVoto(true);
+    localStorage.setItem("es_observado", observado)
   };
 
   useEffect(() => {
     if (esperandoVoto && persona) {
       const token = localStorage.getItem("token");
-      miembroService.habilitarVotante(token, persona.ci);
+      miembroService.habilitarVotante(token, persona.ci, localStorage.getItem("es_observado"), localStorage.getItem("nro_circuito"));
     }
   }, [esperandoVoto]);
 

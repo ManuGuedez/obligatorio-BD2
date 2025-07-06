@@ -6,10 +6,10 @@ const flujo = [
     { tipo: "inicio" },
     { tipo: "municipal" },
     {
-        tipo: "consulta",
-        id: "articulo11",
-        descripcion: "Plebiscito Artículo 11",
-        color: "#000000"
+        tipo: "consulta", // consulta 
+        id: "articulo11", // id_papeleta
+        descripcion: "Plebiscito Artículo 11", // descripcion de papeleta 
+        color: "#000000"  //descripcion de color
     },
     {
         tipo: "consulta",
@@ -34,11 +34,19 @@ export function FlujoProvider({ children }) {
 
     const etapa = flujo[etapaActual];
 
-    const guardarVoto = (opcion) => {
+    // cambiar
+    const guardarVoto = (id_papeleta) => {
+        let nro_circuito = localStorage.getItem("nro_circuito");
+        let es_observado = localStorage.getItem("es_observado");
+
+        // no guardar voto en blanco del plebicito / referendum cuando votas 
+
         const clave = etapa.id || etapa.tipo;
+        console.log("id_estado", id_estado)
+        console.log("id_papeleta", id_papeleta)
         setRespuestas((prev) => [
-        ...prev.filter((r) => r.tipo !== clave),
-        { tipo: clave, opcion }
+        ...prev.filter((r) => r.id !== id_papeleta),
+        { id_estado: 1, id_papeleta }
         ]);
     };
 

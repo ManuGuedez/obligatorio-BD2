@@ -37,6 +37,10 @@ const AuthService = {
             // Guardar el token y el rol del usuario en localStorage
             localStorage.setItem("token", loggedInUser.data.access_token);
             localStorage.setItem("current_role", JSON.stringify(loggedInUser.data.role_description));
+            if (loggedInUser.data.user?.nro_circuito) {
+                localStorage.setItem("nro_circuito", loggedInUser.data.user.nro_circuito);
+            }
+
         } else {
             console.error("Error al iniciar sesión:", loggedInUser);
         }
