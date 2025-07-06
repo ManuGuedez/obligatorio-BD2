@@ -15,7 +15,6 @@ import {
 import ApiService from "../../services/apiServices";
 
 export default function Estadisticas() {
-  
   const [info, setInfo] = useState(null);
 
   // Fetch estadísticas al montar
@@ -23,9 +22,14 @@ export default function Estadisticas() {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await ApiService.get("/estadisticas", token);
+        const response = await ApiService.get(
+          "/circuitos/obtener-resultado-final",
+          token
+        );
+        console.debug("[Estadisticas] Respuesta recibida:", response);
+
+        // Se asume que el backend envía { message: { ... } }
         setInfo(response.message);
-        console.log("Estadísticas recibidas:", response.message);
       } catch (error) {
         console.error("Error cargando estadísticas:", error);
       }
@@ -128,7 +132,7 @@ export default function Estadisticas() {
             <p className={styles.subtitulo}>Votos por Sí</p>
             <p className={styles.detalle}>
               {data.votosAFavorConsulta?.[0]?.consulta ?? "Consulta"
-            }</p>
+              }</p>
           </div>
           <div className={styles.cardNo}>
             <h3 className={styles.valor}>
@@ -137,7 +141,7 @@ export default function Estadisticas() {
             <p className={styles.subtitulo}>Votos por No</p>
             <p className={styles.detalle}>
               {data.votosAFavorConsulta?.[1]?.consulta ?? "Consulta"
-            }</p>
+              }</p>
           </div>
           <div className={styles.cardFormula}>
             <h3 className={styles.subtitulo}>Fórmula ganadora</h3>
