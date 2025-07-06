@@ -159,6 +159,30 @@ const adminService = {
             throw error;
         }
     },
+
+    getPoliciaByCi: async (token, ci) => {
+        try {
+            const response = await ApiService.get(`/police/${ci}`, token);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching policia by CI:", error);
+            throw error;
+        }
+    },
+
+    updatePolicia: async (token, id, data) => {
+        try {
+            const response = await ApiService.patch(`police/${id}`, data, token);
+            if (response.code !== 200 && response.code !== 204) {
+            throw new Error("No se pudo actualizar el policía");
+            }
+            console.log("Policía actualizado:", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error actualizando policía:", error);
+            throw error;
+        }
+    },
 }
 
 export default adminService;

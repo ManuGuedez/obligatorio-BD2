@@ -648,7 +648,10 @@ def update_policia(id):
 
     result = services.update_policia(id, update_data)
 
-    return result[1], 400 if result[0] < 0 else 200
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    else:
+        return jsonify({"message": result[1]}), 200
 
 @app.route('/police/<int:id>', methods=['DELETE'])
 @jwt_required()
