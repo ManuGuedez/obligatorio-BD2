@@ -522,7 +522,7 @@ def get_policia(id):
     '''
     obtiene un policía por su id
     '''
-    query = 'SELECT * FROM Policia WHERE id_policia = %s'
+    query = 'SELECT * FROM Policia WHERE ci_ciudadano = %s'
     cursor.execute(query, (id,))
     result = cursor.fetchone()
 
@@ -1411,6 +1411,25 @@ def obtener_resultado_final(id_miembro):
         "votosObservados": observados,
         "votosAFavorConsulta": votos_consulta
     }
+    
+
+def validar_circuito_cerrado(nro_circuito):
+    query = "SELECT 1 FROM Circuito WHERE nro = %s AND es_cerrado = 1 AND se_abrio = 1"
+    cursor.execute(query, (nro_circuito,))
+    if cursor.fetchone() is None:
+        return False
+    return True
+
+def eleccion_finalizada():
+    query = '''
+    SELECT COUNT(*) AS pendientes
+    FROM Circuito
+    WHERE se_abrio = 0 OR es_cerrado = 0;
+    '''
+    cursor.execute(query)
+    
+    pendientes = cursor.fetchone().get('pendientes', 0)
+    return pendientes == 0
 
 def obtener_votos_por_lista_con_porcentaje(nro_circuito=None):
     # Armar filtro dinámico
@@ -1418,8 +1437,14 @@ def obtener_votos_por_lista_con_porcentaje(nro_circuito=None):
     params = []
 
     if nro_circuito is not None:
-        where_clause = "WHERE V.nro_circuito = %s"
-        params = [nro_circuito]
+        if validar_circuito_cerrado(nro_circuito):
+            where_clause = "WHERE V.nro_circuito = %s"
+            params = [nro_circuito]
+        else:
+            return -1, "El circuito debe cerrar para ver los resultados"
+    
+    if not eleccion_finalizada():
+        return -1, "La elección debe finalizar para ver los resultados"
     
     # Total de votos
     cursor.execute(f"SELECT COUNT(*) AS total FROM Voto V {where_clause}", params)
@@ -1467,8 +1492,14 @@ def obtener_votos_por_partido(nro_circuito=None):
     params = []
 
     if nro_circuito is not None:
-        where_clause = "WHERE V.nro_circuito = %s"
-        params = [nro_circuito]
+        if validar_circuito_cerrado(nro_circuito):
+            where_clause = "WHERE V.nro_circuito = %s"
+            params = [nro_circuito]
+        else:
+            return -1, "El circuito debe cerrar para ver los resultados"
+    
+    if not eleccion_finalizada():
+        return -1, "La elección debe finalizar para ver los resultados"
 
     # Total de votos válidos (en ese circuito o global)
     cursor.execute(f"SELECT COUNT(*) AS total FROM Voto V {where_clause}", params)
@@ -1502,6 +1533,13 @@ def obtener_votos_por_partido(nro_circuito=None):
 def obtener_votos_por_candidato(nro_circuito=None):
     cursor = cnx.cursor(dictionary=True)
 
+    if nro_circuito is not None:
+        if not validar_circuito_cerrado(nro_circuito):
+            return -1, "El circuito debe estar cerrado para ver los resultados"
+       
+    if not eleccion_finalizada():
+        return -1, "La elección debe finalizar para ver los resultados"
+        
     params = [nro_circuito, nro_circuito] if nro_circuito is not None else [None, None]
 
     # Total de votos (válidos) en ese circuito o global

@@ -546,9 +546,9 @@ def get_policias():
 
     return jsonify(result), 200 if result else ({"error": "No se encontraron policias"}, 400)
 
-@app.route('/police/<int:id>', methods=['GET'])
+@app.route('/police/<int:ci>', methods=['GET'])
 @jwt_required()
-def get_policia(id):
+def get_policia(ci):
     '''
     obtiene un policia por su id
     '''
@@ -558,7 +558,7 @@ def get_policia(id):
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
 
-    result = services.get_policia(id)
+    result = services.get_policia(ci)
 
     if result:
         return jsonify(result), 200
