@@ -46,6 +46,7 @@ export function FlujoProvider({ children }) {
         setEtapaActual(0);
         setRespuestas([]);
         localStorage.removeItem("etapaActual");
+        localStorage.removeItem("ci_ciudadano");
     };
 
     useEffect(() => {

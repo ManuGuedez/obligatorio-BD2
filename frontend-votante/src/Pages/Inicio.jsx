@@ -13,10 +13,17 @@ function Inicio() {
   const [habilitado, setHabilitado] = useState(false);
   const [ciCiudadano, setciCiudadano] = useState(null);
 
-  useSocketTotem(({ ciCiudadano }) => {
-    setciCiudadano(ciCiudadano);
+  useSocketTotem((data) => {
+    setciCiudadano(data.ci_ciudadano);
     setHabilitado(true);
   });
+
+  useEffect(() => {
+    if (ciCiudadano && ciCiudadano !== null && ciCiudadano !== undefined) {
+      localStorage.setItem("ci_ciudadano", ciCiudadano);
+      console.log("CI del ciudadano guardada:", ciCiudadano);
+    }
+  }, [ciCiudadano]);
 
   const handleConfigClick = () => {
     const configIcon = document.querySelector(

@@ -1,19 +1,19 @@
 import { useEffect } from "react";
 import { io } from "socket.io-client";
 
-const SOCKET_URL = "http://localhost:5000"; 
+const SOCKET_URL = "http://localhost:5000";
 
 export default function useSocketTotem(onHabilitado) {
-useEffect(() => {
-const socket = io(SOCKET_URL);
+  useEffect(() => {
+    const socket = io(SOCKET_URL);
 
-// Escucha el evento que emite el backend
-socket.on("votante_habilitado", (data) => {
-  // Llama al callback pasado por parámetro
-  onHabilitado && onHabilitado(data);
-});
-return () => {
-  socket.disconnect();
-};
-}, [onHabilitado]);
+    // Escucha el evento que emite el backend
+    socket.on("votante_habilitado", (data) => {
+      // Llama al callback pasado por parámetro
+      onHabilitado && onHabilitado(data);
+    });
+    return () => {
+      socket.disconnect();
+    };
+  }, [onHabilitado]);
 }

@@ -1331,7 +1331,6 @@ def habilitar_votante():
     '''
     claims = get_jwt()
     role_description = claims.get('role_description')
-    print("entra bien al socket")
     
     if role_description != "miembroMesa":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por un miembro de mesa."}), 400
@@ -1353,6 +1352,8 @@ def emitir_voto():
     data = request.json
     voto = data["voto"]  # El voto NO debe tener info del votante
     ci_ciudadano = data["ci_ciudadano"]
+    print("entra al emitir voto")
+    print("voto:", voto)
     votos_temporales.append(voto)
     # Marcar en la base de datos que el votante ya votó (sin guardar el voto junto al id)
     socketio.emit('voto_emitido', {'ci_ciudadano': ci_ciudadano})

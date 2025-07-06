@@ -1,6 +1,7 @@
 import React from "react";
 import { useFlujo } from "../Context/FlujoContext";
 import { useNavigate } from "react-router-dom";
+import votarService from "../Services/votarService";
 
 export default function Resumen() {
     const { respuestas } = useFlujo();
@@ -48,7 +49,9 @@ export default function Resumen() {
         (r) => r.opcion?.respuesta === "votoAnulado"
     );
 
-    const handleSiguienteClick = () => {
+    const handleSiguienteClick = async () => {
+        console.log("Confirmando votación...");
+        await votarService.emitirVoto(respuestas);
         navigate ("/confirmacion");
     };
 

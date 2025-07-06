@@ -16,6 +16,19 @@ function HomeMiembroMesa() {
   });
   const [tiempoRestante, setTiempoRestante] = useState(10 * 60 * 60); // 10 horas en segundos
   const [votantes, setVotantes] = useState([]);
+  const [observadoMarcado, setObservadoMarcado] = useState(false);
+
+  const toggleObservado = () => {
+    setObservadoMarcado((prev) => !prev);
+
+    // También actualizás el votante para que se refleje la selección/desselección
+    const actualizados = votantes.map((v) =>
+      v.ci === persona.ci
+        ? { ...v, tipoVoto: !observadoMarcado ? "observado" : null }
+        : v
+    );
+    setVotantes(actualizados);
+  };
 
   useEffect(() => {
     const fetchVotantes = async () => {
@@ -36,13 +49,21 @@ function HomeMiembroMesa() {
   useSocket({
     onVotanteHabilitado: ({ ciCiudadano }) => {
       setVotantes((prev) =>
-        prev.map((v) => (v.id === ciCiudadano ? { ...v, habilitado: true } : v))
+        prev.map((v) => (v.ci === ciCiudadano ? { ...v, habilitado: true } : v))
       );
     },
-    onVotoEmitido: ({ ciCiudadano }) => {
+    onVotoEmitido: (data) => {
+      console.log("Voto emitido para CI:", data.ci_ciudadano);
       setVotantes((prev) =>
-        prev.map((v) => (v.id === ciCiudadano ? { ...v, yaVoto: true } : v))
+        prev.map((v) =>
+          v.ci === data.ci_ciudadano ? { ...v, yaVoto: true } : v
+        )
       );
+
+
+
+      setEsperandoVoto(false);
+      setPersona(null);
     },
   });
 
@@ -109,15 +130,14 @@ function HomeMiembroMesa() {
   const handleOnVotar = () => {
     setIsPersonaOpen(false);
     setEsperandoVoto(true);
-  }
+  };
 
   useEffect(() => {
     if (esperandoVoto && persona) {
       const token = localStorage.getItem("token");
-      miembroService.habilitarVotante(token, persona.ci)
+      miembroService.habilitarVotante(token, persona.ci);
     }
-
-  }, [esperandoVoto])
+  }, [esperandoVoto]);
 
   return (
     <div className={classes.homeContainer}>
@@ -188,7 +208,7 @@ function HomeMiembroMesa() {
                         : classes.tagVoto
                     }
                   >
-                    {v.tipoVoto === "observado" ? "Votó observado" : "Votó"}
+                    {v.voto_realizado === 1 ? "Votó" : ""}
                   </span>
                 )}
               </div>
@@ -220,6 +240,8 @@ function HomeMiembroMesa() {
         {esperandoVoto && persona && (
           <EsperandoVoto
             persona={persona}
+            observadoMarcado={observadoMarcado}
+            onToggleObservado={toggleObservado}
             onConfirmVoto={() => {
               const actualizados = votantes.map((v) =>
                 v.ci === persona.ci
@@ -227,18 +249,14 @@ function HomeMiembroMesa() {
                   : v
               );
               setVotantes(actualizados);
-              setEsperandoVoto(false);
+              // setEsperandoVoto(false);
               setPersona(null);
             }}
             onConfirmObservado={() => {
               const actualizados = votantes.map((v) =>
-                v.ci === persona.ci
-                  ? { ...v, voto: true, tipoVoto: "observado" }
-                  : v
+                v.ci === persona.ci ? { ...v, tipoVoto: "observado" } : v
               );
               setVotantes(actualizados);
-              setEsperandoVoto(false);
-              setPersona(null);
             }}
             onClose={() => {
               setEsperandoVoto(false);

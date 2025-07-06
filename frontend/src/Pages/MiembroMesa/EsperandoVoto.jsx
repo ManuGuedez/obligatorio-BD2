@@ -1,29 +1,27 @@
 import React from "react";
 import classes from "./EsperandoVoto.module.css";
 
-function EsperandoVoto({ persona, onConfirmVoto, onConfirmObservado, onClose}) {
+function EsperandoVoto({ persona, observadoMarcado, onToggleObservado, onClose }) {
   const handleBackdropClick = (e) => {
     // Si clickeaste directamente sobre el fondo
     if (e.target === e.currentTarget) {
-      onClose();
+     // onClose();
     }
   };
   return (
-    <div className={classes.modal} onClick={handleBackdropClick} >
+    <div className={classes.modal} onClick={handleBackdropClick}>
       <div className={classes.modalBox}>
         <h2>Esperando votación</h2>
         <p>{persona.nombre} está votando…</p>
-      
-        {/*         ACA HABRIA QUE VER EL TEMA DE QUE VOTA EL CIUDADANO Y YA SE CONFIRMA EN
-        LA VISTA DEL MIEMBRO
-      */}
 
-        {/*     <button className={classes.confirmarBtn} onClick={onConfirmVoto}>
-          Confirmar que votó
-        </button> */}
-        <button className={classes.cancelarBtn} onClick={onConfirmObservado}>
-          Voto observado
+        <button
+          className={observadoMarcado ? classes.confirmarBtn : classes.cancelarBtn}
+          onClick={onToggleObservado}
+        >
+          {observadoMarcado ? "Desmarcar voto observado" : "Voto observado"}
         </button>
+
+        {/* Podés dejar otros botones como Confirmar voto o Cancelar */}
       </div>
     </div>
   );

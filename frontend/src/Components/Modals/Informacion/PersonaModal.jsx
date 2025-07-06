@@ -21,10 +21,10 @@ function PersonaModal({ persona, onClose, onVotar }) {
           <strong>CI:</strong> {persona.ci}
         </p>
         <p>
-          <strong>Voto:</strong> {persona.voto ? "Sí" : "No"}
+          <strong>Voto:</strong> {persona.voto_realizado == 1 ? "Sí" : "No"}
         </p>
 
-        {!persona.voto && (
+        {!persona.voto_realizado == 1 && (
           <button className={classes.votarButton} onClick={onVotar}>
             Votar
           </button>
