@@ -1453,9 +1453,9 @@ def get_organismos_publicos():
 
     return jsonify(result), 200 if result else ({"error": "No se encontraron organismos públicos"}, 400)
     
-@app.route('/resultados/lista', methods=["GET"])
-@jwt_required
-def get_resultados_por_lista():
+@app.route('/resultados-listas', methods=['GET'])
+@jwt_required()
+def get_resultados_por_listas():
     '''
     cuerpo opcional:
         - nro_circuito (int)
@@ -1466,13 +1466,13 @@ def get_resultados_por_lista():
     if role_description != 'admin':
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
     
-    data = request.get_json()
-    result = services.obtener_votos_por_lista_con_porcentaje(data.get('nro_circuito'))
+    nro_circuito = request.args.get('nro_circuito', default=None, type=int)
+    result = services.obtener_votos_por_lista_con_porcentaje(nro_circuito)
     
     if result[0] < 0:
         return jsonify({"error":result[1]}), 400
     else:
-        return jsonify({"message": "Consulta eliminada exitosamente"}), 200
+        return jsonify(result[1]), 200
     
 
 
