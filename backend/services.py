@@ -1652,3 +1652,8 @@ def obtener_votos_por_candidato(nro_circuito=None):
         r["porcentaje"] = f"{porcentaje:.2f}%"
 
     return 1, resultados
+
+def get_roles_miembro():
+    query = 'select * from Rol_mesa '
+    cursor.execute(query)
+    return cursor.fetchall()

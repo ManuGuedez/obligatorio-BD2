@@ -1094,6 +1094,11 @@ def update_member(id):
         return jsonify({"error": result[1]}), 400
     return jsonify({"message": "Miembro actualizado exitosamente"}), 200
 
+@app.route('/miembro/roles', methods=['GET'])
+def get_roles_de_miembro():
+    return jsonify(services.get_roles_miembro())
+    
+
 @app.route('/miembro/<int:id>', methods=['DELETE'])
 @jwt_required()
 def delete_member(id):
