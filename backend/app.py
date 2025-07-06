@@ -1126,6 +1126,7 @@ def crear_partido_politico():
         -  nombre
         -  ci_presidente
         -  ci_vicepresidente
+        -  color
     '''
     claims = get_jwt()
     role_description = claims.get('role_description')
@@ -1134,13 +1135,13 @@ def crear_partido_politico():
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
     
     data = request.get_json()
-    required_fields = {'calle', 'numero', 'telefono', 'codigo_postal', 'nombre', 'ci_presidente', 'ci_vicepresidente'}
+    required_fields = {'calle', 'numero', 'telefono', 'codigo_postal', 'nombre', 'ci_presidente', 'ci_vicepresidente', 'color'}
     if data.keys() != required_fields :
         return jsonify({"error": "Todos los campos son requeridos"}), 400
     elif data['ci_presidente'] == data['ci_vicepresidente']:
         return jsonify({"error": "El presidente y el vicepresidente no pueden ser la misma persona"}), 400
     
-    result = services.crear_partido(data['calle'], data['numero'], data['telefono'], data['codigo_postal'], data['nombre'], data['ci_presidente'], data['ci_vicepresidente'])
+    result = services.crear_partido(data['calle'], data['numero'], data['telefono'], data['codigo_postal'], data['nombre'], data['ci_presidente'], data['ci_vicepresidente'], data['color'])
 
     if result[0] < 0:
         return jsonify({"error": result[1]}), 400
@@ -1204,6 +1205,17 @@ def get_partidos_politicos():
     result = services.get_partidos_politicos()
 
     return jsonify(result), 200 if result else ({"error": "No se encontraron partidos políticos"}, 400)
+
+@app.route('/partido-politico/<int:id>', methods=['GET'])
+# @jwt_required()
+def get_partido(id):
+    '''
+    obtiene todos los partidos políticos
+    '''
+    result = services.get_partido(id)
+
+    return jsonify(result), 200 if result else ({"error": "No se encontró el partido político"}, 400)
+
 
 @app.route('/lista', methods=['POST'])
 @jwt_required()

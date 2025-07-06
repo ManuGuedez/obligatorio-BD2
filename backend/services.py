@@ -929,16 +929,27 @@ def delete_member(id):
     else:
         return -1, "No se encontró el miembro o no se realizaron cambios"
     
-def crear_partido(calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente):
+def crear_partido(calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente, color):
     '''
     argega un nuevo partido político
     '''
     try:
         query = '''
-            INSERT INTO Partido_politico (calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            SELECT id FROM Color WHERE descripcion = %s
         '''
-        values = (calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente)
+        color = str(color).strip().lower()
+        cursor.execute(query, (color,))
+        id_color = cursor.fetchone()
+        if not id_color:
+            query = "INSERT INTO Color (descripcion) VALUE (%s)"
+            cursor.execute(query, (color,))
+            id_color = cursor.lastrowid
+
+        query = '''
+            INSERT INTO Partido_politico (calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente, id_color)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        '''
+        values = (calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente, id_color)
         cursor.execute(query, values)
 
         cnx.commit()
@@ -1148,6 +1159,22 @@ def crear_papeleta(descripcion):
     print(">>>>>: ",a)
     return a
     
+def get_partido(id):
+    query = '''
+        SELECT pp.id, pp.nombre, pp.calle, pp.numero, pp.telefono, pp.codigo_postal,
+               c.nombre AS presidente_nombre, c.apellido AS presidente_apellido,
+               v.nombre AS vicepresidente_nombre, v.apellido AS vicepresidente_apellido
+        FROM Partido_politico pp
+        JOIN Ciudadano c ON pp.ci_presidente = c.ci
+        JOIN Ciudadano v ON pp.ci_vicepresidente = v.ci
+        WHERE pp.id = %s
+    '''
+    cursor.execute(query, (id,))
+    result = cursor.fetchall()
+    
+    if result:
+        return result
+    return None
     
 
 def crear_lista(id_partido, descripcion, nro_lista, id_candidato_apoyado, id_departamento):
