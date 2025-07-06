@@ -397,7 +397,9 @@ def obtener_resultado_final():
 
     result = services.obtener_resultado_final(id_miembro)
     
-    return jsonify(result), 200
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    return jsonify({"message":result[1]}), 200
 
 
 @app.route('/circuitos/<int:id>', methods=['DELETE'])

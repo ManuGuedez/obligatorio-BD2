@@ -1363,6 +1363,12 @@ def obtener_resultado_final(id_miembro):
     if not row:
         return {"error": "Miembro no encontrado"}
     circuito = row["nro_circuito"]
+    
+    # primero hay que verificar que el circuito esté cerrado
+    query = "SELECT 1 FROM Circuito WHERE nro = %s AND es_cerrado = 1 AND se_abrio = 1"
+    cursor.execute(query, (circuito,))
+    if cursor.fetchone() is None:
+        return -1, {"error": "El circuito no está cerrado o no se ha abierto"}
 
     # 2. Total votantes
     cursor.execute("SELECT COUNT(*) AS totalVotantes FROM Ciudadano WHERE nro_circuito = %s", (circuito,))
@@ -1398,7 +1404,7 @@ def obtener_resultado_final(id_miembro):
     """, (circuito,))
     votos_consulta = cursor.fetchall()
     
-    return {
+    return 1, {
         "totalVotantes": total,
         "votaron": votaron,
         "votosPorLista": votos_lista,
