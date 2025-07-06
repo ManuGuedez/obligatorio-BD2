@@ -1417,4 +1417,129 @@ def obtener_resultado_final(id_miembro):
         "votosObservados": observados,
         "votosAFavorConsulta": votos_consulta
     }
+
+def obtener_votos_por_lista_con_porcentaje(nro_circuito=None):
+    # Armar filtro dinámico
+    where_clause = ""
+    params = []
+
+    if nro_circuito is not None:
+        where_clause = "WHERE V.nro_circuito = %s"
+        params = [nro_circuito]
     
+    # Total de votos
+    cursor.execute(f"SELECT COUNT(*) AS total FROM Voto V {where_clause}", params)
+    total_votos = cursor.fetchone()["total"]
+
+    if total_votos == 0:
+        return -1, "No se registraron votos."
+        
+    query = f'''
+         SELECT
+                P.descripcion AS lista,
+                L.nro AS numero_lista,
+                PP.nombre AS partido,
+                COUNT(V.id) AS votos
+            FROM Lista L
+            JOIN Papeleta P ON L.id_papeleta = P.id
+            JOIN Partido_politico PP ON L.id_partido_politico = PP.id
+            LEFT JOIN Voto V ON V.id_papeleta = P.id
+            {where_clause}
+            GROUP BY L.nro, L.id_departamento;
+
+    '''
+
+    # Votos por lista
+    cursor.execute(query, params)
+
+    resultados = cursor.fetchall()
+
+    for r in resultados:
+        porcentaje = (r["votos"] / total_votos) * 100
+        r["porcentaje"] = f"{porcentaje:.2f}%"
+
+    return 1, resultados
+
+def get_organismos_publicos():
+    query = '''SELECT * FROM Organismo_publico'''
+    cursor.execute(query)
+    result = cursor.fetchall()
+    if result:
+        return result
+    return None
+
+def obtener_votos_por_partido(nro_circuito=None):
+    where_clause = ""
+    params = []
+
+    if nro_circuito is not None:
+        where_clause = "WHERE V.nro_circuito = %s"
+        params = [nro_circuito]
+
+    # Total de votos válidos (en ese circuito o global)
+    cursor.execute(f"SELECT COUNT(*) AS total FROM Voto V {where_clause}", params)
+    total_votos = cursor.fetchone()["total"]
+
+    if total_votos == 0:
+        return -1, "No se registraron votos."
+
+    # Votos agrupados por partido
+    cursor.execute(f"""
+        SELECT
+            PP.nombre AS partido,
+            COUNT(V.id) AS votos
+        FROM Partido_politico PP
+        JOIN Lista L ON L.id_partido_politico = PP.id
+        JOIN Papeleta P ON L.id_papeleta = P.id
+        LEFT JOIN Voto V ON V.id_papeleta = P.id 
+        {where_clause}
+        GROUP BY PP.nombre;
+
+    """, params)
+
+    resultados = cursor.fetchall()
+
+    for r in resultados:
+        porcentaje = (r["votos"] / total_votos) * 100
+        r["porcentaje"] = f"{porcentaje:.2f}%"
+
+    return 1, resultados
+
+def obtener_votos_por_candidato(nro_circuito=None):
+    cursor = cnx.cursor(dictionary=True)
+
+    params = [nro_circuito, nro_circuito] if nro_circuito is not None else [None, None]
+
+    # Total de votos (válidos) en ese circuito o global
+    cursor.execute("""
+        SELECT COUNT(*) AS total FROM Voto V
+        WHERE (%s IS NULL OR V.nro_circuito = %s)
+    """, params)
+    total_votos = cursor.fetchone()["total"]
+
+    if total_votos == 0:
+        return -1, "No se registraron votos."
+
+    # Votos por candidato
+    cursor.execute("""
+        SELECT
+            PP.nombre AS partido,
+            CONCAT(C.apellido, ' ', C.nombre) AS candidato,
+            COUNT(V.id) AS votos
+        FROM Lista L
+        JOIN Papeleta P ON L.id_papeleta = P.id
+        JOIN Partido_politico PP ON L.id_partido_politico = PP.id
+        JOIN Candidato CD ON L.id_candidato_apoyado = CD.id
+        JOIN Ciudadano C ON CD.ci_ciudadano = C.ci
+        LEFT JOIN Voto V ON V.id_papeleta = P.id
+            AND (%s IS NULL OR V.nro_circuito = %s)
+        GROUP BY PP.nombre, C.apellido, C.nombre, CD.id;    
+    """, params)
+
+    resultados = cursor.fetchall()
+
+    for r in resultados:
+        porcentaje = (r["votos"] / total_votos) * 100
+        r["porcentaje"] = f"{porcentaje:.2f}%"
+
+    return 1, resultados

@@ -401,7 +401,6 @@ def obtener_resultado_final():
         return jsonify({"error": result[1]}), 400
     return jsonify({"message":result[1]}), 200
 
-
 @app.route('/circuitos/<int:id>', methods=['DELETE'])
 @jwt_required()
 def delete_circuito(id):
@@ -1437,6 +1436,86 @@ def emitir_voto():
         votos_temporales.clear()
 
     return jsonify({"status": "ok"}), 200
+
+@app.route('/organismo-publico', methods=["GET"])
+@jwt_required
+def get_organismos_publicos():
+    '''
+    obtiene todas las comisarias
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    result = services.get_organismos_publicos()
+
+    return jsonify(result), 200 if result else ({"error": "No se encontraron organismos públicos"}, 400)
+    
+@app.route('/resultados/listas', methods=['GET'])
+@jwt_required()
+def get_resultados_por_listas():
+    '''
+    cuerpo opcional:
+        - nro_circuito (int)
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    
+    if role_description != 'admin':
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+    
+    nro_circuito = request.args.get('nro_circuito', default=None, type=int)
+    result = services.obtener_votos_por_lista_con_porcentaje(nro_circuito)
+    
+    if result[0] < 0:
+        return jsonify({"error":result[1]}), 400
+    else:
+        return jsonify(result[1]), 200
+    
+@app.route('/resultados/partido', methods=['GET'])
+@jwt_required()
+def get_resultados_por_partido():
+    '''
+    cuerpo opcional:
+        - nro_circuito (int)
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    
+    if role_description != 'admin':
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+    
+    nro_circuito = request.args.get('nro_circuito', default=None, type=int)
+    result = services.obtener_votos_por_partido(nro_circuito)
+    
+    if result[0] < 0:
+        return jsonify({"error":result[1]}), 400
+    else:
+        return jsonify(result[1]), 200
+
+@app.route('/resultados/candidato', methods=['GET'])
+@jwt_required()
+def get_resultados_por_candidato():
+    '''
+    Parámetro opcional:
+        - nro_circuito (int)
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    
+    if role_description != 'admin':
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+    
+    nro_circuito = request.args.get('nro_circuito', default=None, type=int)
+    result = services.obtener_votos_por_candidato(nro_circuito)
+    
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    else:
+        return jsonify(result[1]), 200
+
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000, debug=True)
