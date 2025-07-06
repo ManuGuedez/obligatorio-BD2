@@ -1,6 +1,7 @@
 import mysql.connector as mysql
 from mysql.connector.errors import IntegrityError
 import encriptacion_contraseña as encrypt
+from datetime import datetime
 
 cnx = mysql.connect(user='xr_g6_admin', password='Bd2025!', host='mysql.reto-ucu.net', port=50006, database='XR_Grupo6') #mysql
 cursor = cnx.cursor(dictionary=True) # devuelve la info en formato key-value
@@ -1303,3 +1304,53 @@ def delete_consulta(id):
     
     except Exception as e:
         return -1, f"Error inesperado: {str(e)}"
+    
+def registrar_ciudadano(ci_ciudadano, nro_circuito):
+    fecha_hora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        query = '''
+            INSERT INTO Registro_votacion (ci_ciudadano, fecha_hora, nro_circuito)
+            VALUES (%s, %s, %s)
+        '''
+        cursor.execute(query, (ci_ciudadano, fecha_hora, nro_circuito))
+        cnx.commit()
+        if cursor.rowcount == 0:
+            return -1, "El ciudadano ya ha votado en este circuito"
+        return 1, "Ciudadano registrado exitosamente"
+        
+    except IntegrityError as e:
+        return -1, f"Error de integridad: {str(e)}"
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"
+        
+    
+    
+def registrar_voto(votos, ci_ciudadano):
+    circuito = votos[0]['nro_circuito']
+    return registrar_ciudadano(ci_ciudadano, circuito)
+
+def insertar_votos(votos_temporales):
+    '''
+    Inserta los votos en la tabla Registro_votacion.
+    '''
+    try:
+        query = '''
+            INSERT INTO Voto (id_estado, es_observado, nro_circuito, id_papeleta)
+            VALUES (%s, %s, %s, %s, %s)
+        '''
+        values = []
+        for current_votos in votos_temporales:
+            values.append((voto['id_estado'], voto['es_observado'], voto['nro_circuito'], voto['id_papeleta']) for voto in current_votos)
+        cursor.executemany(query, values)
+        cnx.commit()
+        
+        return 1, "Votos insertados exitosamente"
+    
+    except IntegrityError as e:
+        return -1, f"Error de integridad: {str(e)}"
+    
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"
+        
+    
+    

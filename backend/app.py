@@ -341,6 +341,11 @@ def cerrar_circuito(nro):
     if role_description != "miembroMesa":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por un miembro de mesa."}), 400
 
+    random.shuffle(votos_temporales)
+    guardar_votos = services.insertar_votos(votos_temporales)
+    if guardar_votos[0] < 0:
+        return jsonify({"error": guardar_votos[1]}), 400
+
     result = services.cerrar_circuito(claims.get('id'), nro)
 
     if result[0] < 0:
@@ -1349,20 +1354,36 @@ def habilitar_votante():
 
 @app.route('/emitir_voto', methods=['POST'])
 def emitir_voto():
+    '''
+    cuerpo requerido:
+        - votos (lista) con la información de los votos
+                 ejemplo: voto = [{"id_estado": 1, "es_observado": 0, "nro_circuito": 2345, "id_papeleta": 9}, {}, ...] // tantos diccionarios como papeletas votadas
+        - ci_ciudadano (int) del votante que emite el voto
+    '''
     data = request.json
-    voto = data["voto"]  # El voto NO debe tener info del votante
+    votos = data["votos"]  # El voto NO debe tener info del votante
     ci_ciudadano = data["ci_ciudadano"]
-    print("entra al emitir voto")
-    print("voto:", voto)
-    votos_temporales.append(voto)
+    
+    required_fields = {'votos', 'ci_ciudadano'}
+    if data.keys() != required_fields:
+        return jsonify({"error": "Faltan campos requeridos"}), 400
+    
+    result = services.registrar_voto(votos, ci_ciudadano)
+    
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400    
+    
+    votos_temporales.append(votos)
+    print(votos_temporales)
     # Marcar en la base de datos que el votante ya votó (sin guardar el voto junto al id)
     socketio.emit('voto_emitido', {'ci_ciudadano': ci_ciudadano})
 
     # Si hay 10 votos, los baraja e inserta
     if len(votos_temporales) >= 10:
         random.shuffle(votos_temporales)
-        # Acá se insertan todos los votos en la base de datos
-        # Ejemplo: for v in votos_temporales: guardar_en_db(v)
+        result = services.insertar_votos(votos_temporales)
+        if result[0] < 0:
+            return jsonify({"error": result[1]}), 400
         votos_temporales.clear()
 
     return jsonify({"status": "ok"}), 200
