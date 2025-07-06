@@ -134,10 +134,8 @@ def login_user(nombre_usuario, password):
                     '''
         cursor.execute(query, (result['id'],))
         resultado = cursor.fetchone()
-        member_id = resultado.get('id_miembro')
-        if member_id:
-            es_habilitado = resultado.get('habilitado') 
-            print("es_habilitado", resultado)
+        if resultado:
+            member_id = resultado.get('id_miembro')
             if resultado.get('Habilitado') == 0:
                 return -1, "El miembro no está habilitado."
             result['id'] = member_id
