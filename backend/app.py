@@ -93,7 +93,7 @@ def login():
     print("resultado: ",resultado)
     
     if resultado[0] < 0:
-        return resultado[1], 400
+        return jsonify({"error":resultado[1]}), 400
 
     datos_usuario = dict()
     if resultado[1]['role_description'] == "miembroMesa":
@@ -1099,6 +1099,7 @@ def update_member(id):
 def delete_member(id):
     '''
     elimina un miembro por su id
+        en realidad se manteien los datos pero queda deshabilitado
     '''
     claims = get_jwt()
     role_description = claims.get('role_description')

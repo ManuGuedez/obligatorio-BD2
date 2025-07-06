@@ -127,11 +127,20 @@ def login_user(nombre_usuario, password):
         current_role = get_role(result['id_rol_usuario'])
         if current_role is None:
             return -1, "Hubo un error al iniciar sesión, ingrese nuevamente las credenciales"
-        query = 'SELECT id_miembro FROM Usuario_miembro WHERE id_usuario = %s'
+        query = '''SELECT M.id_miembro, M.Habilitado
+                    FROM Usuario_miembro UM
+                    JOIN Miembro_mesa M ON UM.id_miembro = M.id_miembro
+                    WHERE UM.id_usuario = %s;
+                    '''
         cursor.execute(query, (result['id'],))
-        member_id = cursor.fetchone()
+        resultado = cursor.fetchone()
+        member_id = resultado.get('id_miembro')
         if member_id:
-            result['id'] = member_id['id_miembro']
+            es_habilitado = resultado.get('habilitado') 
+            print("es_habilitado", resultado)
+            if resultado.get('Habilitado') == 0:
+                return -1, "El miembro no está habilitado."
+            result['id'] = member_id
             print(f"Usuario {nombre_usuario} con ID {result['id']} ha iniciado sesión correctamente.")
         user_details = {"user_name": nombre_usuario, "role_description": current_role ,"id": result['id']}
         return 1, user_details
@@ -269,13 +278,25 @@ def delete_establishment(id):
     '''
     elimina un establecimiento por su id
     '''
-    query = 'DELETE FROM Establecimiento WHERE id = %s'
-    cursor.execute(query, (id,))
-    cnx.commit()
-    if cursor.rowcount > 0:
-        return 1, "Establecimiento eliminado exitosamente"
-    else:
-        return -1, "No se encontró el establecimiento o no se realizaron cambios"
+    try:
+        query = 'DELETE FROM Establecimiento WHERE id = %s'
+        cursor.execute(query, (id,))
+        cnx.commit()
+
+        if cursor.rowcount > 0:
+            return 1, "Establecimiento eliminado exitosamente"
+        else:
+            return -1, "No se encontró el establecimiento o no se realizaron cambios"
+
+    except IntegrityError as e:
+        # Código de error 1451: violación de clave foránea
+        if e.errno == 1451 or e.errno == 1217:
+            return -1, "El establecimiento no se puede eliminar porque está siendo referenciado por otra tabla"
+        else:
+            return -1, f"Error de integridad referencial: {str(e)}"
+
+    except Exception as e:
+        return -1, f"Error inesperado al eliminar el establecimiento: {str(e)}"
     
 def get_circuitos():
     '''
@@ -759,7 +780,7 @@ def delete_citizen(ci):
 
     except IntegrityError as e:
         # Error 1451 = clave foránea en uso (Cannot delete or update a parent row)
-        if e.errno == 1451:
+        if e.errno == 1451 or e.errno == 1217:
             return -1, "El ciudadano no se puede eliminar dado que está siendo referenciado por otra tabla"
         else:
             return -1, "Error de integridad: " + str(e)
@@ -888,7 +909,7 @@ def delete_member(id):
     '''
     Elimina un miembro de mesa por su id
     '''
-    query = 'DELETE FROM Miembro_mesa WHERE id_miembro = %s'
+    query = 'UPDATE Miembro_mesa SET Habilitado = 0, nro_circuito = null where id_miembro = %s'
     cursor.execute(query, (id,))
     cnx.commit()
     
