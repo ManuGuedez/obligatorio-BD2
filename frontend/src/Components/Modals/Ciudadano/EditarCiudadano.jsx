@@ -1,6 +1,7 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import styles from "./EditarCiudadano.module.css";
 import { FaSearch, FaTrashAlt, FaPen } from "react-icons/fa";
+import adminService from "../../../services/adminServices";
 
 function EditarCiudadano({ onClose }) {
   const overlayRef = useRef();
@@ -11,38 +12,100 @@ function EditarCiudadano({ onClose }) {
     apellido: false,
     serie: false,
     numero: false,
+    circuito: false,
   });
+  const [circuito, setCircuito] = useState();
+  const [circuitos, setCircuitos] = useState([]);
+  const [busqueda, setBusqueda] = useState("");
 
   const handleOverlayClick = (e) => {
     if (e.target === overlayRef.current) onClose();
   };
 
-  const handleBuscar = (e) => {
+  const handleBuscar = async (e) => {
     e.preventDefault();
-    if (ci === "11111111") {
-      setCiudadano({
-        nombre: "NombreActual",
-        apellido: "ApellidoActual",
-        serie: "AAA",
-        numero: "111",
-      });
-    } else {
-      alert("Ciudadano no encontrado (simulado)");
+    const token = localStorage.getItem("token");
+    try {
+      const data = await adminService.getCiudadanoByCi(token, ci);
+      if (data) {
+        setCiudadano({
+          nombre: data.nombre,
+          apellido: data.apellido,
+          serie: data.serie_credencial,
+          numero: data.nro_credencial,
+        });
+        setCircuito(data.nro_circuito); // 👈 guardás el circuito actual
+      } else {
+        alert("Ciudadano no encontrado");
+      }
+    } catch (error) {
+      alert("Error al buscar ciudadano");
+      console.error("Error buscando ciudadano:", error);
     }
   };
+
+  useEffect(() => {
+    const fetchCircuitos = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const data = await adminService.getCircuitos(token);
+        setCircuitos([...data]);
+        console.log("Circuitos traídos:", [...data]);
+      } catch (error) {
+        console.error("Error al traer los circuitos:", error);
+      }
+    };
+
+    fetchCircuitos();
+  }, []);
 
   const habilitarCampo = (campo) => {
     setEditFields((prev) => ({ ...prev, [campo]: true }));
   };
 
+  const circuitosFiltrados = circuitos.filter(
+    (cir) =>
+      cir?.nro?.toString().toLowerCase().includes(busqueda.toLowerCase())
+  );
+
   const hayCambios = Object.values(editFields).some((v) => v);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
-    console.log("Actualizando ciudadano:", data);
-    onClose();
+  const handleSubmit = async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      formData.append("ci", ci);
+      const data = Object.fromEntries(formData);
+      const token = localStorage.getItem("token");
+
+      const payload = {};
+
+      if (editFields.nombre) {
+          payload.nombre = data.nombre;
+      }
+      if (editFields.apellido) {
+          payload.apellido = data.apellido;
+      }
+      if (editFields.serie) {
+          payload.serie = data.serie;
+      }
+      if (editFields.numero) {
+          payload.numero = data.numero;
+      }
+      if (editFields.circuito) {
+          const circuitoValue = parseInt(data.circuito);
+          if (!isNaN(circuitoValue)) {
+              payload.circuito = circuitoValue;
+          }
+      }
+      try {
+          await adminService.updateCiudadano(token, ci, payload.nombre, payload.apellido, payload.serie, payload.numero, payload.circuito);
+          console.log("Ciudadano actualizado correctamente");
+          onClose();
+      } catch (error) {
+          console.error("Error al actualizar ciudadano:", error);
+          alert("Error al actualizar ciudadano. Intentalo nuevamente.");
+          onClose();
+      }
   };
 
   const handleEliminar = () => {
@@ -138,7 +201,47 @@ function EditarCiudadano({ onClose }) {
                   onClick={() => habilitarCampo("numero")}
                 />
               </div>
-
+              <label className={styles.label}>Circuito</label>
+              <div className={styles.inputRow}>
+                {editFields.circuito ? (
+                  <div className="field is-fullwidth" style={{ flex: 1 }}>
+                    <input
+                      className="input mb-2"
+                      type="text"
+                      placeholder="Buscar..."
+                      value={busqueda}
+                      onChange={(e) => setBusqueda(e.target.value)}
+                    />
+                    <div className="select is-fullwidth">
+                      <select
+                        name="circuito"
+                        value={circuito || ""}
+                        onChange={(e) => setCircuito(Number(e.target.value))}
+                        required
+                      >
+                        <option value="" disabled>Seleccionar...</option>
+                          {circuitosFiltrados.map((cir) => (
+                            <option key={cir.nro} value={cir.nro}>
+                              {cir.nro}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <input
+                      name="circuito"
+                      defaultValue={circuito}
+                      className={styles.input}
+                      disabled
+                      required
+                    />
+                  </>
+                )}
+                <FaPen className={styles.editIcon} onClick={() => habilitarCampo("circuito")} />
+              </div>
+            
               <div className={styles.actionRow}>
                 <button
                   type="button"

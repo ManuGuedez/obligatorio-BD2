@@ -78,6 +78,33 @@ const adminService = {
         }
     },
 
+    updateCiudadano: async (token, ci, nombre, apellido, serie, numero, circuito) => {
+        try {
+            const data = {
+                ...(nombre !== undefined && { nombre }),
+                ...(apellido !== undefined && { apellido }),
+                ...(serie !== undefined && { serie_credencial: serie }),
+                ...(numero !== undefined && { nro_credencial: numero }),
+                ...(circuito !== undefined && { nro_circuito: circuito }),
+            };
+
+            const response = await ApiService.patch(`ciudadano/${ci}`, data, token);
+
+            // Si ApiService.patch lanza en caso de error, no necesitás chequear .ok
+            console.log("Ciudadano actualizado:", response);
+            return response;
+
+
+            const responseData = await response.json();
+            console.log("Ciudadano actualizado:", responseData);
+            return responseData;
+        } catch (error) {
+            console.error("Error actualizando ciudadano:", error);
+            throw error;
+        }
+    },
+
+
     crearCiudadano: async (token, ci, nombre, apellido, serie, numero, circuito) => {
         try {
             console.log("Creando ciudadano:", ci, nombre, apellido, serie, numero, circuito);
