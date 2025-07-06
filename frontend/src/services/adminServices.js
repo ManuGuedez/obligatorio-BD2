@@ -123,6 +123,19 @@ const adminService = {
         }
     },
 
+    getResultadosPorLista: async (token, circuito = null) => {
+        try {
+            console.log("Fetching resultados por lista con circuito:", circuito);
+            const url = circuito
+                ? `/resultados-listas?nro_circuito=${circuito}`
+                : `/resultados-listas`;
+            const response = await ApiService.get(url, token);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching resultados por lista:", error);
+            throw error;
+        }
+    }
 }
 
 export default adminService;
