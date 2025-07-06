@@ -1143,5 +1143,132 @@ def get_partidos_politicos():
 
     return jsonify(result), 200 if result else ({"error": "No se encontraron partidos políticos"}, 400)
 
+@app.route('/lista', methods=['POST'])
+@jwt_required()
+def crear_lista():
+    '''
+    crea una nueva lista de candidatos para un partido político
+    campos requeridos:
+        - id_partido
+        - descripción 
+        - nro_lista
+        - id_candidato_apoyado
+        - id_departamento (en el que es válida la lista)
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+    
+    data = request.get_json()
+    required_fields = {'id_partido', 'descripcion', 'nro_lista', 'id_candidato_apoyado', 'id_departamento'}
+    if data.keys() != required_fields:
+        return jsonify({"error": "Todos los campos son requeridos"}), 400
+    
+    print("entra a crear lista")
+    result = services.crear_lista(data['id_partido'], data['descripcion'], data['nro_lista'], data['id_candidato_apoyado'], data['id_departamento'])
+    
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    return jsonify({"message": result[1]}), 200
+
+@app.route('/lista/agregar-candidato', methods=['POST'])
+@jwt_required()
+def agregar_candidato_a_lista():
+    '''
+    agrega candidatos a una lista existente
+    cuerpo requerido:
+        - nro_lista
+        - id_candidato (puede ser un solo candidato o una lista de candidatos)
+        - id_tipo (tipo de candidato, presidente, vicepresidente, diputado o senador)
+        - posición (int)
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+    
+    data = request.get_json()
+    required_fields = {'nro_lista', 'id_candidato', 'id_tipo', 'posicion'}
+    
+    if data.keys() != required_fields:
+        return jsonify({"error": "Faltan campos requeridos"}), 400
+    
+    result = services.agregar_candidato_a_lista(data['nro_lista'], data['id_candidato'], data['id_tipo'], data['posicion'])
+    
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    return jsonify({"message": "Candidato agregado a la lista exitosamente"}), 200
+    
+@app.route('/lista', methods=['GET'])
+# @jwt_required()
+def get_listas():
+    '''
+    obtiene todas las listas de candidatos
+    '''
+    result = services.get_listas()
+
+    return jsonify(result), 200 if result else ({"error": "No se encontraron listas"}, 400)
+
+@app.route('/lista/<int:nro>/integrantes', methods=['GET'])
+# @jwt_required()
+def get_integrantes_lista(nro):
+    '''
+    obtiene los integrantes de una lista por su nro_lista
+    '''
+    result = services.get_integrantes_lista(nro)
+
+    if result:
+        return jsonify(result), 200
+    else:
+        return jsonify({"error": "Lista no encontrada"}), 400
+
+@app.route('/lista/<int:nro>', methods=['DELETE'])
+@jwt_required()
+def delete_lista(nro):
+    '''
+    elimina una lista por su nro_lista
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    result = services.delete_lista(nro)
+
+    if result[0] < 0:
+        return result[1], 400
+    else:
+        return jsonify({"message": "Lista eliminada exitosamente"}), 200
+    
+@app.route('/consulta', methods=['POST'])
+@jwt_required()
+def crear_consulta():
+    '''
+    crea una nueva consulta
+    cuerpo requerido:
+        - descripcion
+        - id_color
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    
+    if role_description != "admin":
+        return jsonify({"error": "No tiene autorización para realizar esta acción."}), 400
+    
+    data = request.get_json()
+    required_fields = {'descripcion', 'id_color'}
+    
+    if data.keys() != required_fields:
+        return jsonify({"error": "Todos los campos son requeridos"}), 400
+    
+    result = services.crear_consulta(data['descripcion'], data['id_color'])
+    
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    return jsonify({"message": "Consulta creada exitosamente"}), 200
+
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1085,3 +1085,152 @@ def get_citizens_by_member_circuit(member_id):
     if result:
         return result
     return None
+
+def crear_papeleta(descripcion):
+    '''
+    
+    '''
+    query = ''' INSERT INTO Papeleta (descripcion) VALUES (%s)'''
+    cursor.execute(query, (descripcion,))
+    a =cursor.lastrowid
+    print(">>>>>: ",a)
+    return a
+    
+    
+
+def crear_lista(id_partido, descripcion, nro_lista, id_candidato_apoyado, id_departamento):
+    '''
+    Crea una nueva lista electoral.
+    '''
+    try:
+        id_papeleta = crear_papeleta(descripcion)
+        if id_papeleta is None:
+            return -1, "Error al crear la papeleta"
+        
+        # Insertar la lista en la tabla Lista
+        query = '''
+        INSERT INTO Lista (nro, id_candidato_apoyado, id_papeleta, id_partido_politico, id_departamento)
+        VALUES (%s, %s, %s, %s, %s)
+        '''
+        values = (nro_lista, id_candidato_apoyado, id_papeleta, id_partido, id_departamento)
+        cursor.execute(query, values)
+        cnx.commit()
+        return 1, ":ista creada exitosamente"
+
+    except IntegrityError as e:
+        if "Duplicate entry" in str(e):
+            return -1, f"La lista '{descripcion}' ya fue ingresada."
+        else:
+            return -1, f"Error de integridad: {str(e)}"
+
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"
+    
+def agregar_candidato_a_lista(nro_lista, id_candidato, id_tipo, posicion):
+    '''
+    Agrega un candidato a una lista en la tabla Integrantes_de_lista.
+    Maneja errores de duplicados por restricciones UNIQUE o PK.
+    '''
+    try:        
+        query = '''
+            INSERT INTO Integrantes_de_lista (id_candidato, nro_lista, id_tipo, posicion)
+            VALUES (%s, %s, %s, %s)
+        '''
+        values = (id_candidato, nro_lista, id_tipo, posicion)
+        cursor.execute(query, values)
+        cnx.commit()
+        return 1, "Candidato agregado a la lista exitosamente"
+    except IntegrityError as e:
+        if "Duplicate entry" in str(e):
+            return -1, "Ya existe un candidato con ese id en la lista, o la posición ya está ocupada."
+        else:
+            return -1, f"Error de integridad: {str(e)}"
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"
+    
+def get_listas():
+    '''
+    Obtiene todas las listas electorales.
+    '''
+    query = '''
+        SELECT pa.id AS id_papeleta, l.nro, pa.descripcion AS descripcion, p.nombre AS partido, 
+               ciu.nombre AS nombre_candidato, ciu.apellido AS apellido_candidato, d.nombre AS departamento
+        FROM Lista l
+        JOIN Partido_politico p ON l.id_partido_politico = p.id
+        JOIN Papeleta pa ON l.id_papeleta = pa.id
+        JOIN Candidato c ON l.id_candidato_apoyado = c.id
+        JOIN Ciudadano ciu ON c.ci_ciudadano = ciu.ci
+        JOIN Departamento d ON l.id_departamento = d.id;
+    '''
+    cursor.execute(query)
+    result = cursor.fetchall()
+    
+    if result:
+        return result
+    return None
+
+def get_integrantes_lista(nro):
+    query = '''
+    SELECT ciu.nombre AS nombre_candidato, ciu.apellido AS apellido_candidato,
+        t.descripcion AS puesto
+    FROM Integrantes_de_lista i
+    JOIN Tipo_candidato t ON i.id_tipo = t.id
+    JOIN Candidato c ON i.id_candidato = c.id
+    JOIN Ciudadano ciu ON c.ci_ciudadano = ciu.ci
+    WHERE i.nro_lista = %s ORDER BY posicion'''
+    cursor.execute(query, (nro,))
+    result = cursor.fetchall()
+    if result:
+        return result
+    return None
+
+def delete_lista(nro):
+    '''
+    Elimina una lista electoral por su nro.
+    '''
+    try:
+        # Primero, eliminamos los integrantes de la lista
+        query = 'DELETE FROM Integrantes_de_lista WHERE nro_lista = %s'
+        cursor.execute(query, (nro,))
+        
+        # Luego, eliminamos la lista
+        query = 'DELETE FROM Lista WHERE nro = %s'
+        cursor.execute(query, (nro,))
+        
+        cnx.commit()
+        
+        if cursor.rowcount > 0:
+            return 1, "Lista eliminada exitosamente"
+        else:
+            return -1, "No se encontró la lista o no se realizaron cambios"
+    
+    except IntegrityError as e:
+        return -1, f"Error de integridad: {str(e)}"
+    
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"
+
+def crear_consulta(descripcion, id_color):
+    '''
+    Crea una nueva consulta.
+    '''
+    try:
+        id_papeleta = crear_papeleta(descripcion)
+        if id_papeleta is None:
+            return -1, "Error al crear la papeleta"
+        
+        query = 'INSERT INTO Consulta (id_papeleta, id_color) VALUES (%s, %s)'
+        values = (id_papeleta, id_color)
+        cursor.execute(query, values)
+
+        cnx.commit()
+        return 1, "Consulta creada exitosamente"
+
+    except IntegrityError as e:
+        if "Duplicate entry" in str(e):
+            return -1, f"La consulta '{descripcion}' ya fue ingresada."
+        else:
+            return -1, f"Error de integridad: {str(e)}"
+
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"
