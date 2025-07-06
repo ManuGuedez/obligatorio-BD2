@@ -1429,16 +1429,18 @@ def obtener_votos_por_lista_con_porcentaje(nro_circuito=None):
         return -1, "No se registraron votos."
         
     query = f'''
-        SELECT
+         SELECT
                 P.descripcion AS lista,
+                L.nro AS numero_lista,
                 PP.nombre AS partido,
-                COUNT(*) AS votos
-            FROM Voto V
-            JOIN Papeleta P ON V.id_papeleta = P.id
-            JOIN Lista L ON P.id = L.id_papeleta
+                COUNT(V.id) AS votos
+            FROM Lista L
+            JOIN Papeleta P ON L.id_papeleta = P.id
             JOIN Partido_politico PP ON L.id_partido_politico = PP.id
+            LEFT JOIN Voto V ON V.id_papeleta = P.id
             {where_clause}
-            GROUP BY P.descripcion, PP.nombre
+            GROUP BY L.nro, L.id_departamento;
+
     '''
 
     # Votos por lista
@@ -1459,3 +1461,40 @@ def get_organismos_publicos():
     if result:
         return result
     return None
+
+def obtener_votos_por_partido(nro_circuito=None):
+    where_clause = ""
+    params = []
+
+    if nro_circuito is not None:
+        where_clause = "WHERE V.nro_circuito = %s"
+        params = [nro_circuito]
+
+    # Total de votos válidos (en ese circuito o global)
+    cursor.execute(f"SELECT COUNT(*) AS total FROM Voto V {where_clause}", params)
+    total_votos = cursor.fetchone()["total"]
+
+    if total_votos == 0:
+        return -1, "No se registraron votos."
+
+    # Votos agrupados por partido
+    cursor.execute(f"""
+        SELECT
+            PP.nombre AS partido,
+            COUNT(V.id) AS votos
+        FROM Partido_politico PP
+        JOIN Lista L ON L.id_partido_politico = PP.id
+        JOIN Papeleta P ON L.id_papeleta = P.id
+        LEFT JOIN Voto V ON V.id_papeleta = P.id 
+        {where_clause}
+        GROUP BY PP.nombre;
+
+    """, params)
+
+    resultados = cursor.fetchall()
+
+    for r in resultados:
+        porcentaje = (r["votos"] / total_votos) * 100
+        r["porcentaje"] = f"{porcentaje:.2f}%"
+
+    return 1, resultados
