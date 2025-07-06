@@ -1,10 +1,11 @@
-from flask import Flask, jsonify, request
-from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, get_jwt, jwt_required
+from flask import Flask, jsonify, request, g
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, get_jwt, jwt_required, verify_jwt_in_request
 import services
 from datetime import timedelta
 from flask_cors import CORS
 import pandas as pd
 from flask_socketio import SocketIO, emit 
+from datetime import datetime
 import random
 import os
 import mysql.connector
@@ -22,6 +23,34 @@ jwt = JWTManager(app)
 
 # Cola temporal para votos
 votos_temporales = []
+
+from flask_jwt_extended import get_jwt, verify_jwt_in_request, create_access_token
+from flask import g
+
+@app.before_request
+def refresh_token_if_needed():
+    try:
+        verify_jwt_in_request(optional=True)
+        jwt_data = get_jwt()
+        if jwt_data:
+            exp_timestamp = jwt_data["exp"]
+            now = datetime.utcnow().timestamp()
+            remaining = exp_timestamp - now
+
+            # Si quedan menos de 15 minutos, lo renovamos
+            if remaining < 900:
+                identity = jwt_data["sub"]
+                new_token = create_access_token(identity=identity)
+                # Guardamos en g para que esté disponible después
+                g.new_token = new_token
+    except Exception:
+        pass  # No hay token o es inválido, ignoramos
+    
+@app.after_request
+def attach_refresh_token(response):
+    if hasattr(g, "new_token"):
+        response.headers["X-Refresh-Token"] = g.new_token
+    return response
 
 @app.route('/registrar_usuario', methods=['POST'])
 @jwt_required()
@@ -341,11 +370,37 @@ def cerrar_circuito(nro):
     if role_description != "miembroMesa":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por un miembro de mesa."}), 400
 
+    if len(votos_temporales) > 0:
+        random.shuffle(votos_temporales)
+        guardar_votos = services.insertar_votos(votos_temporales)
+        if guardar_votos[0] < 0:
+            return jsonify({"error": guardar_votos[1]}), 400
+
     result = services.cerrar_circuito(claims.get('id'), nro)
 
     if result[0] < 0:
         return jsonify({"error": result[1]}), 400
     return jsonify({"message": "Circuito cerrado exitosamente"}), 200
+
+@app.route('/circuitos/obtener-resultado-final', methods=['GET'])
+@jwt_required()
+def obtener_resultado_final():
+    '''
+    obtiene el resultado final de los circuitos
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    id_miembro = get_jwt_identity()
+
+    if role_description != "miembroMesa":
+        return jsonify({"error": "No tiene autorización para acceder a esta información."}), 400
+
+    result = services.obtener_resultado_final(id_miembro)
+    
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    return jsonify({"message":result[1]}), 200
+
 
 @app.route('/circuitos/<int:id>', methods=['DELETE'])
 @jwt_required()
@@ -1349,20 +1404,36 @@ def habilitar_votante():
 
 @app.route('/emitir_voto', methods=['POST'])
 def emitir_voto():
+    '''
+    cuerpo requerido:
+        - votos (lista) con la información de los votos
+                 ejemplo: voto = [{"id_estado": 1, "es_observado": 0, "nro_circuito": 2345, "id_papeleta": 9}, {}, ...] // tantos diccionarios como papeletas votadas
+        - ci_ciudadano (int) del votante que emite el voto
+    '''
     data = request.json
-    voto = data["voto"]  # El voto NO debe tener info del votante
+    votos = data["votos"]  # El voto NO debe tener info del votante
     ci_ciudadano = data["ci_ciudadano"]
-    print("entra al emitir voto")
-    print("voto:", voto)
-    votos_temporales.append(voto)
+    
+    required_fields = {'votos', 'ci_ciudadano'}
+    if data.keys() != required_fields:
+        return jsonify({"error": "Faltan campos requeridos"}), 400
+    
+    result = services.registrar_voto(votos, ci_ciudadano)
+    
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400    
+    
+    votos_temporales.append(votos)
+    print(votos_temporales)
     # Marcar en la base de datos que el votante ya votó (sin guardar el voto junto al id)
     socketio.emit('voto_emitido', {'ci_ciudadano': ci_ciudadano})
 
     # Si hay 10 votos, los baraja e inserta
     if len(votos_temporales) >= 10:
         random.shuffle(votos_temporales)
-        # Acá se insertan todos los votos en la base de datos
-        # Ejemplo: for v in votos_temporales: guardar_en_db(v)
+        result = services.insertar_votos(votos_temporales)
+        if result[0] < 0:
+            return jsonify({"error": result[1]}), 400
         votos_temporales.clear()
 
     return jsonify({"status": "ok"}), 200

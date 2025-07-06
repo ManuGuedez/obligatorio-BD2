@@ -1,6 +1,7 @@
 import mysql.connector as mysql
 from mysql.connector.errors import IntegrityError
 import encriptacion_contraseña as encrypt
+from datetime import datetime
 
 cnx = mysql.connect(user='xr_g6_admin', password='Bd2025!', host='mysql.reto-ucu.net', port=50006, database='XR_Grupo6') #mysql
 cursor = cnx.cursor(dictionary=True) # devuelve la info en formato key-value
@@ -1303,3 +1304,111 @@ def delete_consulta(id):
     
     except Exception as e:
         return -1, f"Error inesperado: {str(e)}"
+    
+def registrar_ciudadano(ci_ciudadano, nro_circuito):
+    fecha_hora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        query = '''
+            INSERT IGNORE INTO Registro_votacion (ci_ciudadano, fecha_hora, nro_circuito)
+            VALUES (%s, %s, %s)
+        '''
+        cursor.execute(query, (ci_ciudadano, fecha_hora, nro_circuito))
+        cnx.commit()
+        if cursor.rowcount == 0:
+            return -1, "El ciudadano ya ha votado en este circuito"
+        return 1, "Ciudadano registrado exitosamente"
+        
+    except IntegrityError as e:
+        return -1, f"Error de integridad: {str(e)}"
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"
+        
+    
+    
+def registrar_voto(votos, ci_ciudadano):
+    circuito = votos[0]['nro_circuito']
+    return registrar_ciudadano(ci_ciudadano, circuito)
+
+def insertar_votos(votos_temporales):
+    '''
+    Inserta los votos en la tabla Registro_votacion.
+    '''
+    try:
+        query = '''
+            INSERT INTO Voto (id_estado, es_observado, nro_circuito, id_papeleta)
+            VALUES (%s, %s, %s, %s, %s)
+        '''
+        values = []
+        for current_votos in votos_temporales:
+            print(current_votos)
+            for voto in current_votos:
+                values.append((voto['id_estado'], voto['es_observado'], voto['nro_circuito'], voto['id_papeleta']))
+        print("valores a insertar: ", values)
+        cursor.executemany(query, values)
+        cnx.commit()
+        
+        return 1, "Votos insertados exitosamente"
+    
+    except IntegrityError as e:
+        return -1, f"Error de integridad: {str(e)}"
+    
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"
+        
+    
+def obtener_resultado_final(id_miembro):
+    # 1. Obtener circuito
+    cursor.execute("SELECT nro_circuito FROM Miembro_mesa WHERE id_miembro = %s", (id_miembro,))
+    row = cursor.fetchone()
+    if not row:
+        return {"error": "Miembro no encontrado"}
+    circuito = row["nro_circuito"]
+    
+    # primero hay que verificar que el circuito esté cerrado
+    query = "SELECT 1 FROM Circuito WHERE nro = %s AND es_cerrado = 1 AND se_abrio = 1"
+    cursor.execute(query, (circuito,))
+    if cursor.fetchone() is None:
+        return -1, {"error": "El circuito no está cerrado o no se ha abierto"}
+
+    # 2. Total votantes
+    cursor.execute("SELECT COUNT(*) AS totalVotantes FROM Ciudadano WHERE nro_circuito = %s", (circuito,))
+    total = cursor.fetchone()["totalVotantes"]
+
+    # 3. Total que votaron
+    cursor.execute("SELECT COUNT(*) AS votaron FROM Voto WHERE nro_circuito = %s", (circuito,))
+    votaron = cursor.fetchone()["votaron"]
+
+    # 4. Votos observados
+    cursor.execute("SELECT COUNT(*) AS votosObservados FROM Voto WHERE nro_circuito = %s AND es_observado = 1", (circuito,))
+    observados = cursor.fetchone()["votosObservados"]
+
+    # 5. Votos por lista
+    cursor.execute("""
+        SELECT L.nro AS lista, COUNT(*) AS votos
+        FROM Voto V
+        JOIN Papeleta P ON V.id_papeleta = P.id
+        JOIN Lista L ON P.id = L.id_papeleta
+        WHERE V.nro_circuito = %s
+        GROUP BY L.nro
+    """, (circuito,))
+    votos_lista = cursor.fetchall()
+    
+    # 6. Votos a favor por Consulta
+    cursor.execute("""
+        SELECT P.descripcion, COUNT(*) AS cantidad_votos
+        FROM Voto V
+        JOIN Papeleta P ON V.id_papeleta = P.id
+        JOIN Consulta C ON P.id = C.id_papeleta
+        WHERE V.nro_circuito = %s
+        GROUP BY C.id
+    """, (circuito,))
+    votos_consulta = cursor.fetchall()
+    
+    return 1, {
+        "totalVotantes": total,
+        "votaron": votaron,
+        "votosPorLista": votos_lista,
+        "votosObservados": observados,
+        "votosAFavorConsulta": votos_consulta
+    }
+    
