@@ -189,3 +189,25 @@
 .cerrarBtn {
   background-color: #660000;
 }
+
+
+.statusLabelVoto {
+  background-color: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.statusLabelObservado {
+  background-color: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.statusLabelVoto,
+.statusLabelObservado {
+  margin-left: auto;
+}

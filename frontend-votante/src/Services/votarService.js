@@ -4,7 +4,7 @@ const votarService = {
     emitirVoto: async (voto) => {
         try {
             let data = {
-                voto: voto, // El voto debe contener la información del candidato
+                votos: voto, // El voto debe contener la información del candidato
                 ci_ciudadano: localStorage.getItem("ci_ciudadano"), // El CI del ciudadano que emite el voto
             };
 

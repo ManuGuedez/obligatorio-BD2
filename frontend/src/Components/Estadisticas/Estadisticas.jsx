@@ -1,30 +1,55 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./Estadisticas.module.css";
-import { PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  Legend
+} from "recharts";
+import ApiService from "../../services/apiServices";
 
-const Estadisticas = ({ data }) => {
-  const ejemplo = {
-    totalVotantes: 100,
-    votaron: 72,
-    votosPorLista: [
-      { lista: "Lista 1", votos: 25 },
-      { lista: "Lista 2", votos: 30 },
-      { lista: "Lista 3", votos: 17 },
-    ],
-    votosObservados: 5
+export default function Estadisticas() {
+  
+  const [info, setInfo] = useState(null);
+
+  // Fetch estadísticas al montar
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await ApiService.get("/estadisticas", token);
+        setInfo(response.message);
+        console.log("Estadísticas recibidas:", response.message);
+      } catch (error) {
+        console.error("Error cargando estadísticas:", error);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  // Datos de ejemplo mientras carga
+  const data = info ?? {
+    totalVotantes: 0,
+    votaron: 0,
+    votosPorLista: [],
+    votosObservados: 0
   };
 
-  const info = data || ejemplo;
-  const noVotaron = info.totalVotantes - info.votaron;
-
+  const noVotaron = data.totalVotantes - data.votaron;
   const chartData = {
     participacion: [
-      { name: "Votaron", value: info.votaron, color: "#36A2EB" },
-      { name: "No votaron", value: noVotaron, color: "#FF6384" },
+      { name: "Votaron", value: data.votaron, color: "#36A2EB" },
+      { name: "No votaron", value: noVotaron, color: "#FF6384" }
     ],
     observados: [
-      { name: "Votos Observados", value: info.votosObservados, color: "#FFCE56" },
-      { name: "Votos Normales", value: info.votaron - info.votosObservados, color: "#4CAF50" },
+      { name: "Votos Observados", value: data.votosObservados, color: "#FFCE56" },
+      { name: "Votos Normales", value: data.votaron - data.votosObservados, color: "#4CAF50" }
     ]
   };
 
@@ -63,7 +88,7 @@ const Estadisticas = ({ data }) => {
         <div className={styles.cardSmall}>
           <h2 className={styles.title}>Distribución por Lista</h2>
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={info.votosPorLista}>
+            <BarChart data={data.votosPorLista}>
               <XAxis dataKey="lista" />
               <YAxis allowDecimals={false} />
               <Tooltip />
@@ -97,28 +122,33 @@ const Estadisticas = ({ data }) => {
 
         <div className={styles.votosOpcionesRow}>
           <div className={styles.cardSi}>
-            <h3 className={styles.valor}>30.00%</h3>
+            <h3 className={styles.valor}>
+              {data.votosAFavorConsulta?.[0]?.porcentaje.toFixed(2) ?? "0.00"}%
+            </h3>
             <p className={styles.subtitulo}>Votos por Sí</p>
-            <p className={styles.detalle}>(Reforma Artículo 11)</p>
+            <p className={styles.detalle}>
+              {data.votosAFavorConsulta?.[0]?.consulta ?? "Consulta"
+            }</p>
           </div>
           <div className={styles.cardNo}>
-            <h3 className={styles.valor}>20.00%</h3>
+            <h3 className={styles.valor}>
+              {data.votosAFavorConsulta?.[1]?.porcentaje.toFixed(2) ?? "0.00"}%
+            </h3>
             <p className={styles.subtitulo}>Votos por No</p>
-            <p className={styles.detalle}>(Referéndum Ley 17.111)</p>
+            <p className={styles.detalle}>
+              {data.votosAFavorConsulta?.[1]?.consulta ?? "Consulta"
+            }</p>
           </div>
           <div className={styles.cardFormula}>
             <h3 className={styles.subtitulo}>Fórmula ganadora</h3>
-            <p className={styles.valor}>Nombre del Presidente</p>
-            <p className={styles.detalle}>Nombre del Vicepresidente</p>
-            <p className={styles.detalleSecundario}>Nombre del partido</p>
+            <p className={styles.valor}>{data.message?.presidente ?? "-"}</p>
+            <p className={styles.detalle}>{data.message?.vicepresidente ?? "-"}</p>
+            <p className={styles.detalleSecundario}>
+              {data.message?.partido ?? "-"}
+            </p>
           </div>
         </div>
-
-
-
       </div>
     </div>
   );
-};
-
-export default Estadisticas;
+}

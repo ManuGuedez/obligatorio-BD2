@@ -9,6 +9,16 @@ import escudo from "../../../public/Escudo20Uruguay_19.png";
 import useSocket from "../../hooks/useSocket";
 import miembroService from "../../services/miembroServices";
 
+// TODO: Conectar Estadísticas con el back; manejar JSON {
+//   message: {
+//     totalVotantes: number,
+//     votaron: number,
+//     votosAFavorConsulta: [],
+//     votosObservados: number,
+//     votosPorLista: []
+//   }
+// }
+
 const formatearCredencial = (v) => `${v.serie_credencial}${v.nro_credencial}`;
 
 export default function HomeMiembroMesa() {
@@ -19,37 +29,56 @@ export default function HomeMiembroMesa() {
   const [votantes, setVotantes] = useState([]);
   const [nroCircuito, setNroCircuito] = useState(null);
   const [persona, setPersona] = useState(null);
+  const [yaVoto, setYaVoto] = useState(null); // Estado de carga y voto
   const [isPersonaOpen, setIsPersonaOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [searchCred, setSearchCred] = useState("");
   const [externalCitizen, setExternalCitizen] = useState(null);
   const [esperandoVoto, setEsperandoVoto] = useState(false);
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
 
-  // Carga inicial de ciudadanos de mi circuito
+  // 1. Carga inicial de ciudadanos de mi circuito y asignar yaVoto
   useEffect(() => {
     const fetchVotantes = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const ciudadanos = await miembroService.getCiudadanos(token);
+        const data = await miembroService.getCiudadanos(token);
+        const ciudadanos = data.map(c => ({
+          ...c,
+          yaVoto: c.voto_realizado === 1
+        }));
         setVotantes(ciudadanos);
-        if (ciudadanos.length > 0) {
-          setNroCircuito(ciudadanos[0].nro_circuito);
-        }
+        if (ciudadanos.length) setNroCircuito(ciudadanos[0].nro_circuito);
       } catch (error) {
         console.error("Error al traer los ciudadanos:", error);
       }
     };
     fetchVotantes();
-  }, []);
+  }, [token]);
 
-  // Socket listeners
+  // 2. Al cambiar persona, obtenemos si ya votó (fetch detallado)
+  useEffect(() => {
+    if (!persona) return;
+    setYaVoto(null);
+    const fetchEstado = async () => {
+      try {
+        const data = await miembroService.getCiudadanoByCi(token, persona.ci);
+        setYaVoto(data?.voto_realizado === 1);
+      } catch (err) {
+        console.error("Error al obtener estado de voto:", err);
+        setYaVoto(false);
+      }
+    };
+    fetchEstado();
+  }, [persona, token]);
+
+  // Socket listeners para habilitación y voto
   useSocket({
     onVotanteHabilitado: ({ ciCiudadano }) => {
       setVotantes(prev => prev.map(v => v.ci === ciCiudadano ? { ...v, habilitado: true } : v));
     },
-    onVotoEmitido: data => {
-      setVotantes(prev => prev.map(v => v.ci === data.ci_ciudadano ? { ...v, yaVoto: true } : v));
+    onVotoEmitido: ({ ci_ciudadano }) => {
+      setVotantes(prev => prev.map(v => v.ci === ci_ciudadano ? { ...v, yaVoto: true } : v));
       setEsperandoVoto(false);
       setPersona(null);
     }
@@ -58,8 +87,8 @@ export default function HomeMiembroMesa() {
   // Contador de tiempo
   useEffect(() => {
     if (circuitoAbierto && tiempoRestante > 0) {
-      const interval = setInterval(() => setTiempoRestante(prev => prev - 1), 1000);
-      return () => clearInterval(interval);
+      const timer = setInterval(() => setTiempoRestante(t => t - 1), 1000);
+      return () => clearInterval(timer);
     }
   }, [circuitoAbierto, tiempoRestante]);
 
@@ -68,60 +97,33 @@ export default function HomeMiembroMesa() {
     localStorage.setItem("circuitoAbierto", circuitoAbierto);
   }, [circuitoAbierto]);
 
-  // Filtrar votantes por credencial
-  const votantesFiltrados = votantes.filter(v =>
-    formatearCredencial(v).toLowerCase().includes(searchCred.toLowerCase())
-  );
-
-  // Buscar externo por CC cuando no hay coincidencias locales
-  useEffect(() => {
-    if (circuitoAbierto && searchCred && votantesFiltrados.length === 0) {
-      const fetchExternal = async () => {
-        const token = localStorage.getItem("token");
-        try {
-          const cc = searchCred.toUpperCase().trim();
-          const citizen = await miembroService.getCiudadanoByCC(token, cc);
-          setExternalCitizen(citizen);
-        } catch (err) {
-          console.error("Error fetching ciudadano by CC:", err);
-          setExternalCitizen(null);
-        }
-      };
-      fetchExternal();
-    } else {
+  // Handler búsqueda externa
+  const handleSearchExternal = async () => {
+    const cc = searchCred.toUpperCase().trim();
+    if (!cc) return;
+    try {
+      const citizen = await miembroService.getCiudadanoByCC(token, cc);
+      if (citizen) citizen.yaVoto = citizen.voto_realizado === 1;
+      setExternalCitizen(citizen);
+    } catch {
       setExternalCitizen(null);
     }
-  }, [searchCred, votantesFiltrados, circuitoAbierto]);
+  };
 
   // Habilitar votante remoto si se confirma el voto
   useEffect(() => {
-    if (esperandoVoto && persona) {
-      const token = localStorage.getItem("token");
-      miembroService.habilitarVotante(token, persona.ci);
-    }
-  }, [esperandoVoto, persona]);
+    if (esperandoVoto && persona) miembroService.habilitarVotante(token, persona.ci);
+  }, [esperandoVoto, persona, token]);
 
-  // Handlers
   const handleAbrirCircuito = () => setCircuitoAbierto(true);
-  const handleSeleccionarPersona = v => {
-    setPersona(v);
-    setIsPersonaOpen(true);
-  };
-  const handleOnVotar = () => {
-    setIsPersonaOpen(false);
-    setEsperandoVoto(true);
-  };
-  const handleConfirm = () => {
-    setIsConfirmOpen(false);
-    setCircuitoAbierto(false);
-    navigate("/Estadisticas");
-  };
+  const handleSeleccionarPersona = v => { setPersona(v); setIsPersonaOpen(true); };
+  const handleOnVotar = () => { setIsPersonaOpen(false); setEsperandoVoto(true); };
+  const handleConfirm = () => { setIsConfirmOpen(false); setCircuitoAbierto(false); navigate("/Estadisticas"); };
 
-  const formatoTiempo = segundos => {
-    const hrs = Math.floor(segundos / 3600);
-    const mins = Math.floor((segundos % 3600) / 60);
-    return `${hrs}hrs ${mins.toString().padStart(2, "0")}min`;
-  };
+  const votantesFiltrados = votantes.filter(v =>
+    formatearCredencial(v).toLowerCase().includes(searchCred.toLowerCase())
+  );
+  const formatoTiempo = s => `${Math.floor(s / 3600)}hrs ${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}min`;
 
   return (
     <div className={classes.homeContainer}>
@@ -129,9 +131,7 @@ export default function HomeMiembroMesa() {
         <img src={escudo} alt="logo" className={classes.logo} />
         <nav className={classes.nav}>
           <button className={classes.active}>Mi circuito</button>
-          <button onClick={() => navigate("/configuracion")} className={classes.active}>
-            Configuración
-          </button>
+          <button onClick={() => navigate("/configuracion")} className={classes.active}>Configuración</button>
         </nav>
       </aside>
       <main className={classes.main}>
@@ -142,14 +142,8 @@ export default function HomeMiembroMesa() {
           </div>
           {circuitoAbierto && (
             <>
-              <div className={classes.statusBox}>
-                <strong>{formatoTiempo(tiempoRestante)}</strong>
-                <span>Para finalizar las elecciones.</span>
-              </div>
-              <div className={classes.contador}>
-                <span>{votantes.filter(v => v.habilitado).length}/{votantes.length}</span>
-                <small>Votantes registrados</small>
-              </div>
+              <div className={classes.statusBox}><strong>{formatoTiempo(tiempoRestante)}</strong><span>Para finalizar las elecciones.</span></div>
+              <div className={classes.contador}><span>{votantes.filter(v => v.habilitado).length}/{votantes.length}</span><small>Votantes registrados</small></div>
             </>
           )}
         </div>
@@ -160,72 +154,42 @@ export default function HomeMiembroMesa() {
             placeholder="Buscar por credencial (Ej: AAAXXXX)"
             value={searchCred}
             onChange={e => setSearchCred(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSearchExternal()}
             disabled={!circuitoAbierto}
           />
-          <FaSearch className={classes.searchIcon} />
+          <button onClick={handleSearchExternal} className={classes.searchIconButton} disabled={!circuitoAbierto || !searchCred.trim()}><FaSearch className={classes.searchIcon} /></button>
         </div>
         <div className={classes.lista}>
-          {circuitoAbierto && votantesFiltrados.map((v, i) => (
+          {votantesFiltrados.map((v, i) => (
             <div key={i} className={classes.votante} onClick={() => handleSeleccionarPersona(v)}>
               <FaUser className={classes.userIcon} />
-              <div>
-                <p>{v.nombre}</p>
-                <span>{formatearCredencial(v)}</span>
-              </div>
-              {v.voto && (
-                <span className={v.tipoVoto === "observado" ? classes.tagObservado : classes.tagVoto}>
-                  {v.voto_realizado === 1 ? "Votó" : ""}
-                </span>
-              )}
+              <div className={classes.votanteInfo}><p>{v.nombre}</p><span>{formatearCredencial(v)}</span></div>
+              {(v.tipoVoto === "observado") ? (
+                <span className={classes.statusLabelObservado}>Voto observado</span>
+              ) : v.yaVoto ? (
+                <span className={classes.statusLabelVoto}>Ya votó</span>
+              ) : null}
             </div>
           ))}
           {externalCitizen && (
             <div className={classes.votante} onClick={() => handleSeleccionarPersona(externalCitizen)}>
               <FaUser className={classes.userIcon} />
-              <div>
-                <p>{externalCitizen.nombre} {externalCitizen.apellido}</p>
-                <span>{externalCitizen.serie_credencial}{externalCitizen.nro_credencial}</span>
-              </div>
-              <span className={classes.tagObservado}>Voto observado</span>
+              <div className={classes.votanteInfo}><p>{externalCitizen.nombre} {externalCitizen.apellido}</p><span>{externalCitizen.serie_credencial}{externalCitizen.nro_credencial}</span></div>
+              {externalCitizen.tipoVoto === "observado" ? (
+                <span className={classes.statusLabelObservado}>Voto observado</span>
+              ) : externalCitizen.yaVoto ? (
+                <span className={classes.statusLabelVoto}>Ya votó</span>
+              ) : null}
             </div>
           )}
         </div>
-        {!circuitoAbierto ? (
-          <button onClick={handleAbrirCircuito} className={classes.abrirBtn}>Abrir circuito</button>
-        ) : (
+        {!circuitoAbierto ? (<button onClick={handleAbrirCircuito} className={classes.abrirBtn}>Abrir circuito</button>) : (
           <button onClick={() => setIsConfirmOpen(true)} className={classes.cerrarBtn}>Cerrar circuito</button>
         )}
-        {isPersonaOpen && persona && (
-          <PersonaModal persona={persona} onClose={() => setIsPersonaOpen(false)} onVotar={handleOnVotar} />
-        )}
-        {esperandoVoto && persona && (
-          <EsperandoVoto
-            persona={persona}
-            observadoMarcado={persona.tipoVoto === "observado"}
-            onToggleObservado={() => {}}
-            onConfirmVoto={() => {
-              setVotantes(prev => prev.map(x => x.ci === persona.ci ? { ...x, voto: true, tipoVoto: "comun" } : x));
-              setPersona(null);
-            }}
-            onConfirmObservado={() => {
-              setVotantes(prev => prev.map(x => x.ci === persona.ci ? { ...x, tipoVoto: "observado" } : x));
-            }}
-            onClose={() => { setEsperandoVoto(false); setPersona(null); }}
-          />
-        )}
-        {isConfirmOpen && (
-          <ConfirmarCierreModal
-            onConfirm={handleConfirm}
-            onCancel={() => setIsConfirmOpen(false)}
-            onClose={() => setIsConfirmOpen(false)}
-          />
-        )}
+        {isPersonaOpen && persona && <PersonaModal persona={persona} onClose={() => setIsPersonaOpen(false)} onVotar={handleOnVotar} />}
+        {esperandoVoto && persona && <EsperandoVoto persona={persona} observadoMarcado={persona.tipoVoto === "observado"} onToggleObservado={() => { }} onConfirmVoto={() => { setVotantes(prev => prev.map(x => x.ci === persona.ci ? { ...x, yaVoto: true, tipoVoto: "comun" } : x)); setPersona(null); }} onConfirmObservado={() => { setVotantes(prev => prev.map(x => x.ci === persona.ci ? { ...x, tipoVoto: "observado" } : x)); }} onClose={() => { setEsperandoVoto(false); setPersona(null); }} />}
+        {isConfirmOpen && <ConfirmarCierreModal onConfirm={handleConfirm} onCancel={() => setIsConfirmOpen(false)} onClose={() => setIsConfirmOpen(false)} />}
       </main>
     </div>
   );
 }
-
-
-
-// Agregar boton de buscar, cosa de que cuando termine de escribir 
-// la credencial se pueda buscar usando getCiudadanoByCC
