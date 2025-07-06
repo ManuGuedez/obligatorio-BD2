@@ -302,6 +302,26 @@ const adminService = {
             throw error;
         }
     },
+
+    updateMiembro: async (token, idMiembro, data) => {
+        try {
+            const response = await ApiService.patch(
+            `miembro/${idMiembro}`,
+            data,
+            token
+            );
+
+            if (response.code !== 200) {
+            throw new Error(response.data?.error || "Error al actualizar miembro");
+            }
+
+            console.log("Miembro actualizado:", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error en updateMiembro:", error);
+            throw error;
+        }
+    },
 }
 
 export default adminService;
