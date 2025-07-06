@@ -53,9 +53,12 @@ function NuevoEstablecimiento({ onClose }) {
             <div className={styles.fieldGroup}>
               <label className={styles.label}>Tipo</label>
               <select name="tipo" className={styles.input} required>
+                <option value="univesidad">Universidad</option>
+                <option value="utu">UTU</option>
                 <option value="escuela">Escuela</option>
                 <option value="liceo">Liceo</option>
                 <option value="club">Club</option>
+                <option value="otro">Otro</option>
               </select>
             </div>
             {!zonaExiste && (

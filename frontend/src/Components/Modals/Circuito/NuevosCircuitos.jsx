@@ -2,10 +2,13 @@
 import React, { useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import styles from "./NuevosCircuitos.module.css";
+import adminService from "../../../services/adminServices";
 
 function NuevosCircuitos({ onClose }) {
   const overlayRef = useRef();
   const [fileName, setFileName] = useState("");
+  const [subiendo, setSubiendo] = useState(false);
+  const [msj, setMsj] = useState("");
 
   const handleOverlayClick = (e) => {
     if (e.target === overlayRef.current) onClose();
@@ -17,19 +20,28 @@ function NuevosCircuitos({ onClose }) {
     handleFile(file);
   };
 
-  const handleFile = (file) => {
+  const handleFile = async (file) => {
     setFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const json = XLSX.utils.sheet_to_json(sheet);
-      console.log("Circuitos cargados:", json);
-    };
-    reader.readAsArrayBuffer(file);
+    setMsj("");
+    const token = localStorage.getItem("token");
+
+    try {
+      setSubiendo(true);
+      const response = await adminService.bulkAddCircuitos(token, file);
+
+      if (response.code === 200) {
+        setMsj("✔️ Circuitos cargados exitosamente.");
+      } else {
+        setMsj(`❌ Error: ${response.data.error}`);
+      }
+    } catch (error) {
+      console.error("Error al subir el archivo:", error);
+      setMsj("❌ Error al subir el archivo.");
+    } finally {
+      setSubiendo(false);
+    }
   };
+
 
   const handleInputChange = (e) => {
     const file = e.target.files[0];
@@ -51,6 +63,8 @@ function NuevosCircuitos({ onClose }) {
           <p>o</p>
           <input type="file" accept=".xlsx, .xls" onChange={handleInputChange} />
           {fileName && <p className={styles.fileName}>Archivo: {fileName}</p>}
+          {msj && <p className={styles.mensaje}>{msj}</p>}
+          {subiendo && <p className={styles.mensaje}>Subiendo archivo...</p>}
         </div>
         <div className={styles.buttonRow}>
           <button className={styles.cancelButton} onClick={onClose}>Cancelar</button>

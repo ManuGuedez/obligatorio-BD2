@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import styles from "./NuevoPartido.module.css";
+import adminService from "../../../services/adminServices";
 
 function NuevoPartido({ onClose }) {
   const overlayRef = useRef();
@@ -10,20 +11,23 @@ function NuevoPartido({ onClose }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Datos del formulario
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
+    const token = localStorage.getItem("token");
 
-    // Lógica futura para integración backend
-    console.log("Enviando partido:", data);
-    // Aquí se podría hacer un fetch o axios.post
-
-    // Por ahora cerramos el modal
-    onClose();
+    try {
+      await adminService.crearPartido(token, data);
+      alert("Partido creado correctamente.");
+      onClose();
+    } catch (error) {
+      console.error("Error al crear el partido:", error);
+      alert("Error al crear el partido. Verificá los datos e intentá nuevamente.");
+    }
   };
+
 
   return (
     <div className={styles.modalOverlay} ref={overlayRef} onClick={handleOverlayClick}>
@@ -52,15 +56,19 @@ function NuevoPartido({ onClose }) {
           </label>
           <label>
             C.I. Presidente
-            <input name="ci" type="text" className={styles.input} required />
+            <input name="ci_presidente" type="text" className={styles.input} required />
           </label>
           <label>
             C.I. Vicepresidente
-            <input name="ci" type="text" className={styles.input} required />
+            <input name="ci_vicepresidente" type="text" className={styles.input} required />
+          </label>
+          <label>
+            Color del Partido
+            <input name="color" type="color" className={styles.input} styles={{innerHeight: "3px"}} required />
           </label>
           <div className={styles.buttonRow}>
             <button type="button" className={styles.cancelButton} onClick={onClose}>Cancelar</button>
-            <button type="submit" className={styles.submitButton}>Añadir Candidato</button>
+            <button type="submit" className={styles.submitButton}>Añadir Partido</button>
           </div>
         </form>
       </div>

@@ -93,7 +93,7 @@ def login():
     print("resultado: ",resultado)
     
     if resultado[0] < 0:
-        return resultado[1], 400
+        return jsonify({"error":resultado[1]}), 400
 
     datos_usuario = dict()
     if resultado[1]['role_description'] == "miembroMesa":
@@ -273,7 +273,7 @@ def crear_circuito():
 
     result = services.create_circuito(data)
 
-    return result[1], 400 if result[0] < 0 else 200
+    return jsonify({"message": result[1]}), 400 if result[0] < 0 else 200
 
 @app.route('/circuitos/bulk', methods=['POST'])
 @jwt_required()
@@ -370,11 +370,7 @@ def cerrar_circuito(nro):
     if role_description != "miembroMesa":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por un miembro de mesa."}), 400
 
-    if len(votos_temporales) > 0:
-        random.shuffle(votos_temporales)
-        guardar_votos = services.insertar_votos(votos_temporales)
-        if guardar_votos[0] < 0:
-            return jsonify({"error": guardar_votos[1]}), 400
+    services.persistir_votos(True)
 
     result = services.cerrar_circuito(claims.get('id'), nro)
 
@@ -545,9 +541,9 @@ def get_policias():
 
     return jsonify(result), 200 if result else ({"error": "No se encontraron policias"}, 400)
 
-@app.route('/police/<int:id>', methods=['GET'])
+@app.route('/police/<int:ci>', methods=['GET'])
 @jwt_required()
-def get_policia(id):
+def get_policia(ci):
     '''
     obtiene un policia por su id
     '''
@@ -557,7 +553,7 @@ def get_policia(id):
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
 
-    result = services.get_policia(id)
+    result = services.get_policia(ci)
 
     if result:
         return jsonify(result), 200
@@ -647,7 +643,10 @@ def update_policia(id):
 
     result = services.update_policia(id, update_data)
 
-    return result[1], 400 if result[0] < 0 else 200
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    else:
+        return jsonify({"message": result[1]}), 200
 
 @app.route('/police/<int:id>', methods=['DELETE'])
 @jwt_required()
@@ -891,7 +890,6 @@ def update_citizen(ci):
         return jsonify({"message": "Ciudadano actualizado exitosamente"}), 200
 
 
-# OJO: terminar luego, la idea es implementar un borrado lógico, no eliminar el ciudadano de la base de datos
 @app.route('/ciudadano/<int:ci>', methods=['DELETE'])
 @jwt_required()
 def delete_citizen(ci):
@@ -906,7 +904,7 @@ def delete_citizen(ci):
     
     result = services.delete_citizen(ci)
     
-    if result[0] < 0:
+    if result[0] < 0:   
         return jsonify({"error": result[1]}), 400
     else:
         return jsonify({"message": "Ciudadano eliminado exitosamente"}), 200
@@ -1094,11 +1092,17 @@ def update_member(id):
         return jsonify({"error": result[1]}), 400
     return jsonify({"message": "Miembro actualizado exitosamente"}), 200
 
+@app.route('/miembro/roles', methods=['GET'])
+def get_roles_de_miembro():
+    return jsonify(services.get_roles_miembro())
+    
+
 @app.route('/miembro/<int:id>', methods=['DELETE'])
 @jwt_required()
 def delete_member(id):
     '''
     elimina un miembro por su id
+        en realidad se manteien los datos pero queda deshabilitado
     '''
     claims = get_jwt()
     role_description = claims.get('role_description')
@@ -1125,6 +1129,7 @@ def crear_partido_politico():
         -  nombre
         -  ci_presidente
         -  ci_vicepresidente
+        -  color
     '''
     claims = get_jwt()
     role_description = claims.get('role_description')
@@ -1133,13 +1138,13 @@ def crear_partido_politico():
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
     
     data = request.get_json()
-    required_fields = {'calle', 'numero', 'telefono', 'codigo_postal', 'nombre', 'ci_presidente', 'ci_vicepresidente'}
+    required_fields = {'calle', 'numero', 'telefono', 'codigo_postal', 'nombre', 'ci_presidente', 'ci_vicepresidente', 'color'}
     if data.keys() != required_fields :
         return jsonify({"error": "Todos los campos son requeridos"}), 400
     elif data['ci_presidente'] == data['ci_vicepresidente']:
         return jsonify({"error": "El presidente y el vicepresidente no pueden ser la misma persona"}), 400
     
-    result = services.crear_partido(data['calle'], data['numero'], data['telefono'], data['codigo_postal'], data['nombre'], data['ci_presidente'], data['ci_vicepresidente'])
+    result = services.crear_partido(data['calle'], data['numero'], data['telefono'], data['codigo_postal'], data['nombre'], data['ci_presidente'], data['ci_vicepresidente'], data['color'])
 
     if result[0] < 0:
         return jsonify({"error": result[1]}), 400
@@ -1203,6 +1208,17 @@ def get_partidos_politicos():
     result = services.get_partidos_politicos()
 
     return jsonify(result), 200 if result else ({"error": "No se encontraron partidos políticos"}, 400)
+
+@app.route('/partido-politico/<int:id>', methods=['GET'])
+# @jwt_required()
+def get_partido(id):
+    '''
+    obtiene todos los partidos políticos
+    '''
+    result = services.get_partido(id)
+
+    return jsonify(result), 200 if result else ({"error": "No se encontró el partido político"}, 400)
+
 
 @app.route('/lista', methods=['POST'])
 @jwt_required()
@@ -1421,19 +1437,15 @@ def emitir_voto():
     if result[0] < 0:
         return jsonify({"error": result[1]}), 400    
     
-    votos_temporales.append(votos)
-    print(votos_temporales)
+    result = services.guardar_votos_temporalmente(votos)
+    if result[0] < 0:
+        return jsonify({"error": "no se guardaron los votos"})
+    
+    # Si hay 10 votos, los baraja e inserta
+    services.persistir_votos()
+    
     # Marcar en la base de datos que el votante ya votó (sin guardar el voto junto al id)
     socketio.emit('voto_emitido', {'ci_ciudadano': ci_ciudadano})
-
-    # Si hay 10 votos, los baraja e inserta
-    if len(votos_temporales) >= 10:
-        random.shuffle(votos_temporales)
-        result = services.insertar_votos(votos_temporales)
-        if result[0] < 0:
-            return jsonify({"error": result[1]}), 400
-        votos_temporales.clear()
-
     return jsonify({"status": "ok"}), 200
 
 @app.route('/organismo-publico', methods=["GET"])

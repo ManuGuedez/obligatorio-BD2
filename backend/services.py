@@ -2,6 +2,7 @@ import mysql.connector as mysql
 from mysql.connector.errors import IntegrityError
 import encriptacion_contraseña as encrypt
 from datetime import datetime
+import random
 
 cnx = mysql.connect(user='xr_g6_admin', password='Bd2025!', host='mysql.reto-ucu.net', port=50006, database='XR_Grupo6') #mysql
 cursor = cnx.cursor(dictionary=True) # devuelve la info en formato key-value
@@ -127,11 +128,18 @@ def login_user(nombre_usuario, password):
         current_role = get_role(result['id_rol_usuario'])
         if current_role is None:
             return -1, "Hubo un error al iniciar sesión, ingrese nuevamente las credenciales"
-        query = 'SELECT id_miembro FROM Usuario_miembro WHERE id_usuario = %s'
+        query = '''SELECT M.id_miembro, M.Habilitado
+                    FROM Usuario_miembro UM
+                    JOIN Miembro_mesa M ON UM.id_miembro = M.id_miembro
+                    WHERE UM.id_usuario = %s;
+                    '''
         cursor.execute(query, (result['id'],))
-        member_id = cursor.fetchone()
-        if member_id:
-            result['id'] = member_id['id_miembro']
+        resultado = cursor.fetchone()
+        if resultado:
+            member_id = resultado.get('id_miembro')
+            if resultado.get('Habilitado') == 0:
+                return -1, "El miembro no está habilitado."
+            result['id'] = member_id
             print(f"Usuario {nombre_usuario} con ID {result['id']} ha iniciado sesión correctamente.")
         user_details = {"user_name": nombre_usuario, "role_description": current_role ,"id": result['id']}
         return 1, user_details
@@ -269,13 +277,25 @@ def delete_establishment(id):
     '''
     elimina un establecimiento por su id
     '''
-    query = 'DELETE FROM Establecimiento WHERE id = %s'
-    cursor.execute(query, (id,))
-    cnx.commit()
-    if cursor.rowcount > 0:
-        return 1, "Establecimiento eliminado exitosamente"
-    else:
-        return -1, "No se encontró el establecimiento o no se realizaron cambios"
+    try:
+        query = 'DELETE FROM Establecimiento WHERE id = %s'
+        cursor.execute(query, (id,))
+        cnx.commit()
+
+        if cursor.rowcount > 0:
+            return 1, "Establecimiento eliminado exitosamente"
+        else:
+            return -1, "No se encontró el establecimiento o no se realizaron cambios"
+
+    except IntegrityError as e:
+        # Código de error 1451: violación de clave foránea
+        if e.errno == 1451 or e.errno == 1217:
+            return -1, "El establecimiento no se puede eliminar porque está siendo referenciado por otra tabla"
+        else:
+            return -1, f"Error de integridad referencial: {str(e)}"
+
+    except Exception as e:
+        return -1, f"Error inesperado al eliminar el establecimiento: {str(e)}"
     
 def get_circuitos():
     '''
@@ -292,7 +312,22 @@ def get_circuito(nro):
     '''
     obtiene un circuito por su id
     '''
-    query = 'SELECT * FROM Circuito WHERE nro = %s'
+    query = '''SELECT 
+        C.nro AS circuito_nro,
+        C.es_accesible,
+        C.es_cerrado,
+        C.se_abrio,
+        E.nombre AS establecimiento_nombre,
+        Z.nombre AS zona_nombre,
+        CI.nombre AS ciudad_nombre,
+        D.nombre AS departamento_nombre
+        FROM Circuito C
+        JOIN Establecimiento E ON C.id_establecimiento = E.id
+        JOIN Zona Z ON E.id_zona = Z.id
+        JOIN Ciudad CI ON Z.id_ciudad = CI.id
+        JOIN Departamento D ON CI.id_departamento = D.id
+        WHERE C.nro = %s;
+        '''
     cursor.execute(query, (nro,))
     result = cursor.fetchone()
 
@@ -522,7 +557,7 @@ def get_policia(id):
     '''
     obtiene un policía por su id
     '''
-    query = 'SELECT * FROM Policia WHERE id_policia = %s'
+    query = 'SELECT * FROM Policia WHERE ci_ciudadano = %s'
     cursor.execute(query, (id,))
     result = cursor.fetchone()
 
@@ -650,13 +685,24 @@ def delete_candidato(id):
     '''
     elimina un candidato por su id
     '''
-    query = 'DELETE FROM Candidato WHERE id = %s'
-    cursor.execute(query, (id,))
-    cnx.commit()
-    if cursor.rowcount > 0:
-        return 1, "Candidato eliminado exitosamente"
-    else:
-        return -1, "No se encontró el candidato o no se realizaron cambios"
+    try:
+            query = 'DELETE FROM Candidato WHERE id = %s'
+            cursor.execute(query, (id,))
+            cnx.commit()
+
+            if cursor.rowcount > 0:
+                return 1, "Candidato eliminado exitosamente"
+            else:
+                return -1, "No se encontró el candidato o no se realizaron cambios"
+
+    except IntegrityError as e:
+        if e.errno == 1451 or e.errno == 1217:
+            return -1, "El candidato no se puede eliminar porque está siendo referenciado por otra tabla"
+        else:
+            return -1, f"Error de integridad: {str(e)}"
+
+    except Exception as e:
+        return -1, f"Error inesperado al eliminar el candidato: {str(e)}"
     
 
 def format_citizen_data(nombre, apellido, serie_credencial, nro_credencial, nro_circuito):
@@ -747,7 +793,25 @@ def update_citizen(ci, update_data):
     
 
 def delete_citizen(ci):
-    return None
+    try:
+        cursor = cnx.cursor()
+        cursor.execute("DELETE FROM Ciudadano WHERE ci = %s", (ci,))
+        cnx.commit()
+
+        if cursor.rowcount == 0:
+            return -1, f"No existe un ciudadano con ci {ci}"
+
+        return 1, f"Ciudadano con ci {ci} eliminado correctamente"
+
+    except IntegrityError as e:
+        # Error 1451 = clave foránea en uso (Cannot delete or update a parent row)
+        if e.errno == 1451 or e.errno == 1217:
+            return -1, "El ciudadano no se puede eliminar dado que está siendo referenciado por otra tabla"
+        else:
+            return -1, "Error de integridad: " + str(e)
+
+    except Exception as e:
+        return -1, f"Error al eliminar ciudadano: {str(e)}"
 
 def add_member(id_organismo,ci, nro_circuito, id_rol):
     '''
@@ -870,7 +934,7 @@ def delete_member(id):
     '''
     Elimina un miembro de mesa por su id
     '''
-    query = 'DELETE FROM Miembro_mesa WHERE id_miembro = %s'
+    query = 'UPDATE Miembro_mesa SET Habilitado = 0, nro_circuito = null where id_miembro = %s'
     cursor.execute(query, (id,))
     cnx.commit()
     
@@ -879,16 +943,27 @@ def delete_member(id):
     else:
         return -1, "No se encontró el miembro o no se realizaron cambios"
     
-def crear_partido(calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente):
+def crear_partido(calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente, color):
     '''
     argega un nuevo partido político
     '''
     try:
         query = '''
-            INSERT INTO Partido_politico (calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            SELECT id FROM Color WHERE descripcion = %s
         '''
-        values = (calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente)
+        color = str(color).strip().lower()
+        cursor.execute(query, (color,))
+        id_color = cursor.fetchone()
+        if not id_color:
+            query = "INSERT INTO Color (descripcion) VALUE (%s)"
+            cursor.execute(query, (color,))
+            id_color = cursor.lastrowid
+
+        query = '''
+            INSERT INTO Partido_politico (calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente, id_color)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        '''
+        values = (calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente, id_color)
         cursor.execute(query, values)
 
         cnx.commit()
@@ -1104,6 +1179,22 @@ def crear_papeleta(descripcion):
     print(">>>>>: ",a)
     return a
     
+def get_partido(id):
+    query = '''
+        SELECT pp.id, pp.nombre, pp.calle, pp.numero, pp.telefono, pp.codigo_postal,
+               c.nombre AS presidente_nombre, c.apellido AS presidente_apellido,
+               v.nombre AS vicepresidente_nombre, v.apellido AS vicepresidente_apellido
+        FROM Partido_politico pp
+        JOIN Ciudadano c ON pp.ci_presidente = c.ci
+        JOIN Ciudadano v ON pp.ci_vicepresidente = v.ci
+        WHERE pp.id = %s
+    '''
+    cursor.execute(query, (id,))
+    result = cursor.fetchall()
+    
+    if result:
+        return result
+    return None
     
 
 def crear_lista(id_partido, descripcion, nro_lista, id_candidato_apoyado, id_departamento):
@@ -1329,8 +1420,6 @@ def registrar_ciudadano(ci_ciudadano, nro_circuito):
     except Exception as e:
         return -1, f"Error inesperado: {str(e)}"
         
-    
-    
 def registrar_voto(votos, ci_ciudadano):
     circuito = votos[0]['nro_circuito']
     return registrar_ciudadano(ci_ciudadano, circuito)
@@ -1417,6 +1506,25 @@ def obtener_resultado_final(id_miembro):
         "votosObservados": observados,
         "votosAFavorConsulta": votos_consulta
     }
+    
+
+def validar_circuito_cerrado(nro_circuito):
+    query = "SELECT 1 FROM Circuito WHERE nro = %s AND es_cerrado = 1 AND se_abrio = 1"
+    cursor.execute(query, (nro_circuito,))
+    if cursor.fetchone() is None:
+        return False
+    return True
+
+def eleccion_finalizada():
+    query = '''
+    SELECT COUNT(*) AS pendientes
+    FROM Circuito
+    WHERE se_abrio = 0 OR es_cerrado = 0;
+    '''
+    cursor.execute(query)
+    
+    pendientes = cursor.fetchone().get('pendientes', 0)
+    return pendientes == 0
 
 def obtener_votos_por_lista_con_porcentaje(nro_circuito=None):
     # Armar filtro dinámico
@@ -1424,8 +1532,14 @@ def obtener_votos_por_lista_con_porcentaje(nro_circuito=None):
     params = []
 
     if nro_circuito is not None:
-        where_clause = "WHERE V.nro_circuito = %s"
-        params = [nro_circuito]
+        if validar_circuito_cerrado(nro_circuito):
+            where_clause = "WHERE V.nro_circuito = %s"
+            params = [nro_circuito]
+        else:
+            return -1, "El circuito debe cerrar para ver los resultados"
+    
+    if not eleccion_finalizada():
+        return -1, "La elección debe finalizar para ver los resultados"
     
     # Total de votos
     cursor.execute(f"SELECT COUNT(*) AS total FROM Voto V {where_clause}", params)
@@ -1473,8 +1587,14 @@ def obtener_votos_por_partido(nro_circuito=None):
     params = []
 
     if nro_circuito is not None:
-        where_clause = "WHERE V.nro_circuito = %s"
-        params = [nro_circuito]
+        if validar_circuito_cerrado(nro_circuito):
+            where_clause = "WHERE V.nro_circuito = %s"
+            params = [nro_circuito]
+        else:
+            return -1, "El circuito debe cerrar para ver los resultados"
+    
+    if not eleccion_finalizada():
+        return -1, "La elección debe finalizar para ver los resultados"
 
     # Total de votos válidos (en ese circuito o global)
     cursor.execute(f"SELECT COUNT(*) AS total FROM Voto V {where_clause}", params)
@@ -1508,6 +1628,13 @@ def obtener_votos_por_partido(nro_circuito=None):
 def obtener_votos_por_candidato(nro_circuito=None):
     cursor = cnx.cursor(dictionary=True)
 
+    if nro_circuito is not None:
+        if not validar_circuito_cerrado(nro_circuito):
+            return -1, "El circuito debe estar cerrado para ver los resultados"
+       
+    if not eleccion_finalizada():
+        return -1, "La elección debe finalizar para ver los resultados"
+        
     params = [nro_circuito, nro_circuito] if nro_circuito is not None else [None, None]
 
     # Total de votos (válidos) en ese circuito o global
@@ -1543,3 +1670,68 @@ def obtener_votos_por_candidato(nro_circuito=None):
         r["porcentaje"] = f"{porcentaje:.2f}%"
 
     return 1, resultados
+
+def get_roles_miembro():
+    query = 'select * from Rol_mesa '
+    cursor.execute(query)
+    return cursor.fetchall()
+
+def guardar_votos_temporalmente(votos):
+    values = []
+    for voto in votos:
+        id_estado = voto['id_estado']
+        es_observado = voto['es_observado']
+        nro_circuito = voto['nro_circuito']
+        id_papeleta = voto['id_papeleta']
+        values.append((id_estado, es_observado, nro_circuito, id_papeleta))
+    try:
+        query = '''
+            INSERT INTO Votos_temporales (id_estado, es_observado, nro_circuito, id_papeleta) VALUES (%s, %s, %s, %s)
+        '''
+        cursor.executemany(query, values)
+        cnx.commit()
+        return 1, cursor.rowcount
+    except Exception as e:
+        return -1, str(e)
+    
+def persistir_votos(forzar=False):
+    query = '''
+        SELECT count(1) as cantidad FROM Votos_temporales
+    '''
+    cursor.execute(query)
+    cantidad_votos = cursor.fetchone().get('cantidad')
+    if cantidad_votos < 10 and not forzar:
+        return 
+    
+    query = '''
+        SELECT * FROM Votos_temporales
+    '''
+    cursor.execute(query)
+    votos = cursor.fetchall()
+    random.shuffle(votos)
+    values = []
+    for voto in votos:
+        id_estado = voto['id_estado']
+        es_observado = voto['es_observado']
+        nro_circuito = voto['nro_circuito']
+        id_papeleta = voto['id_papeleta']
+        values.append((id_estado, es_observado, nro_circuito, id_papeleta))
+    try:
+        query = '''
+            INSERT INTO Voto (id_estado, es_observado, nro_circuito, id_papeleta) VALUES (%s, %s, %s, %s)
+        '''
+        cursor.executemany(query, values)
+        cnx.commit()
+        
+        # Eliminar los votos temporales (una vez insertados)
+        cursor.execute('DELETE FROM Votos_temporales')
+        cnx.commit()
+        
+        return 1, cursor.rowcount
+    except Exception as e:
+        cnx.rollback()
+        return -1, str(e)
+    
+    
+    
+    
