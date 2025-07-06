@@ -9,7 +9,7 @@ import VotacionConsulta from "./Pages/Votación/Consulta";
 import Resumen from "./Pages/Resumen";
 import Confirmacion from "./Pages/Confirmacion";
 
-export const url = "http://localhost:5001"; // URL del backend
+export const url = "http://localhost:5000"; // URL del backend
 
 function App() {
   return (

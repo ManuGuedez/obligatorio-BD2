@@ -1345,22 +1345,22 @@ def habilitar_votante():
     # - 'votante_habilitado' es el nombre del evento
     # - {'ci_ciudadano': ci_ciudadano} es el payload del evento
     # namespace='/totem' es el espacio de nombres del socketio (aisla conexiones de diferentes partes de la aplicación)
-    socketio.emit('votante_habilitado', {'ci_ciudadano': ci_ciudadano}, namespace='/totem') 
+    socketio.emit('votante_habilitado', {'ci_ciudadano': ci_ciudadano}) 
     return jsonify({"status": "ok"}), 200
 
 @app.route('/emitir_voto', methods=['POST'])
 def emitir_voto():
     data = request.json
     voto = data["voto"]  # El voto NO debe tener info del votante
-    id_votante = data["idVotante"]
+    ci_ciudadano = data["ci_ciudadano"]
     votos_temporales.append(voto)
-    # Marcar en tu base de datos que el id_votante ya votó (sin guardar el voto junto al id)
-    socketio.emit('voto_emitido', {'idVotante': id_votante})
+    # Marcar en la base de datos que el votante ya votó (sin guardar el voto junto al id)
+    socketio.emit('voto_emitido', {'ci_ciudadano': ci_ciudadano})
 
     # Si hay 10 votos, los baraja e inserta
     if len(votos_temporales) >= 10:
         random.shuffle(votos_temporales)
-        # Aquí insertá todos los votos en la base de datos
+        # Acá se insertan todos los votos en la base de datos
         # Ejemplo: for v in votos_temporales: guardar_en_db(v)
         votos_temporales.clear()
 
