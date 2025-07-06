@@ -382,6 +382,24 @@ def cerrar_circuito(nro):
         return jsonify({"error": result[1]}), 400
     return jsonify({"message": "Circuito cerrado exitosamente"}), 200
 
+@app.route('/circuitos/obtener-resultado-final', methods=['GET'])
+@jwt_required()
+def obtener_resultado_final():
+    '''
+    obtiene el resultado final de los circuitos
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    id_miembro = get_jwt_identity()
+
+    if role_description != "miembroMesa":
+        return jsonify({"error": "No tiene autorización para acceder a esta información."}), 400
+
+    result = services.obtener_resultado_final(id_miembro)
+    
+    return jsonify(result), 200
+
+
 @app.route('/circuitos/<int:id>', methods=['DELETE'])
 @jwt_required()
 def delete_circuito(id):

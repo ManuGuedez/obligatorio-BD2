@@ -1356,4 +1356,53 @@ def insertar_votos(votos_temporales):
         return -1, f"Error inesperado: {str(e)}"
         
     
+def obtener_resultado_final(id_miembro):
+    # 1. Obtener circuito
+    cursor.execute("SELECT nro_circuito FROM Miembro_mesa WHERE id_miembro = %s", (id_miembro,))
+    row = cursor.fetchone()
+    if not row:
+        return {"error": "Miembro no encontrado"}
+    circuito = row["nro_circuito"]
+
+    # 2. Total votantes
+    cursor.execute("SELECT COUNT(*) AS totalVotantes FROM Ciudadano WHERE nro_circuito = %s", (circuito,))
+    total = cursor.fetchone()["totalVotantes"]
+
+    # 3. Total que votaron
+    cursor.execute("SELECT COUNT(*) AS votaron FROM Voto WHERE nro_circuito = %s", (circuito,))
+    votaron = cursor.fetchone()["votaron"]
+
+    # 4. Votos observados
+    cursor.execute("SELECT COUNT(*) AS votosObservados FROM Voto WHERE nro_circuito = %s AND es_observado = 1", (circuito,))
+    observados = cursor.fetchone()["votosObservados"]
+
+    # 5. Votos por lista
+    cursor.execute("""
+        SELECT L.nro AS lista, COUNT(*) AS votos
+        FROM Voto V
+        JOIN Papeleta P ON V.id_papeleta = P.id
+        JOIN Lista L ON P.id = L.id_papeleta
+        WHERE V.nro_circuito = %s
+        GROUP BY L.nro
+    """, (circuito,))
+    votos_lista = cursor.fetchall()
+    
+    # 6. Votos a favor por Consulta
+    cursor.execute("""
+        SELECT P.descripcion, COUNT(*) AS cantidad_votos
+        FROM Voto V
+        JOIN Papeleta P ON V.id_papeleta = P.id
+        JOIN Consulta C ON P.id = C.id_papeleta
+        WHERE V.nro_circuito = %s
+        GROUP BY C.id
+    """, (circuito,))
+    votos_consulta = cursor.fetchall()
+    
+    return {
+        "totalVotantes": total,
+        "votaron": votaron,
+        "votosPorLista": votos_lista,
+        "votosObservados": observados,
+        "votosAFavorConsulta": votos_consulta
+    }
     
