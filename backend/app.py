@@ -1048,9 +1048,9 @@ def get_members():
 
     return jsonify(result), 200 if result else ({"error": "No se encontraron miembros"}, 400)
 
-@app.route('/miembro/<int:id>', methods=['GET'])
+@app.route('/miembro/<int:ci>', methods=['GET'])
 @jwt_required()
-def get_member(id):
+def get_member(ci):
     '''
     obtiene un miembro por su id
     '''
@@ -1060,7 +1060,7 @@ def get_member(id):
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
 
-    result = services.get_member_data(id)
+    result = services.get_member_data(ci)
 
     if result:
         return jsonify(result), 200

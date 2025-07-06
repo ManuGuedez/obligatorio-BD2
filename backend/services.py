@@ -862,7 +862,7 @@ def get_members_data():
         return result
     return None
 
-def get_member_data(id):
+def get_member_data(ci):
     '''
     Obtiene los datos de un miembro de mesa por su ID.
     '''
@@ -871,9 +871,9 @@ def get_member_data(id):
             FROM Miembro_mesa m
             JOIN Ciudadano c ON m.ci_ciudadano = c.ci
             JOIN Rol_mesa rm ON m.id_rol = rm.id
-            WHERE m.id_miembro = %s
+            WHERE m.ci_ciudadano = %s
     '''
-    cursor.execute(query, (id,))
+    cursor.execute(query, (ci,))
     result = cursor.fetchone()
     
     if result:
