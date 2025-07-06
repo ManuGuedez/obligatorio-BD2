@@ -2,6 +2,7 @@ import mysql.connector as mysql
 from mysql.connector.errors import IntegrityError
 import encriptacion_contraseña as encrypt
 from datetime import datetime
+import random
 
 cnx = mysql.connect(user='xr_g6_admin', password='Bd2025!', host='mysql.reto-ucu.net', port=50006, database='XR_Grupo6') #mysql
 cursor = cnx.cursor(dictionary=True) # devuelve la info en formato key-value
@@ -1413,8 +1414,6 @@ def registrar_ciudadano(ci_ciudadano, nro_circuito):
     except Exception as e:
         return -1, f"Error inesperado: {str(e)}"
         
-    
-    
 def registrar_voto(votos, ci_ciudadano):
     circuito = votos[0]['nro_circuito']
     return registrar_ciudadano(ci_ciudadano, circuito)
@@ -1670,3 +1669,63 @@ def get_roles_miembro():
     query = 'select * from Rol_mesa '
     cursor.execute(query)
     return cursor.fetchall()
+
+def guardar_votos_temporalmente(votos):
+    values = []
+    for voto in votos:
+        id_estado = voto['id_estado']
+        es_observado = voto['es_observado']
+        nro_circuito = voto['nro_circuito']
+        id_papeleta = voto['id_papeleta']
+        values.append((id_estado, es_observado, nro_circuito, id_papeleta))
+    try:
+        query = '''
+            INSERT INTO Votos_temporales (id_estado, es_observado, nro_circuito, id_papeleta) VALUES (%s, %s, %s, %s)
+        '''
+        cursor.executemany(query, values)
+        cnx.commit()
+        return 1, cursor.rowcount
+    except Exception as e:
+        return -1, str(e)
+    
+def persistir_votos(forzar=False):
+    query = '''
+        SELECT count(1) as cantidad FROM Votos_temporales
+    '''
+    cursor.execute(query)
+    cantidad_votos = cursor.fetchone().get('cantidad')
+    if cantidad_votos < 10 and not forzar:
+        return 
+    
+    query = '''
+        SELECT * FROM Votos_temporales
+    '''
+    cursor.execute(query)
+    votos = cursor.fetchall()
+    random.shuffle(votos)
+    values = []
+    for voto in votos:
+        id_estado = voto['id_estado']
+        es_observado = voto['es_observado']
+        nro_circuito = voto['nro_circuito']
+        id_papeleta = voto['id_papeleta']
+        values.append((id_estado, es_observado, nro_circuito, id_papeleta))
+    try:
+        query = '''
+            INSERT INTO Voto (id_estado, es_observado, nro_circuito, id_papeleta) VALUES (%s, %s, %s, %s)
+        '''
+        cursor.executemany(query, values)
+        cnx.commit()
+        
+        # Eliminar los votos temporales (una vez insertados)
+        cursor.execute('DELETE FROM Votos_temporales')
+        cnx.commit()
+        
+        return 1, cursor.rowcount
+    except Exception as e:
+        cnx.rollback()
+        return -1, str(e)
+    
+    
+    
+    

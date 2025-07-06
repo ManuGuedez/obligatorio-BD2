@@ -370,11 +370,7 @@ def cerrar_circuito(nro):
     if role_description != "miembroMesa":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por un miembro de mesa."}), 400
 
-    if len(votos_temporales) > 0:
-        random.shuffle(votos_temporales)
-        guardar_votos = services.insertar_votos(votos_temporales)
-        if guardar_votos[0] < 0:
-            return jsonify({"error": guardar_votos[1]}), 400
+    services.persistir_votos(True)
 
     result = services.cerrar_circuito(claims.get('id'), nro)
 
@@ -1442,19 +1438,15 @@ def emitir_voto():
     if result[0] < 0:
         return jsonify({"error": result[1]}), 400    
     
-    votos_temporales.append(votos)
-    print(votos_temporales)
+    result = services.guardar_votos_temporalmente(votos)
+    if result[0] < 0:
+        return jsonify({"error": "no se guardaron los votos"})
+    
+    # Si hay 10 votos, los baraja e inserta
+    services.persistir_votos()
+    
     # Marcar en la base de datos que el votante ya votó (sin guardar el voto junto al id)
     socketio.emit('voto_emitido', {'ci_ciudadano': ci_ciudadano})
-
-    # Si hay 10 votos, los baraja e inserta
-    if len(votos_temporales) >= 10:
-        random.shuffle(votos_temporales)
-        result = services.insertar_votos(votos_temporales)
-        if result[0] < 0:
-            return jsonify({"error": result[1]}), 400
-        votos_temporales.clear()
-
     return jsonify({"status": "ok"}), 200
 
 @app.route('/organismo-publico', methods=["GET"])
