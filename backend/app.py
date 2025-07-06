@@ -1495,6 +1495,27 @@ def get_resultados_por_partido():
     else:
         return jsonify(result[1]), 200
 
+@app.route('/resultados/candidato', methods=['GET'])
+@jwt_required()
+def get_resultados_por_candidato():
+    '''
+    Parámetro opcional:
+        - nro_circuito (int)
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    
+    if role_description != 'admin':
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+    
+    nro_circuito = request.args.get('nro_circuito', default=None, type=int)
+    result = services.obtener_votos_por_candidato(nro_circuito)
+    
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    else:
+        return jsonify(result[1]), 200
+
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000, debug=True)
