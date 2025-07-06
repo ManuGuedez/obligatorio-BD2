@@ -1234,3 +1234,71 @@ def crear_consulta(descripcion, id_color):
 
     except Exception as e:
         return -1, f"Error inesperado: {str(e)}"
+    
+
+def get_consultas():
+    '''
+    Obtiene todas las consultas.
+    '''
+    query = '''
+        SELECT c.id, p.descripcion AS descripcion_papeleta, co.decripcion AS color
+        FROM Consulta c
+        JOIN Papeleta p ON c.id_papeleta = p.id
+        JOIN Color co ON c.id_color = co.id
+    '''
+    cursor.execute(query)
+    result = cursor.fetchall()
+    
+    if result:
+        return result
+    return None
+
+def get_consulta(id):
+    '''
+    Obtiene una consulta por su id.
+    '''
+    query = '''
+        SELECT c.id, p.descripcion AS descripcion_papeleta, co.decripcion AS color
+        FROM Consulta c
+        JOIN Papeleta p ON c.id_papeleta = p.id
+        JOIN Color co ON c.id_color = co.id
+        WHERE c.id = %s
+    '''
+    cursor.execute(query, (id,))
+    result = cursor.fetchone()
+    
+    if result:
+        return result
+    return None
+
+def delete_consulta(id):
+    '''
+    Elimina una consulta por su id.
+    '''
+    try:        
+        print("entra aca")
+        query = "SELECT id_papeleta FROM Consulta WHERE id = %s"
+        cursor.execute(query, (id,))
+        id_papeleta = cursor.fetchone()
+        if not id_papeleta:
+            return -1, "No se encontró la consulta o no se realizaron cambios"
+        
+        # Luego, eliminamos la consulta
+        query = 'DELETE FROM Consulta WHERE id = %s'
+        cursor.execute(query, (id,))
+        
+        query = 'DELETE FROM Papeleta WHERE id = %s'
+        cursor.execute(query, (id_papeleta['id_papeleta'],))
+        
+        cnx.commit()
+        
+        if cursor.rowcount > 0:
+            return 1, "Consulta eliminada exitosamente"
+        else:
+            return -1, "No se encontró la consulta o no se realizaron cambios"
+    
+    except IntegrityError as e:
+        return -1, f"Error de integridad: {str(e)}"
+    
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"

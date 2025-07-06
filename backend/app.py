@@ -4,16 +4,22 @@ import services
 from datetime import timedelta
 from flask_cors import CORS
 import pandas as pd
+from flask_socketio import SocketIO, emit 
+import random
 import os
 import mysql.connector
 
 app = Flask(__name__)
 CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 app.config['JWT_SECRET_KEY'] = 'obligatorio-bd-2025'
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=30)
 
 jwt = JWTManager(app)
+
+# Cola temporal para votos
+votos_temporales = []
 
 @app.route('/registrar_usuario', methods=['POST'])
 @jwt_required()
@@ -1269,6 +1275,93 @@ def crear_consulta():
     if result[0] < 0:
         return jsonify({"error": result[1]}), 400
     return jsonify({"message": "Consulta creada exitosamente"}), 200
+
+@app.route('/consulta', methods=['GET'])
+# @jwt_required()
+def get_consultas():
+    '''
+    obtiene todas las consultas
+    '''
+    result = services.get_consultas()
+
+    return jsonify(result), 200 if result else ({"error": "No se encontraron consultas"}, 400)
+
+@app.route('/consulta/<int:id>', methods=['GET'])
+# @jwt_required()
+def get_consulta(id):
+    '''
+    obtiene una consulta por su id
+    '''
+    result = services.get_consulta(id)
+
+    if result:
+        return jsonify(result), 200
+    else:
+        return jsonify({"error": "Consulta no encontrada"}), 400
+
+@app.route('/consulta/<int:id>', methods=['DELETE'])
+@jwt_required()
+def delete_consulta(id):
+    '''
+    elimina una consulta por su id
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    print("entra caAAAAAA")
+    result = services.delete_consulta(id)
+
+    if result[0] < 0:
+        return result[1], 400
+    else:
+        return jsonify({"message": "Consulta eliminada exitosamente"}), 200
+    
+@app.route('/habilitar_votante', methods=['POST'])
+@jwt_required()
+def habilitar_votante():
+    '''
+    Habilita a un votante para que pueda votar.
+    cuerpo requerido:
+        - ci_ciudadano (int)
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    
+    if role_description != "miembroMesa":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por un miembro de mesa."}), 400
+    
+    data = request.get_json()
+    
+    ci_ciudadano = data["ci_ciudadano"]
+    # Lógica para marcar que el votante está habilitado
+    
+    # evnia un mensaje (evento) a los clientes conectados por websocket
+    # - 'votante_habilitado' es el nombre del evento
+    # - {'ci_ciudadano': ci_ciudadano} es el payload del evento
+    # namespace='/totem' es el espacio de nombres del socketio (aisla conexiones de diferentes partes de la aplicación)
+    socketio.emit('votante_habilitado', {'ci_ciudadano': ci_ciudadano}, namespace='/totem') 
+    return jsonify({"status": "ok"}), 200
+
+@app.route('/emitir_voto', methods=['POST'])
+def emitir_voto():
+    data = request.json
+    voto = data["voto"]  # El voto NO debe tener info del votante
+    id_votante = data["idVotante"]
+    votos_temporales.append(voto)
+    # Marcar en tu base de datos que el id_votante ya votó (sin guardar el voto junto al id)
+    socketio.emit('voto_emitido', {'idVotante': id_votante})
+
+    # Si hay 10 votos, los baraja e inserta
+    if len(votos_temporales) >= 10:
+        random.shuffle(votos_temporales)
+        # Aquí insertá todos los votos en la base de datos
+        # Ejemplo: for v in votos_temporales: guardar_en_db(v)
+        votos_temporales.clear()
+
+    return jsonify({"status": "ok"}), 200
 
 if __name__ == "__main__":
     app.run(debug=True)
