@@ -1536,6 +1536,71 @@ def get_resultados_por_candidato():
     else:
         return jsonify(result[1]), 200
 
+@app.route('/departamentos', methods=['GET'])
+def get_departamentos():
+    return jsonify(services.get_departamentos())
+
+@app.route('/ciudades', methods=['POST'])
+@jwt_required()
+def add_ciudad():
+    '''
+    cuerpo requerido:
+    - id_departamento
+    - nombre (de la ciudad)
+    '''    
+    data = request.get_json()
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+    
+    required_fields = {'id_departamento', 'nombre'}
+    
+    if data.keys() != required_fields:
+        return jsonify({"error": "Faltan campos requeridos"}), 400
+    
+    result = services.add_ciudad(data['nombre'], data['id_departamento'])
+    
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    else:
+        return jsonify({"message": result[1]}), 201
+    
+@app.route('/ciudades', methods=['GET'])
+def get_ciudades():
+    return jsonify(services.get_ciudades())
+
+@app.route('/zonas', methods=['POST'])
+@jwt_required()
+def agregar_zona():
+    '''
+    Crea una nueva zona. 
+    '''
+    claims = get_jwt()
+    if claims.get("role_description") != "admin":
+        return jsonify({"error": "Solo el administrador puede agregar zonas."}), 403
+
+    data = request.get_json()
+    nombre = data.get("nombre")
+    id_ciudad = data.get("id_ciudad")
+
+    if not nombre or not id_ciudad:
+        return jsonify({"error": "Faltan datos requeridos (nombre, id_ciudad)"}), 400
+
+    result = services.add_zona(nombre, id_ciudad)
+
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    else:
+        return jsonify({"message": result[1]}), 201
+
+
+@app.route('/zonas', methods=['GET'])
+def get_zonas():
+    return jsonify(services.get_zonas())
+
+
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5001, debug=True)
