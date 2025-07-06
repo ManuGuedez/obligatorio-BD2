@@ -24,6 +24,17 @@ const adminService = {
         }
     },
 
+    getCircuitos: async (token) => {
+        try {
+            const response = await ApiService.get("/circuitos", token);
+            console.log("Circuitos fetched successfully: ", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching circuitos:", error);
+            throw error;
+        }
+    },
+
     getCircuitoById: async (token, id) => {
         try {
             const response = await ApiService.get(`/circuitos/${id}`, token);
@@ -50,6 +61,12 @@ const adminService = {
         }
     },
 
+    bulkAddCircuitos: async (token, file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        return await ApiService.uploadFile("circuitos/bulk", formData, token);
+    },
 
     getCiudadanoByCi: async (token, ci) => {
         try {
@@ -61,18 +78,17 @@ const adminService = {
         }
     },
 
-    crearCiudadano: async (token, ciCiudadano) => {
+    crearCiudadano: async (token, ci, nombre, apellido, serie, numero, circuito) => {
         try {
-            console.log("Habilitando votante con CI:", ciCiudadano);
-            const response = await ApiService.post("/habilitar_votante", { ci_ciudadano: ciCiudadano },"application/json", token);
-            console.log("Votante habilitado:", response.data);
+            console.log("Creando ciudadano:", ci, nombre, apellido, serie, numero, circuito);
+            const response = await ApiService.post("/ciudadano", { ci: ci, nombre: nombre, apellido: apellido, serie_credencial: serie, nro_credencial: numero, nro_circuito: circuito },"application/json", token);
+            console.log("Ciudadano creado:", response.data);
             return response.data;
         } catch (error) {
-            console.error("Error habilitando votante:", error);
+            console.error("Error creando ciudadano:", error);
             throw error;
         }
     },
-
 }
 
 export default adminService;

@@ -108,6 +108,28 @@ const ApiService = {
         return response;
     },
 
+    uploadFile: async (resource, formData, token) => {
+        const request = {
+            method: "POST",
+            body: formData,
+            headers: {
+            "Authorization": `Bearer ${token}`
+            },
+        };
+
+        const api_response = await fetch(`${default_url}/${resource}`, request);
+
+        const response = { code: api_response.status, data: null };
+
+        try {
+            const responseBody = await api_response.json();
+            response.data = responseBody;
+        } catch (error) {
+            console.error("Error parseando JSON:", error);
+        }
+
+        return response;
+    }
 };
 
 export default ApiService;
