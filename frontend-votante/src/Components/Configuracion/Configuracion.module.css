@@ -1,0 +1,152 @@
+.config {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: var(--bg-primary, #ffffff);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.config h1 {
+  color: var(--text-primary, #333);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.config p {
+  color: var(--text-secondary, #666);
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.opcion {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 6px;
+  background-color: var(--bg-secondary, #f9f9f9);
+}
+
+.opcion label {
+  display: flex;
+  align-items: flex-start;
+  cursor: pointer;
+  font-weight: 500;
+  gap: 0.75rem;
+}
+
+.opcion input[type="checkbox"] {
+  margin: 0;
+  transform: scale(1.2);
+  cursor: pointer;
+}
+
+.opcion span {
+  flex: 1;
+  color: var(--text-primary, #333);
+}
+
+.descripcion {
+  display: block;
+  margin-top: 0.5rem;
+  margin-left: 2rem;
+  color: var(--text-secondary, #666);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.preview {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border: 2px dashed var(--border-color, #ddd);
+  border-radius: 6px;
+  background-color: var(--bg-secondary, #f9f9f9);
+}
+
+.preview h3 {
+  color: var(--text-primary, #333);
+  margin-bottom: 1rem;
+}
+
+.preview p {
+  color: var(--text-primary, #333);
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.preview button {
+  background-color: var(--color-primary, #007bff);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.preview button:hover {
+  background-color: var(--color-secondary, #0056b3);
+}
+
+.preview button:focus {
+  outline: 2px solid var(--color-primary, #007bff);
+  outline-offset: 2px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .config {
+    margin: 1rem;
+    padding: 1rem;
+  }
+  
+  .opcion {
+    padding: 0.75rem;
+  }
+  
+  .descripcion {
+    margin-left: 1.5rem;
+  }
+}
+
+/* Mejoras para accesibilidad */
+.opcion:focus-within {
+  outline: 2px solid var(--color-primary, #007bff);
+  outline-offset: 2px;
+}
+
+.opcion input[type="checkbox"]:focus {
+  outline: 2px solid var(--color-primary, #007bff);
+  outline-offset: 2px;
+}
+
+/* Estilos específicos para alto contraste */
+.alto-contraste .config {
+  border: 2px solid #000000;
+}
+
+.alto-contraste .opcion {
+  border: 2px solid #000000;
+}
+
+.alto-contraste .preview {
+  border: 3px dashed #000000;
+}
+
+.volver {
+  margin-top: 30px;
+  padding: 12px 24px;
+  background-color: #003366;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.volver:hover {
+  background-color: #002244;
+}
+
