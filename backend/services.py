@@ -1113,13 +1113,13 @@ def get_citizen(ci):
     return None
 
 def get_citizen_by_cc(cc):
-    '''
+    """
     Obtiene los datos de un ciudadano por su CC.
-    '''
+    """
     serie_credencial = cc[:3].upper()  
     nro_credencial = cc[3:] 
     
-    query = '''
+    query = """
         SELECT 
             c.nombre,
             c.apellido,
@@ -1130,15 +1130,21 @@ def get_citizen_by_cc(cc):
                 SELECT 1 FROM Registro_votacion rv WHERE rv.ci_ciudadano = c.ci
             ) AS voto_realizado
         FROM Ciudadano c
-        WHERE c.serie_credencial = %s AND c.nro_credencial = %s
-    '''
+        WHERE c.serie_credencial = %s
+        AND (c.nro_credencial = %s OR c.nro_credencial IS NULL)
+    """
+    # WHERE c.serie_credencial = %s AND c.nro_credencial = %s
+    
     cursor.execute(query, (serie_credencial, nro_credencial))
     result = cursor.fetchone()
-    result['voto_realizado'] = result['voto_realizado'] == 1
     
-    if result:
-        return result
-    return None
+    # Si no encontró nada, devolvemos None
+    if not result:
+        return None
+
+    # Ajustamos el campo al tipo booleano
+    result['voto_realizado'] = (result['voto_realizado'] == 1)
+    return result
 
 def get_citizens_by_member_circuit(member_id):
     query = '''

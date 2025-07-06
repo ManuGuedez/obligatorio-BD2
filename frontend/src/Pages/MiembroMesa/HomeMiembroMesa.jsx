@@ -1,5 +1,4 @@
-import React from "react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import classes from "./HomeMiembroMesa.module.css";
 import PersonaModal from "../../Components/Modals/Informacion/PersonaModal";
@@ -10,117 +9,90 @@ import escudo from "../../../public/Escudo20Uruguay_19.png";
 import useSocket from "../../hooks/useSocket";
 import miembroService from "../../services/miembroServices";
 
-function HomeMiembroMesa() {
-  const [circuitoAbierto, setCircuitoAbierto] = useState(() => {
-    return localStorage.getItem("circuitoAbierto") === "true";
-  });
-  const [tiempoRestante, setTiempoRestante] = useState(10 * 60 * 60); // 10 horas en segundos
+const formatearCredencial = (v) => `${v.serie_credencial}${v.nro_credencial}`;
+
+
+// Crear listas municipales y editar (borrado)
+
+export default function HomeMiembroMesa() {
+  const [circuitoAbierto, setCircuitoAbierto] = useState(
+    () => localStorage.getItem("circuitoAbierto") === "true"
+  );
+
+
+  const [tiempoRestante, setTiempoRestante] = useState(10 * 60 * 60);
   const [votantes, setVotantes] = useState([]);
-  const [observadoMarcado, setObservadoMarcado] = useState(false);
+  const [nroCircuito, setNroCircuito] = useState(null);
+  const [persona, setPersona] = useState(null);
+  const [yaVoto, setYaVoto] = useState(null); // Estado de carga y voto
+  const [isPersonaOpen, setIsPersonaOpen] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [searchCred, setSearchCred] = useState("");
+  const [externalCitizen, setExternalCitizen] = useState(null);
+  const [esperandoVoto, setEsperandoVoto] = useState(false);
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
 
-  const toggleObservado = () => {
-    setObservadoMarcado((prev) => !prev);
-
-    // También actualizás el votante para que se refleje la selección/desselección
-    const actualizados = votantes.map((v) =>
-      v.ci === persona.ci
-        ? { ...v, tipoVoto: !observadoMarcado ? "observado" : null }
-        : v
-    );
-    setVotantes(actualizados);
-  };
-
+  // 1. Carga inicial de ciudadanos de mi circuito y asignar yaVoto
   useEffect(() => {
     const fetchVotantes = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const ciudadanos = await miembroService.getCiudadanos(token);
-        setVotantes([...ciudadanos]);
-        console.log("Ciudadanos traídos:", [...ciudadanos]);
+        const data = await miembroService.getCiudadanos(token);
+        const ciudadanos = data.map(c => ({
+          ...c,
+          yaVoto: c.voto_realizado === 1
+        }));
+        setVotantes(ciudadanos);
+        if (ciudadanos.length) setNroCircuito(ciudadanos[0].nro_circuito);
       } catch (error) {
         console.error("Error al traer los ciudadanos:", error);
       }
     };
-
     fetchVotantes();
-  }, []);
+  }, [token]);
 
-  // Socket para recibir actualizaciones en tiempo real
+  // 2. Al cambiar persona, obtenemos si ya votó (fetch detallado)
+  useEffect(() => {
+    if (!persona) return;
+    setYaVoto(null);
+    const fetchEstado = async () => {
+      try {
+        const data = await miembroService.getCiudadanoByCi(token, persona.ci);
+        setYaVoto(data?.voto_realizado === 1);
+      } catch (err) {
+        console.error("Error al obtener estado de voto:", err);
+        setYaVoto(false);
+      }
+    };
+    fetchEstado();
+  }, [persona, token]);
+
+  // Socket listeners para habilitación y voto
   useSocket({
     onVotanteHabilitado: ({ ciCiudadano }) => {
-      setVotantes((prev) =>
-        prev.map((v) => (v.ci === ciCiudadano ? { ...v, habilitado: true } : v))
-      );
+      setVotantes(prev => prev.map(v => v.ci === ciCiudadano ? { ...v, habilitado: true } : v));
     },
-    onVotoEmitido: (data) => {
-      console.log("Voto emitido para CI:", data.ci_ciudadano);
-      setVotantes((prev) =>
-        prev.map((v) =>
-          v.ci === data.ci_ciudadano ? { ...v, yaVoto: true } : v
-        )
-      );
-
-
-
+    onVotoEmitido: ({ ci_ciudadano }) => {
+      setVotantes(prev => prev.map(v => v.ci === ci_ciudadano ? { ...v, yaVoto: true } : v));
       setEsperandoVoto(false);
       setPersona(null);
-    },
+    }
   });
 
-  const [persona, setPersona] = useState(null);
-  const [isPersonaOpen, setIsPersonaOpen] = useState(false);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [esperandoVoto, setEsperandoVoto] = useState(false);
-  const navigate = useNavigate();
-
-  const handleAbrirCircuito = () => {
-    setCircuitoAbierto(true);
-  };
-
-  const handleSeleccionarPersona = (v) => {
-    setPersona(v);
-    setIsPersonaOpen(true);
-  };
-
-  const handleConfirm = () => {
-    setIsConfirmOpen(false);
-    setCircuitoAbierto(false);
-    navigate("/Estadisticas");
-  };
-
-  const handleVotar = () => {
-    const actualizados = votantes.map((v) =>
-      v.ci === persona.ci ? { ...v, voto: true } : v
-    );
-    setVotantes(actualizados);
-    setPersona({ ...persona, voto: true });
-  };
-
-  const formatoTiempo = (segundos) => {
-    const hrs = Math.floor(segundos / 3600);
-    const mins = Math.floor((segundos % 3600) / 60);
-    return `${hrs}hrs ${mins.toString().padStart(2, "0")}min`;
-  };
-
+  // Contador de tiempo
   useEffect(() => {
-    let interval;
     if (circuitoAbierto && tiempoRestante > 0) {
-      interval = setInterval(() => {
-        setTiempoRestante((prev) => prev - 1);
-      }, 1000);
+      const timer = setInterval(() => setTiempoRestante(t => t - 1), 1000);
+      return () => clearInterval(timer);
     }
-    return () => clearInterval(interval);
   }, [circuitoAbierto, tiempoRestante]);
 
-  const votantesFiltrados = votantes.filter((v) =>
-    (v.ci?.toString().toLowerCase() || "").includes(search.toLowerCase())
-  );
-
+  // Persistir estado del circuito
   useEffect(() => {
     localStorage.setItem("circuitoAbierto", circuitoAbierto);
   }, [circuitoAbierto]);
 
+<<<<<<< HEAD
   useEffect(() => {
     console.log("Circuito abierto:", circuitoAbierto);
     console.log("Votantes:", votantes);
@@ -131,14 +103,77 @@ function HomeMiembroMesa() {
     setIsPersonaOpen(false);
     setEsperandoVoto(true);
     localStorage.setItem("es_observado", observado)
+=======
+  // Handler búsqueda externa
+  const handleSearchExternal = async () => {
+    const cc = searchCred.toUpperCase().trim();
+    if (!cc) return;
+    try {
+      const citizen = await miembroService.getCiudadanoByCC(token, cc);
+      if (citizen) citizen.yaVoto = citizen.voto_realizado === 1;
+      setExternalCitizen(citizen);
+    } catch {
+      setExternalCitizen(null);
+    }
+>>>>>>> fd688106e91f3ac888bbf541e72c8c14e5a8bffb
   };
 
+  // Habilitar votante remoto si se confirma el voto
   useEffect(() => {
+<<<<<<< HEAD
     if (esperandoVoto && persona) {
       const token = localStorage.getItem("token");
       miembroService.habilitarVotante(token, persona.ci, localStorage.getItem("es_observado"), localStorage.getItem("nro_circuito"));
+=======
+    if (esperandoVoto && persona) miembroService.habilitarVotante(token, persona.ci);
+  }, [esperandoVoto, persona, token]);
+
+  const handleAbrirCircuito = async () => {
+    try {
+      await miembroService.abrirCircuito(token, nroCircuito);
+      setCircuitoAbierto(true);
+    } catch (err) {
+      alert("No se pudo abrir el circuito.");
+>>>>>>> fd688106e91f3ac888bbf541e72c8c14e5a8bffb
     }
-  }, [esperandoVoto]);
+  };
+
+  const handleSeleccionarPersona = v => { setPersona(v); setIsPersonaOpen(true); };
+  const handleOnVotar = () => { setIsPersonaOpen(false); setEsperandoVoto(true); };
+  const handleConfirm = async () => {
+    setIsConfirmOpen(false);
+    try {
+      await miembroService.cerrarCircuito(token, nroCircuito);
+      setCircuitoAbierto(false);
+      navigate("/Estadisticas");
+    } catch (err) {
+      alert("No se pudo cerrar el circuito.");
+    }
+  };
+
+
+  const votantesFiltrados = votantes.filter(v =>
+    formatearCredencial(v).toLowerCase().includes(searchCred.toLowerCase())
+  );
+  const formatoTiempo = s => `${Math.floor(s / 3600)}hrs ${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}min`;
+
+  if (!circuitoAbierto) {
+    return (
+      <div className={classes.homeContainer}>
+        <aside className={classes.sidebar}>
+          <img src={escudo} alt="logo" className={classes.logo} />
+          <nav className={classes.nav}>
+            <button className={classes.active}>Mi circuito</button>
+            <button onClick={() => navigate("/configuracion")} className={classes.active}>Configuración</button>
+          </nav>
+        </aside>
+        <main className={classes.main}>
+          <button onClick={handleAbrirCircuito} className={classes.abrirBtn}>Abrir circuito</button>
+        </main>
+      </div>
+    );
+  }
+
 
   return (
     <div className={classes.homeContainer}>
@@ -146,136 +181,74 @@ function HomeMiembroMesa() {
         <img src={escudo} alt="logo" className={classes.logo} />
         <nav className={classes.nav}>
           <button className={classes.active}>Mi circuito</button>
-          <button onClick={() => navigate("/configuracion")}>
-            Configuración
-          </button>
+          <button onClick={() => navigate("/configuracion")} className={classes.active}>Configuración</button>
         </nav>
       </aside>
-
       <main className={classes.main}>
         <div className={classes.header}>
           <div>
-            <h1>Circuito N°24923</h1>
+            <h1>{nroCircuito ? `Circuito N°${nroCircuito}` : "Circuito N°…"}</h1>
             <p>Montevideo</p>
           </div>
-
-          {circuitoAbierto && (
-            <>
-              <div className={classes.statusBox}>
-                <p>
-                  <strong>{formatoTiempo(tiempoRestante)}</strong>
-                </p>
-                <span>Para finalizar las elecciones.</span>
-              </div>
-              <div className={classes.contador}>
-                <span>0/0</span>
-                <small>Votantes registrados</small>
-              </div>
-            </>
-          )}
+          <div className={classes.statusBox}>
+            <strong>{formatoTiempo(tiempoRestante)}</strong>
+            <span>Para finalizar las elecciones.</span>
+          </div>
+          <div className={classes.contador}>
+            <span>{votantes.filter(v => v.habilitado).length}/{votantes.length}</span>
+            <small>Votantes registrados</small>
+          </div>
         </div>
-
         <h3>Votantes de mi circuito</h3>
         <div className={classes.searchBox}>
           <input
             type="text"
             placeholder="Buscar por credencial (Ej: AAAXXXX)"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            disabled={!circuitoAbierto}
+            value={searchCred}
+            onChange={e => setSearchCred(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSearchExternal()}
           />
-          <FaSearch className={classes.searchIcon} />
+          <button onClick={handleSearchExternal} className={classes.searchIconButton} disabled={!searchCred.trim()}>
+            <FaSearch className={classes.searchIcon} />
+          </button>
         </div>
-
         <div className={classes.lista}>
-          {circuitoAbierto &&
-            votantesFiltrados.map((v, i) => (
-              <div
-                key={i}
-                className={classes.votante}
-                onClick={() => handleSeleccionarPersona(v)}
-                style={{ cursor: "pointer" }}
-              >
-                <FaUser className={classes.userIcon} />
-                <div>
-                  <p>{v.nombre}</p>
-                  <span>{v.ci}</span>
-                </div>
-                {v.voto && (
-                  <span
-                    className={
-                      v.tipoVoto === "observado"
-                        ? classes.tagObservado
-                        : classes.tagVoto
-                    }
-                  >
-                    {v.voto_realizado === 1 ? "Votó" : ""}
-                  </span>
-                )}
+          {votantesFiltrados.map((v, i) => (
+            <div key={i} className={classes.votante} onClick={() => handleSeleccionarPersona(v)}>
+              <FaUser className={classes.userIcon} />
+              <div className={classes.votanteInfo}>
+                <p>{v.nombre}</p>
+                <span>{formatearCredencial(v)}</span>
               </div>
-            ))}
+              {(v.tipoVoto === "observado") ? (
+                <span className={classes.statusLabelObservado}>Voto observado</span>
+              ) : v.yaVoto ? (
+                <span className={classes.statusLabelVoto}>Ya votó</span>
+              ) : null}
+            </div>
+          ))}
+          {externalCitizen && (
+            <div className={classes.votante} onClick={() => handleSeleccionarPersona(externalCitizen)}>
+              <FaUser className={classes.userIcon} />
+              <div className={classes.votanteInfo}>
+                <p>{externalCitizen.nombre} {externalCitizen.apellido}</p>
+                <span>{externalCitizen.serie_credencial}{externalCitizen.nro_credencial}</span>
+              </div>
+              {externalCitizen.tipoVoto === "observado" ? (
+                <span className={classes.statusLabelObservado}>Voto observado</span>
+              ) : externalCitizen.yaVoto ? (
+                <span className={classes.statusLabelVoto}>Ya votó</span>
+              ) : null}
+            </div>
+          )}
+
         </div>
+        <button onClick={() => setIsConfirmOpen(true)} className={classes.cerrarBtn}>Cerrar circuito</button>
 
-        {!circuitoAbierto ? (
-          <button onClick={handleAbrirCircuito} className={classes.abrirBtn}>
-            Abrir circuito
-          </button>
-        ) : (
-          <button
-            onClick={() => setIsConfirmOpen(true)}
-            className={classes.cerrarBtn}
-          >
-            Cerrar circuito
-          </button>
-        )}
-
-        {/* Modales */}
-        {isPersonaOpen && persona && (
-          <PersonaModal
-            persona={persona}
-            onClose={() => setIsPersonaOpen(false)}
-            onVotar={handleOnVotar}
-          />
-        )}
-
-        {esperandoVoto && persona && (
-          <EsperandoVoto
-            persona={persona}
-            observadoMarcado={observadoMarcado}
-            onToggleObservado={toggleObservado}
-            onConfirmVoto={() => {
-              const actualizados = votantes.map((v) =>
-                v.ci === persona.ci
-                  ? { ...v, voto: true, tipoVoto: "comun" }
-                  : v
-              );
-              setVotantes(actualizados);
-              // setEsperandoVoto(false);
-              setPersona(null);
-            }}
-            onConfirmObservado={() => {
-              const actualizados = votantes.map((v) =>
-                v.ci === persona.ci ? { ...v, tipoVoto: "observado" } : v
-              );
-              setVotantes(actualizados);
-            }}
-            onClose={() => {
-              setEsperandoVoto(false);
-              setPersona(null);
-            }}
-          />
-        )}
-
-        {isConfirmOpen && (
-          <ConfirmarCierreModal
-            onConfirm={handleConfirm}
-            onCancel={() => setIsConfirmOpen(false)}
-            onClose={() => setIsConfirmOpen(false)}
-          />
-        )}
+        {isPersonaOpen && persona && <PersonaModal persona={persona} onClose={() => setIsPersonaOpen(false)} onVotar={handleOnVotar} />}
+        {esperandoVoto && persona && <EsperandoVoto persona={persona} observadoMarcado={persona.tipoVoto === "observado"} onToggleObservado={() => { }} onConfirmVoto={() => { setVotantes(prev => prev.map(x => x.ci === persona.ci ? { ...x, yaVoto: true, tipoVoto: "comun" } : x)); setPersona(null); }} onConfirmObservado={() => { setVotantes(prev => prev.map(x => x.ci === persona.ci ? { ...x, tipoVoto: "observado" } : x)); }} onClose={() => { setEsperandoVoto(false); setPersona(null); }} />}
+        {isConfirmOpen && <ConfirmarCierreModal onConfirm={handleConfirm} onCancel={() => setIsConfirmOpen(false)} onClose={() => setIsConfirmOpen(false)} />}
       </main>
     </div>
   );
 }
-
-export default HomeMiembroMesa;
