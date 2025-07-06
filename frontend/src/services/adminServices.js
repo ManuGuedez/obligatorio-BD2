@@ -249,6 +249,28 @@ const adminService = {
         }
     },
 
+    getOrganismosPublicos: async (token) => {
+        try {
+            const response = await ApiService.get("/organismo-publico", token);
+            console.log("Organismos fetched successfully: ", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching organismos:", error);
+            throw error;
+        }
+    },
+
+    getRoles: async (token) => {
+        try {
+            const response = await ApiService.get("/miembro/roles", token);
+            console.log("Roles fetched successfully: ", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching roles:", error);
+            throw error;
+        }
+    },
+
 }
 
 export default adminService;

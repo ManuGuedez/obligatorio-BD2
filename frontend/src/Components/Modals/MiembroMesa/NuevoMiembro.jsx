@@ -1,6 +1,7 @@
 // NuevoMiembro.jsx
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import styles from "./NuevoMiembro.module.css";
+import adminService from "../../../services/adminServices";
 
 function NuevoMiembro({ onClose }) {
   const overlayRef = useRef();
@@ -8,6 +9,9 @@ function NuevoMiembro({ onClose }) {
   const [circuito, setCircuito] = useState("");
   const [organismo, setOrganismo] = useState("");
   const [rol, setRol] = useState("");
+  const [organismos, setOrganismos] = useState([]);
+  const [circuitos, setCircuitos] = useState([]);
+  const [roles, setRoles] = useState([]);
 
   const handleOverlayClick = (e) => {
     if (e.target === overlayRef.current) onClose();
@@ -24,6 +28,26 @@ function NuevoMiembro({ onClose }) {
     console.log("Nuevo miembro de mesa:", datos);
     onClose();
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const data = await adminService.getOrganismosPublicos(token);
+        setOrganismos([...data]);
+        const data2 = await adminService.getCircuitos(token);
+        setCircuitos([...data2]);
+        const data3 = await adminService.getRoles(token);
+        setRoles([...data3]);
+        console.log("Organismos traídos:", [...data]);
+        console.log("Circuitos traídas:", [...data2]);
+        console.log("Roles traídos:", [...data3]);
+      } catch (error) {
+        console.error("Error al traer los datos:", error);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
     <div
