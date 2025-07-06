@@ -9,7 +9,7 @@ import { useFlujo } from "../../Context/FlujoContext";
 function VotacionPorLista() {
     const { modoOscuro, letraGrande, altoContraste } = useAccesibilidad();
     const [selectedItem, setSelectedItem] = useState(null);
-    const { etapa, siguiente } = useFlujo();
+    const { etapa, guardarVoto, anterior, siguiente } = useFlujo();
     const tipo = etapa.tipo;
     const navigate = useNavigate();
     const iconRef = useRef(null);
@@ -29,16 +29,29 @@ function VotacionPorLista() {
         setSelectedItem(item);
     }
 
+
     const handleSiguienteClick = () => {
         if (selectedItem === "votoLista") {
             navigate(`/votacion/${tipo}/listas`, { state: { tipo } });
         } else if (selectedItem === "votoAnulado") {
-            navigate("/resumen");
-        } else {
-            const nextStep = siguiente();
-            navigate(`/votacion/${nextStep.tipo}`, {
-                state: { id: nextStep.id }
+            guardarVoto({
+                descripcion: etapa.descripcion,
+                respuesta: selectedItem
             });
+            navigate("/resumen");
+        } if (selectedItem === "votoBlanco") {
+            guardarVoto({
+            descripcion: etapa.descripcion,
+            respuesta: selectedItem
+            });
+            const nextStep = siguiente();
+            if (!nextStep || nextStep.tipo === "resumen") {
+            navigate("/resumen");
+            } else {
+            navigate(`/votacion/${nextStep.tipo}`, {
+                state: nextStep
+            });
+            }
         }
     };
     
@@ -73,7 +86,14 @@ function VotacionPorLista() {
             </div>
 
             <div className={classes.footer}>
-                <button className="button has-background-grey-lighter is-large is-rounded" onClick={() => navigate(-1)}>
+                <button
+                    className="button has-background-grey-lighter is-large is-rounded"
+                    onClick={() => {
+                        const prevStep = anterior();
+                        navigate(`${prevStep.tipo}`, { state: prevStep });
+                    }}
+                    disabled
+                >
                     <strong>Atrás</strong>
                 </button>
                 <button className="button has-background-grey-lighter is-large is-rounded" onClick={handleSiguienteClick} disabled={!selectedItem}>

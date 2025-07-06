@@ -7,6 +7,7 @@ import {useFlujo} from "../Context/FlujoContext";
 
 function Inicio() {
     const navigate = useNavigate();
+    const { siguiente } = useFlujo();
 
     const handleConfigClick = () => {
         const configIcon = document.querySelector(`.${classes.inicioContainer} .fa-gear`);
@@ -18,14 +19,17 @@ function Inicio() {
         }, 500);
     }
 
-    const { reset } = useFlujo();
+    const { reset, etapa } = useFlujo();
 
     useEffect(() => {
         reset();
     }, []);
 
     const handleInicioClick = () => {
-        navigate("/votacion/presidencial");
+        const nextStep = siguiente();
+        navigate(`/votacion/${nextStep.tipo}`, {
+            state: { id: nextStep.id }
+        });
     }
 
     return (

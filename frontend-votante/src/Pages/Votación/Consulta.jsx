@@ -10,7 +10,7 @@ import ConsultaCard from "../../Components/Cards/Consulta";
 function VotacionConsulta() {
     const { modoOscuro, letraGrande, altoContraste } = useAccesibilidad();
     const [selectedItem, setSelectedItem] = useState(null);
-    const { etapa, guardarVoto, siguiente } = useFlujo();
+    const { etapa, guardarVoto, anterior, siguiente } = useFlujo();
     const navigate = useNavigate();
     const iconRef = useRef(null);
 
@@ -38,7 +38,9 @@ function VotacionConsulta() {
             navigate("/resumen");
         } else {
             const next = siguiente();
-            if (next?.tipo) {
+            console.log("Etapa actual:", etapa, "Selected item:", selectedItem);
+            console.log("Siguiente etapa:", next);
+            if (next?.tipo !== "resumen") {
                 setSelectedItem(null);
                 navigate(`/votacion/${next.tipo}`);
             } else {
@@ -89,7 +91,10 @@ function VotacionConsulta() {
             <div className={classes.footer}>
                 <button
                 className="button has-background-grey-lighter is-large is-rounded"
-                onClick={() => navigate(-1)}
+                onClick={() => {
+                    const prevStep = anterior();
+                    navigate(`/votacion/${prevStep.tipo}`, { state: prevStep });
+                }}
                 >
                 <strong>Atrás</strong>
                 </button>

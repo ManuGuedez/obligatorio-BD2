@@ -3,7 +3,8 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 const FlujoContext = createContext();
 
 const flujo = [
-    { tipo: "presidencial" },
+    { tipo: "inicio" },
+    { tipo: "municipal" },
     {
         tipo: "consulta",
         id: "articulo11",
@@ -22,8 +23,8 @@ const flujo = [
         descripcion: "Plebiscito Artículo 20",
         color: "#3b82f6"
     },
-    { tipo: "municipal" },
-    { tipo: "resumen" }
+    { tipo: "resumen" },
+    { tipo: "confirmacion" },
 ];
 
 
@@ -56,21 +57,40 @@ export function FlujoProvider({ children }) {
 
     useEffect(() => {
         localStorage.setItem("etapaActual", etapaActual);
+        console.log("Etapa actual guardada:", etapaActual);
     }, [etapaActual]);
 
-
-    const siguiente = () => {
-        if (etapaActual + 1 < flujo.length) {
-        setEtapaActual((prev) => prev + 1);
-        return flujo[etapaActual + 1];
-        }
-        return { tipo: "resumen" };
+    const limpiarRespuestas = () => {
+        setRespuestas([]);
     };
 
-    const anterior = () => {
-        if (etapaActual > 0) {
-        setEtapaActual((prev) => prev - 1);
+    const siguiente = () => {
+        let nextStep = null;
+        if (etapaActual + 1 < flujo.length) {
+            nextStep = flujo[etapaActual + 1];
         }
+        setEtapaActual((prev) => {
+            if (prev + 1 < flujo.length) {
+                nextStep = flujo[prev + 1];
+                return prev + 1;
+            }
+            return prev;
+        });
+        return nextStep;
+    };
+
+
+    const anterior = () => {
+        let prevStep = flujo[0];
+        setEtapaActual((prev) => {
+            if (prev > 0) {
+                prevStep = flujo[prev - 1];
+                return prev - 1;
+            }
+            return prev;
+        });
+
+        return prevStep;
     };
 
     return (
@@ -83,7 +103,8 @@ export function FlujoProvider({ children }) {
             siguiente,
             anterior,
             reset,
-            respuestas
+            respuestas,
+            limpiarRespuestas
         }}
         >
         {children}
