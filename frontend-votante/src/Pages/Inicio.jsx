@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import classes from "./Inicio.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleArrowRight, faGear } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
+import {useFlujo} from "../Context/FlujoContext";
 
 function Inicio() {
     const navigate = useNavigate();
@@ -16,6 +17,12 @@ function Inicio() {
             navigate("/configuracion");
         }, 500);
     }
+
+    const { reset } = useFlujo();
+
+    useEffect(() => {
+        reset();
+    }, []);
 
     const handleInicioClick = () => {
         navigate("/votacion/presidencial");

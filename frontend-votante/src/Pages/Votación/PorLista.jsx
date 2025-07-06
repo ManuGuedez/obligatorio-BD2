@@ -1,13 +1,16 @@
 import React, { useRef, useState } from "react";
 import { useAccesibilidad } from "../../Components/Configuracion/Accesibilidad";
-import classes from "./Presidencial.module.css";
+import classes from "./PorLista.module.css";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGear } from "@fortawesome/free-solid-svg-icons";
+import { useFlujo } from "../../Context/FlujoContext";
 
-function VotacionPresidencial() {
+function VotacionPorLista() {
     const { modoOscuro, letraGrande, altoContraste } = useAccesibilidad();
     const [selectedItem, setSelectedItem] = useState(null);
+    const { etapa, siguiente } = useFlujo();
+    const tipo = etapa.tipo;
     const navigate = useNavigate();
     const iconRef = useRef(null);
 
@@ -28,9 +31,16 @@ function VotacionPresidencial() {
 
     const handleSiguienteClick = () => {
         if (selectedItem === "votoLista") {
-            navigate("/votacion/presidencial/listas", { state: { tipo: "presidencial" } });
+            navigate(`/votacion/${tipo}/listas`, { state: { tipo } });
+        } else if (selectedItem === "votoAnulado") {
+            navigate("/resumen");
+        } else {
+            const nextStep = siguiente();
+            navigate(`/votacion/${nextStep.tipo}`, {
+                state: { id: nextStep.id }
+            });
         }
-    }
+    };
     
     const isActive = (item) => selectedItem === item ? classes.seleccionado : "";
 
@@ -42,7 +52,7 @@ function VotacionPresidencial() {
             <div className={classes.header}>
                 <div className={classes.spacer} />
                 <div className={classes.headerTitle}>
-                    <p className="title is-1 has-text-white">Votación Presidencial</p>
+                    <p className="title is-1 has-text-white">Votación {tipo.charAt(0).toUpperCase() + tipo.slice(1)}</p>
                 </div>
                 <div className={classes.headerIcon} onClick={handleConfigClick}>
                     <FontAwesomeIcon icon={faGear} size="3x" style={{color: "#ffffff", alignSelf: "flex-end"}} ref={iconRef}/>
@@ -74,4 +84,4 @@ function VotacionPresidencial() {
     );
 }
 
-export default VotacionPresidencial;
+export default VotacionPorLista;

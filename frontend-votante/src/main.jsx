@@ -5,16 +5,16 @@ import "bulma/css/bulma.css"
 import "./index.css"
 import App from "./App.jsx"
 import { AccesibilidadProvider } from "./Components/Configuracion/Accesibilidad.jsx"
-import { VotoProvider } from "./Context/VotoContext.jsx"
+import { FlujoProvider } from "./Context/FlujoContext.jsx"
 
 createRoot(document.getElementById('root')).render(
   <Router>
-    <VotoProvider>
+    <FlujoProvider>
       <AccesibilidadProvider>
         <StrictMode>
           <App />
         </StrictMode>
       </AccesibilidadProvider>
-    </VotoProvider>
+    </FlujoProvider>
   </Router>
 );
