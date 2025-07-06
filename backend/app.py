@@ -546,9 +546,9 @@ def get_policias():
 
     return jsonify(result), 200 if result else ({"error": "No se encontraron policias"}, 400)
 
-@app.route('/police/<int:id>', methods=['GET'])
+@app.route('/police/<int:ci>', methods=['GET'])
 @jwt_required()
-def get_policia(id):
+def get_policia(ci):
     '''
     obtiene un policia por su id
     '''
@@ -558,7 +558,7 @@ def get_policia(id):
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
 
-    result = services.get_policia(id)
+    result = services.get_policia(ci)
 
     if result:
         return jsonify(result), 200
@@ -1453,7 +1453,7 @@ def get_organismos_publicos():
 
     return jsonify(result), 200 if result else ({"error": "No se encontraron organismos públicos"}, 400)
     
-@app.route('/resultados-listas', methods=['GET'])
+@app.route('/resultados/listas', methods=['GET'])
 @jwt_required()
 def get_resultados_por_listas():
     '''
@@ -1474,7 +1474,47 @@ def get_resultados_por_listas():
     else:
         return jsonify(result[1]), 200
     
+@app.route('/resultados/partido', methods=['GET'])
+@jwt_required()
+def get_resultados_por_partido():
+    '''
+    cuerpo opcional:
+        - nro_circuito (int)
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    
+    if role_description != 'admin':
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+    
+    nro_circuito = request.args.get('nro_circuito', default=None, type=int)
+    result = services.obtener_votos_por_partido(nro_circuito)
+    
+    if result[0] < 0:
+        return jsonify({"error":result[1]}), 400
+    else:
+        return jsonify(result[1]), 200
 
+@app.route('/resultados/candidato', methods=['GET'])
+@jwt_required()
+def get_resultados_por_candidato():
+    '''
+    Parámetro opcional:
+        - nro_circuito (int)
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    
+    if role_description != 'admin':
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+    
+    nro_circuito = request.args.get('nro_circuito', default=None, type=int)
+    result = services.obtener_votos_por_candidato(nro_circuito)
+    
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    else:
+        return jsonify(result[1]), 200
 
 
 if __name__ == "__main__":
