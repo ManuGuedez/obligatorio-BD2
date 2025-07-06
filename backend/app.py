@@ -892,7 +892,6 @@ def update_citizen(ci):
         return jsonify({"message": "Ciudadano actualizado exitosamente"}), 200
 
 
-# OJO: terminar luego, la idea es implementar un borrado lógico, no eliminar el ciudadano de la base de datos
 @app.route('/ciudadano/<int:ci>', methods=['DELETE'])
 @jwt_required()
 def delete_citizen(ci):
@@ -907,7 +906,7 @@ def delete_citizen(ci):
     
     result = services.delete_citizen(ci)
     
-    if result[0] < 0:
+    if result[0] < 0:   
         return jsonify({"error": result[1]}), 400
     else:
         return jsonify({"message": "Ciudadano eliminado exitosamente"}), 200

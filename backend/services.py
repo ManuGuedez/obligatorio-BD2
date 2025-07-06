@@ -747,7 +747,25 @@ def update_citizen(ci, update_data):
     
 
 def delete_citizen(ci):
-    return None
+    try:
+        cursor = cnx.cursor()
+        cursor.execute("DELETE FROM Ciudadano WHERE ci = %s", (ci,))
+        cnx.commit()
+
+        if cursor.rowcount == 0:
+            return -1, f"No existe un ciudadano con ci {ci}"
+
+        return 1, f"Ciudadano con ci {ci} eliminado correctamente"
+
+    except IntegrityError as e:
+        # Error 1451 = clave foránea en uso (Cannot delete or update a parent row)
+        if e.errno == 1451:
+            return -1, "El ciudadano no se puede eliminar dado que está siendo referenciado por otra tabla"
+        else:
+            return -1, "Error de integridad: " + str(e)
+
+    except Exception as e:
+        return -1, f"Error al eliminar ciudadano: {str(e)}"
 
 def add_member(id_organismo,ci, nro_circuito, id_rol):
     '''
