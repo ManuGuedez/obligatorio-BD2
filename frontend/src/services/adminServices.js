@@ -93,17 +93,11 @@ const adminService = {
             // Si ApiService.patch lanza en caso de error, no necesitás chequear .ok
             console.log("Ciudadano actualizado:", response);
             return response;
-
-
-            const responseData = await response.json();
-            console.log("Ciudadano actualizado:", responseData);
-            return responseData;
         } catch (error) {
             console.error("Error actualizando ciudadano:", error);
             throw error;
         }
     },
-
 
     crearCiudadano: async (token, ci, nombre, apellido, serie, numero, circuito) => {
         try {
@@ -116,6 +110,19 @@ const adminService = {
             throw error;
         }
     },
+
+    crearCandidato: async (token, ci) => {
+        try {
+            console.log("Creando candidato:", ci);
+            const response = await ApiService.post("/candidatos", { ci_ciudadano: ci },"application/json", token);
+            console.log("Candidato creado:", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error creando candidato:", error);
+            throw error;
+        }
+    },
+
 }
 
 export default adminService;

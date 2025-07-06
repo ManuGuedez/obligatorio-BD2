@@ -1,8 +1,10 @@
 import React, { useRef } from "react";
 import styles from "./NuevoCandidato.module.css";
+import adminService from "../../../services/adminServices";
 
 function NuevoCandidato({ onClose }) {
   const overlayRef = useRef();
+  const [ci, setCi] = React.useState("");
 
   const handleOverlayClick = (e) => {
     if (e.target === overlayRef.current) {
@@ -10,19 +12,18 @@ function NuevoCandidato({ onClose }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Datos del formulario
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
+    const token = localStorage.getItem("token");
 
-    // Lógica futura para integración backend
-    console.log("Enviando candidato:", data);
-    // Aquí se podría hacer un fetch o axios.post
-
-    // Por ahora cerramos el modal
-    onClose();
+    try {
+      await adminService.crearCandidato(token, data.ci);
+      onClose();
+    } catch (error) {
+      console.error("Error al crear candidato:", error);
+    }
   };
 
   return (
