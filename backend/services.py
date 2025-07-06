@@ -671,13 +671,24 @@ def delete_candidato(id):
     '''
     elimina un candidato por su id
     '''
-    query = 'DELETE FROM Candidato WHERE id = %s'
-    cursor.execute(query, (id,))
-    cnx.commit()
-    if cursor.rowcount > 0:
-        return 1, "Candidato eliminado exitosamente"
-    else:
-        return -1, "No se encontró el candidato o no se realizaron cambios"
+    try:
+            query = 'DELETE FROM Candidato WHERE id = %s'
+            cursor.execute(query, (id,))
+            cnx.commit()
+
+            if cursor.rowcount > 0:
+                return 1, "Candidato eliminado exitosamente"
+            else:
+                return -1, "No se encontró el candidato o no se realizaron cambios"
+
+    except IntegrityError as e:
+        if e.errno == 1451 or e.errno == 1217:
+            return -1, "El candidato no se puede eliminar porque está siendo referenciado por otra tabla"
+        else:
+            return -1, f"Error de integridad: {str(e)}"
+
+    except Exception as e:
+        return -1, f"Error inesperado al eliminar el candidato: {str(e)}"
     
 
 def format_citizen_data(nombre, apellido, serie_credencial, nro_credencial, nro_circuito):
