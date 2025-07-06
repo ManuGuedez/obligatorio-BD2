@@ -135,7 +135,30 @@ const adminService = {
             console.error("Error fetching resultados por lista:", error);
             throw error;
         }
-    }
+    },
+
+    getComisarias: async (token) => {
+        try {
+            const response = await ApiService.get("/comisarias", token);
+            console.log("Comisarías fetched successfully: ", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching comisarías:", error);
+            throw error;
+        }
+    },
+
+    crearPolicia: async (token, ci, comisaria, establecimiento) => {
+        try {
+            console.log("Creando policía:", ci, comisaria, establecimiento);
+            const response = await ApiService.post("/police", { ci_ciudadano: ci, id_comisaria: comisaria, id_establecimiento: establecimiento },"application/json", token);
+            console.log("Policía creado:", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error creando circuito:", error);
+            throw error;
+        }
+    },
 }
 
 export default adminService;
