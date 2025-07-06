@@ -213,3 +213,5 @@ CREATE TABLE Registro_votacion (
 ALTER TABLE Usuario ADD COLUMN salt VARCHAR(128);
 ALTER TABLE Usuario MODIFY COLUMN contraseña VARCHAR(128);
 
+
+

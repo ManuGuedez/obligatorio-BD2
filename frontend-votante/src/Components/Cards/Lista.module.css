@@ -1,0 +1,5 @@
+.seleccionado {
+    outline: 4px solid black !important;
+    z-index: 10;
+    position: relative;
+}

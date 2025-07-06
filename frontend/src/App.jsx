@@ -7,7 +7,7 @@ import Estadisticas from "./Components/Estadisticas/Estadisticas";
 import Configuracion from "./Components/Configuracion/Configuracion";
 import './global.css';
 
-export const url = "http://localhost:5001";
+export const url = "http://localhost:5000";
 
 function App() {
     return (
@@ -16,8 +16,8 @@ function App() {
             <Route path="/Login" element={<Login />} />
             <Route path="/HomeMiembroMesa" element={<HomeMiembroMesa />} />
             <Route path="/HomeAdministrador/*" element={<HomeAdministrador />} />
-           <Route path="/Estadisticas" element={<Estadisticas />} />
-           <Route path="/Configuracion" element={<Configuracion />} />
+            <Route path="/Estadisticas" element={<Estadisticas />} />
+            <Route path="/Configuracion" element={<Configuracion />} />
 
         </Routes>
     )

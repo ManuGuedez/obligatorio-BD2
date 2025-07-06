@@ -1,5 +1,5 @@
 import React from "react";
-import classes from "./AdminContent.module.css";
+import classes from "./Datos.module.css";
 import { useState } from "react";
 import AdminCard from "../../Components/Cards/HomeAdminCard/AdminCard";
 import NuevoCiudadano from "../../Components/Modals/Ciudadano/NuevoCiudadano";
@@ -14,6 +14,15 @@ import NuevosMiembros from "../../Components/Modals/MiembroMesa/NuevosMiembros";
 import NuevoEstablecimiento from "../../Components/Modals/Establecimiento/NuevoEstablecimiento";
 import EditarEstablecimiento from "../../Components/Modals/Establecimiento/EditarEstablecimiento";
 import NuevosEstablecimientos from "../../Components/Modals/Establecimiento/NuevosEstablecimientos";
+import NuevoPolicia from "../../Components/Modals/Policías/NuevoPolicia";
+import EditarPolicia from "../../Components/Modals/Policías/EditarPolicia";
+import NuevosPolicias from "../../Components/Modals/Policías/NuevosPolicias";
+import NuevoCandidato from "../../Components/Modals/Candidatos/NuevoCandidato";
+import EditarCandidato from "../../Components/Modals/Candidatos/EditarCandidato";
+import NuevosCandidatos from "../../Components/Modals/Candidatos/NuevosCandidatos";
+import NuevoPartido from "../../Components/Modals/Partidos Políticos/NuevoPartido";
+import EditarPartido from "../../Components/Modals/Partidos Políticos/EditarPartido";
+import NuevosPartidos from "../../Components/Modals/Partidos Políticos/NuevosPartidos";
 
 function Datos() {
   const [modal, setModal] = useState(null);
@@ -91,6 +100,59 @@ function Datos() {
             {
               label: "Nuevos",
               onClick: () => setModal("nuevosMiembros"),
+              label: "Nuevos Miembros",
+              onClick: () => setModal("listaCiudadanos"),
+            },
+          ]}
+        />
+        <AdminCard
+          title="Policías"
+          buttons={[
+            {
+              label: "Nuevo Policía",
+              onClick: () => setModal("nuevoPolicia"),
+            },
+            {
+              label: "Editar Policía",
+              onClick: () => setModal("editarPolicia"),
+            },
+            {
+              label: "Nuevos Policías",
+              onClick: () => setModal("nuevosPolicias"),
+            },
+          ]}
+        />
+        <AdminCard
+          title="Candidatos"
+          buttons={[
+            {
+              label: "Nuevo Candidato",
+              onClick: () => setModal("nuevoCandidato"),
+            },
+            {
+              label: "Editar Candidato",
+              onClick: () => setModal("editarCandidato"),
+            },
+            {
+              label: "Nuevos Candidatos",
+              onClick: () => setModal("nuevosCandidatos"),
+            },
+          ]}
+        />
+        <AdminCard
+          title="Partidos Políticos"
+          buttons={[
+            {
+              label: "Nuevo Partido Político",
+              onClick: () => setModal("nuevoPartido"),
+            },
+            {
+              label: "Editar Partido Político",
+              onClick: () => setModal("editarPartido"),
+            },
+            {
+              label: "Nuevos Partidos Políticos",
+              onClick: () => setModal("nuevosPartidos"),
             },
           ]}
         />
@@ -100,14 +162,22 @@ function Datos() {
       {modal === "nuevosCiudadanos" && <NuevosCiudadanos onClose={handleClose} />}
       {modal === "nuevoCircuito" && <NuevoCircuito onClose={handleClose} />}
       {modal === "editarCircuito" && <EditarCircuito onClose={handleClose} />}
-      {modal === "nuevoCircuito" && (
-        <NuevoCircuito onClose={() => setModal(null)} setModal={setModal} />
-      )}      {modal === "nuevoMiembro" && <NuevoMiembro onClose={handleClose} />}
+      {modal === "nuevosCircuito" && <NuevosCircuitos onClose={handleClose}/>}
+      {modal === "nuevoMiembro" && <NuevoMiembro onClose={handleClose} />}
       {modal === "editarMiembro" && <EditarMiembro onClose={handleClose} />}
       {modal === "nuevosMiembros" && <NuevosMiembros onClose={handleClose} />}
       {modal === "nuevoEstablecimiento" && <NuevoEstablecimiento onClose={handleClose} />}
       {modal === "editarEstablecimiento" && <EditarEstablecimiento onClose={handleClose} />}
       {modal === "nuevosEstablecimientos" && <NuevosEstablecimientos onClose={handleClose} />}
+      {modal === "nuevoPolicia" && <NuevoPolicia onClose={handleClose} />}
+      {modal === "editarPolicia" && <EditarPolicia onClose={handleClose} />}
+      {modal === "nuevosPolicias" && <NuevosPolicias onClose={handleClose} />}
+      {modal === "nuevoCandidato" && <NuevoCandidato onClose={handleClose} />}
+      {modal === "editarCandidato" && <EditarCandidato onClose={handleClose} />}
+      {modal === "nuevosCandidatos" && <NuevosCandidatos onClose={handleClose} />}
+      {modal === "nuevoPartido" && <NuevoPartido onClose={handleClose} />}
+      {modal === "editarPartido" && <EditarPartido onClose={handleClose} />}
+      {modal === "nuevosPartidos" && <NuevosPartidos onClose={handleClose} />}
     </div>
   );
 }

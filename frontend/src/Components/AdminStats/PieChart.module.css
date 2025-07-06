@@ -1,0 +1,10 @@
+.cardPanel {
+    background-color: #C4D1E7;
+    width: 420px;
+    border-radius: 20px;
+    height: 250px;
+    display: flex;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    flex-grow: 0;
+}

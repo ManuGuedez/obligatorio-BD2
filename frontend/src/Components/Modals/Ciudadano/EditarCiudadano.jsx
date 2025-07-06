@@ -1,4 +1,3 @@
-// EditarCiudadano.jsx
 import React, { useRef, useState } from "react";
 import styles from "./EditarCiudadano.module.css";
 import { FaSearch, FaTrashAlt, FaPen } from "react-icons/fa";

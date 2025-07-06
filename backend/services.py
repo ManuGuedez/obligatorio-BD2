@@ -30,6 +30,19 @@ def verify_person(nombre, apellido, ci):
     if result:
         return True
     return False
+
+def veriby_member(id):
+    '''
+    verifica si el miembro ya existe en la base de datos
+    retorna True si existe, False si no
+    '''
+    query = 'SELECT 1 FROM Miembro_mesa WHERE id_miembro = %s'
+    cursor.execute(query, (id,))
+    result = cursor.fetchone()
+    
+    if result:
+        return True
+    return False
     
 def get_role_id(role_name):
     '''
@@ -45,8 +58,8 @@ def get_role_id(role_name):
     return None
 
 def register_user(data, role_name='miembroMesa'):
-    if not verify_person(data['nombre'], data['apellido'], data['ci']):
-        message = f"La persona {data['nombre']} {data['apellido']} no está registrada en la base de datos como ciudadano."
+    if not veriby_member(data['id_miembro']):
+        message = f"No se encontró el miembro con ID {data['id_miembro']} en la base de datos."
         return -1, message
 
     hashed_password, salt = encrypt.encrypt_password(data['password'])
@@ -61,8 +74,8 @@ def register_user(data, role_name='miembroMesa'):
         values = (data['nombre_usuario'], hashed_password, salt.hex(), current_role_id)
         cursor.execute(query, values)
 
-        query = 'INSERT INTO Usuario_ciudadano (id_usuario, ci_ciudadano) VALUES (LAST_INSERT_ID(), %s)'
-        cursor.execute(query, (data['ci'],))
+        query = 'INSERT INTO Usuario_miembro (id_usuario, id_miembro) VALUES (LAST_INSERT_ID(), %s)'
+        cursor.execute(query, (data['id_miembro'],))
 
         cnx.commit()
         message = "Usuario registrado exitosamente"
@@ -97,7 +110,9 @@ def login_user(nombre_usuario, password):
     verifica si el usuario existe y si la contraseña es correcta
     retorna el nombre del usuario y el id del rol si es correcto, None en caso contrario
     '''
-    query = 'SELECT id, contraseña, salt, id_rol_usuario FROM Usuario WHERE nombre_usuario = %s'
+    query = '''SELECT id, contraseña, salt, id_rol_usuario 
+                FROM Usuario 
+                WHERE nombre_usuario = %s'''
     cursor.execute(query, (nombre_usuario,))
     result = cursor.fetchone()
     
@@ -111,6 +126,12 @@ def login_user(nombre_usuario, password):
         current_role = get_role(result['id_rol_usuario'])
         if current_role is None:
             return -1, "Hubo un error al iniciar sesión, ingrese nuevamente las credenciales"
+        query = 'SELECT id_miembro FROM Usuario_miembro WHERE id_usuario = %s'
+        cursor.execute(query, (result['id'],))
+        member_id = cursor.fetchone()
+        if member_id:
+            result['id'] = member_id['id_miembro']
+            print(f"Usuario {nombre_usuario} con ID {result['id']} ha iniciado sesión correctamente.")
         user_details = {"user_name": nombre_usuario, "role_description": current_role ,"id": result['id']}
         return 1, user_details
     return -1, "Hubo un error al iniciar sesión, ingrese nuevamente las credenciales" 
@@ -120,9 +141,11 @@ def get_person_data(nombre_usuario):
     obtiene los datos de la persona dado su nombre de usuario
     retorna un diccionario con los datos de la persona
     '''
-    query = """SELECT c.ci, c.nombre, c.apellido, r.descripcion_rol FROM Ciudadano c 
-                JOIN Usuario_ciudadano uc ON (c.ci = uc.ci_ciudadano)  
-                JOIN Usuario u ON (uc.id_usuario = u.id) 
+    query = """SELECT c.ci, c.nombre, c.apellido, r.descripcion_rol 
+                FROM Ciudadano c 
+                JOIN Miembro_mesa m ON (c.ci = m.ci_ciudadano)
+                JOIN Usuario_miembro um ON (m.id_miembro = um.id_miembro)  
+                JOIN Usuario u ON (um.id_usuario = u.id) 
                 JOIN Rol_usuario r ON (u.id_rol_usuario = r.id)
                 WHERE u.nombre_usuario = %s
                 """
@@ -157,7 +180,7 @@ def create_establishment(data):
         valores = (
             data['nombre'],
             data['tipo'],
-            data['direccion'],
+            data['direccion'].capitalize(),
             data['id_zona']
         )
         cursor.execute(query, valores)
@@ -181,7 +204,14 @@ def get_establishments():
     '''
     obtiene todos los establecimientos
     '''
-    query = 'SELECT * FROM Establecimiento'
+    query = '''
+        SELECT e.id as id_est, e.nombre as nombre_est, e.tipo as tipo_est, e.direccion as direccion_est,
+                z.nombre as nombre_zona, c.nombre as ciudad, d.nombre as departamento
+            FROM Establecimiento e
+            JOIN Zona z ON e.id_zona = z.id
+            JOIN Ciudad c ON z.id_ciudad = c.id
+            JOIN Departamento d ON c.id_departamento = d.id'''
+            
     cursor.execute(query)
     result = cursor.fetchall()
 
@@ -193,7 +223,14 @@ def get_establishment(id):
     '''
     obtiene un establecimiento por su id
     '''
-    query = 'SELECT * FROM Establecimiento WHERE id = %s'
+    query = '''
+        SELECT e.id as id_est, e.nombre as nombre_est, e.tipo as tipo_est, e.direccion as direccion_est,
+            z.nombre as nombre_zona, c.nombre as ciudad, d.nombre as departamento
+        FROM Establecimiento e
+        JOIN Zona z ON e.id_zona = z.id
+        JOIN Ciudad c ON z.id_ciudad = c.id
+        JOIN Departamento d ON c.id_departamento = d.id
+        WHERE e.id = %s'''
     cursor.execute(query, (id,))
     result = cursor.fetchone()
 
@@ -250,12 +287,12 @@ def get_circuitos():
         return result
     return None
 
-def get_circuito(id):
+def get_circuito(nro):
     '''
     obtiene un circuito por su id
     '''
     query = 'SELECT * FROM Circuito WHERE nro = %s'
-    cursor.execute(query, (id,))
+    cursor.execute(query, (nro,))
     result = cursor.fetchone()
 
     if result:
@@ -267,7 +304,7 @@ def create_circuito(data):
     crea un circuito
     '''
     try:
-        query = 'INSERT INTO Circuito (nro, es_accesible, id_establecimiento) VALUES (%s, %s, %s)'
+        query = 'INSERT IGNORE INTO Circuito (nro, es_accesible, id_establecimiento) VALUES (%s, %s, %s)' # ignora si se intenta insertar un circuito con el mismo nro
         valores = (data['nro'], data['es_accesible'], data['id_establecimiento'])
         cursor.execute(query, valores)
 
@@ -285,37 +322,101 @@ def create_circuito(data):
 
     except Exception as e:
         return -1, f"Error inesperado: {str(e)}"
+
+def is_member_assigned_to_circuito(id_miembro, nro):
+    '''
+    verifica si un miembro de mesa está asignado a un circuito
+    retorna True si está asignado, False si no
+    '''
+    query = '''
+        SELECT 1
+        FROM Miembro_mesa
+        WHERE id_miembro = %s AND nro_circuito = %s
+    '''
+    cursor.execute(query, (id_miembro, nro))
+    result = cursor.fetchone()
     
-def update_circuito(id, data):
+    return result is not None
+
+def abrir_circuito(id_miembro, nro):
+    '''
+    abre un circuito por su nro
+    '''
+
+    if not is_member_assigned_to_circuito(id_miembro, nro):
+        return -1, "El miembro de mesa no está asignado a este circuito"
+    
+    query = '''
+        UPDATE Circuito
+        SET se_abrio = TRUE, es_cerrado = FALSE
+        WHERE nro = %s AND se_abrio = FALSE AND es_cerrado = TRUE
+    '''
+    cursor.execute(query, (nro,))
+    cnx.commit()
+    
+    if cursor.rowcount > 0:
+        return 1, "Circuito abierto exitosamente"
+    elif cursor.rowcount == 0:
+        return -1, "El circuito ya está abierto."
+    else:
+        return -1, "No se encontró el circuito."    
+
+def cerrar_circuito(id_miembro, nro):
+    '''
+    cierra un circuito por su nro
+    '''
+
+    if not is_member_assigned_to_circuito(id_miembro, nro):
+        return -1, "El miembro de mesa no está asignado a este circuito"
+    
+    query = '''
+        UPDATE Circuito
+        SET es_cerrado = TRUE
+        WHERE nro = %s AND es_cerrado = FALSE 
+    '''
+    cursor.execute(query, (nro,))
+    cnx.commit()
+    
+    if cursor.rowcount > 0:
+        return 1, "Circuito cerrado exitosamente"
+    elif cursor.rowcount == 0:  
+        return -1, "El circuito ya está cerrado"
+    else:
+        return -1, "No se encontró el circuito."
+
+def update_circuito(nro, data):
     '''
     Actualiza un circuito por su id.
     Solo actualiza los campos presentes en el diccionario data.
     '''
     if not data:
         return -1, "No se proporcionaron datos para actualizar"
+    
     fields = []
     values = []
     for key in ['es_accesible', 'id_establecimiento']:
         if key in data:
             fields.append(f"{key} = %s")
             values.append(data[key])
+            
     if not fields:
         return -1, "No se proporcionaron campos válidos para actualizar"
     query = f"UPDATE Circuito SET {', '.join(fields)} WHERE nro = %s"
-    values.append(id)
+    values.append(nro)
     cursor.execute(query, values)
     cnx.commit()
+    
     if cursor.rowcount > 0:
         return 1, "Circuito actualizado exitosamente"
     else:
         return -1, "No se encontró el circuito o no se realizaron cambios"
     
-def delete_circuito(id):
+def delete_circuito(nro):
     '''
-    elimina un circuito por su id
+    elimina un circuito por su nro
     '''
     query = 'DELETE FROM Circuito WHERE nro = %s'
-    cursor.execute(query, (id,))
+    cursor.execute(query, (nro,))
     cnx.commit()
     if cursor.rowcount > 0:
         return 1, "Circuito eliminado exitosamente"
@@ -492,9 +593,14 @@ def get_candidatos():
     '''
     obtiene todos los candidatos
     '''
-    query = 'SELECT * FROM Candidato'
+    query = '''
+        SELECT c.nombre, c.apellido, can.id
+            FROM Candidato can
+            JOIN Ciudadano c ON can.ci_ciudadano = c.ci
+        '''
     cursor.execute(query)
     result = cursor.fetchall()
+    
     if result:
         return result
     return None
@@ -503,7 +609,12 @@ def get_candidato(id):
     '''
     obtiene un candidato por su id
     '''
-    query = 'SELECT * FROM Candidato WHERE id = %s'
+    query = '''
+        SELECT c.nombre, c.apellido, can.id
+            FROM Candidato can
+            JOIN Ciudadano c ON can.ci_ciudadano = c.ci
+            WHERE id = %s
+    '''
     cursor.execute(query, (id,))
     result = cursor.fetchone()
     if result:
@@ -545,3 +656,650 @@ def delete_candidato(id):
         return 1, "Candidato eliminado exitosamente"
     else:
         return -1, "No se encontró el candidato o no se realizaron cambios"
+    
+
+def format_citizen_data(nombre, apellido, serie_credencial, nro_credencial, nro_circuito):
+    '''
+    Formatea los datos del ciudadano para ser insertados en la base de datos.
+    Convierte el nombre y apellido a mayúsculas y la serie de credencial a mayúsculas.
+    '''
+    nombre = nombre.capitalize()
+    apellido = apellido.capitalize()
+    serie_credencial = serie_credencial.upper()
+    
+    return {
+        'nombre': nombre,
+        'apellido': apellido,
+        'serie_credencial': serie_credencial,
+        'nro_credencial': int(nro_credencial),
+        'nro_circuito': int(nro_circuito)
+    }
+
+def add_citizen(ci, nombre, apellido, serie_credencial, nro_credencial, nro_circuito):
+    '''
+    Agrega un ciudadano a la base de datos.
+    Si el ciudadano ya existe, no se agrega y se retorna un mensaje de error.
+    '''
+    # Formatear los datos del ciudadano
+    citizen_data = format_citizen_data(nombre, apellido, serie_credencial, nro_credencial, nro_circuito)
+   
+    if verify_person(citizen_data['nombre'], citizen_data['apellido'], ci):
+        return -1, f"El ciudadano {citizen_data['nombre']} {citizen_data['apellido']} ya está registrado en la base de datos."
+
+    try:
+        query = 'INSERT INTO Ciudadano (ci, nombre, apellido, serie_credencial, nro_credencial, nro_circuito) VALUES (%s, %s, %s, %s, %s, %s)'
+        values = (
+            ci,
+            citizen_data['nombre'],
+            citizen_data['apellido'],
+            citizen_data['serie_credencial'],
+            citizen_data['nro_credencial'],
+            citizen_data['nro_circuito']
+        )
+        cursor.execute(query, values)
+
+        cnx.commit()
+        return 1, "Ciudadano agregado exitosamente"
+
+    except IntegrityError as e:
+        if "Duplicate entry" in str(e):
+            return -1, f"El ciudadano con CI {ci} ya fue ingresado o se repite la credencial."
+        else:
+            return -1, f"Error de integridad: {str(e)}"
+
+    except Exception as e:
+        return -1, str(e)
+    
+
+def update_citizen(ci, update_data):
+    '''
+    Actualiza los datos de un ciudadano.
+    '''
+    
+    fields = []
+    values = []
+    for key in ['nombre', 'apellido', 'serie_credencial', 'nro_credencial', 'nro_circuito']:
+        if key in update_data:
+            fields.append(f"{key} = %s")
+            if key == 'nombre' or key == 'apellido':
+                value = update_data[key].capitalize()
+            elif key == 'serie_credencial':
+                value = update_data[key].upper()
+            elif key == 'nro_credencial' or key == 'nro_circuito':
+                value = int(update_data[key])
+            print(f"Actualizando {key} a: {value}")
+            values.append(value)
+    
+    if not fields:
+        return -1, "No se proporcionaron campos válidos para actualizar"
+
+    query = f"UPDATE Ciudadano SET {', '.join(fields)} WHERE ci = %s"
+    values.append(ci)
+    
+    cursor.execute(query, values)
+    cnx.commit()
+    
+    if cursor.rowcount > 0:
+        return 1, "Ciudadano actualizado exitosamente"
+    else:
+        return -1, "No se encontraron cambios o el ciudadano no existe"
+    
+
+def delete_citizen(ci):
+    return None
+
+def add_member(id_organismo,ci, nro_circuito, id_rol):
+    '''
+    Agrega un miembro a la base de datos.
+    Si el miembro ya existe, no se agrega y se retorna un mensaje de error.
+    '''
+    try:
+        query = '''
+            INSERT INTO Miembro_mesa (id_organismo, ci_ciudadano, nro_circuito, id_rol)
+            SELECT %s, %s, %s, %s
+            FROM DUAL
+            WHERE NOT EXISTS (
+                SELECT 1 FROM Miembro_mesa
+                WHERE nro_circuito = %s AND id_rol = %s
+            )
+        '''
+        values = (id_organismo, ci, nro_circuito, id_rol, nro_circuito, id_rol)
+        cursor.execute(query, values)
+
+        cnx.commit()
+        if cursor.rowcount > 0:
+            return 1, "Miembro agregado exitosamente"
+        else:
+            return -1, "Ya existe un miembro con ese rol en el circuito"
+
+    except IntegrityError as e:
+        if "Duplicate entry" in str(e):
+            return -1, f"El miembro con CI {ci} ya fue ingresado."
+        else:
+            return -1, f"Error de integridad: {str(e)}"
+
+    except Exception as e:
+        return -1, str(e)
+    
+def get_members_data():
+    '''
+    Obtiene todos los miembros de mesa.
+    '''
+    query = '''
+        SELECT m.id_miembro, m.nro_circuito, rm.descripcion as rol_en_mesa, c.nombre, c.apellido
+            FROM Miembro_mesa m
+            JOIN Ciudadano c ON m.ci_ciudadano = c.ci
+            JOIN Rol_mesa rm ON m.id_rol = rm.id
+    '''
+    cursor.execute(query)
+    result = cursor.fetchall()
+    
+    if result:
+        return result
+    return None
+
+def get_member_data(id):
+    '''
+    Obtiene los datos de un miembro de mesa por su ID.
+    '''
+    query = '''
+        SELECT m.id_miembro, m.nro_circuito, rm.descripcion as rol_en_mesa, c.nombre, c.apellido
+            FROM Miembro_mesa m
+            JOIN Ciudadano c ON m.ci_ciudadano = c.ci
+            JOIN Rol_mesa rm ON m.id_rol = rm.id
+            WHERE m.id_miembro = %s
+    '''
+    cursor.execute(query, (id,))
+    result = cursor.fetchone()
+    
+    if result:
+        return result
+    return None
+
+def validar_posicion_miembro_disponible(nro_circuito, id_rol):
+    '''
+    Verifica si un miembro de mesa con el mismo nro_circuito y id_rol ya existe.
+    Retorna True si está disponible, False si ya existe.
+    '''
+    query = '''
+        SELECT 1 FROM Miembro_mesa
+        WHERE nro_circuito = %s AND id_rol = %s
+    '''
+    cursor.execute(query, (nro_circuito, id_rol))
+    result = cursor.fetchone()
+    
+    return result is None
+
+def update_member(member_id, update_data):
+    '''
+    Actualiza los datos de un miembro de mesa.
+    '''
+    fields = []
+    values = []
+    for key in ['nro_circuito', 'id_rol', 'id_organismo']:
+        if key in update_data:
+            fields.append(f"{key} = %s")
+            values.append(update_data[key])
+    
+    if not fields:
+        return -1, "No se proporcionaron campos válidos para actualizar"
+    
+    if not 'nro_circuito' in update_data:
+        result = get_member_data(member_id)
+        if result:
+            update_data['nro_circuito'] = result['nro_circuito']
+        else:
+            return -1, "No se encontró el miembro con el ID proporcionado"
+    
+    if not validar_posicion_miembro_disponible(update_data['nro_circuito'], update_data['id_rol']):
+        return -1, "Ya existe un miembro con ese rol en el circuito, debe eliminar o actualizar el otro miembro primero"
+
+    query = f"UPDATE Miembro_mesa SET {', '.join(fields)} WHERE id_miembro = %s"
+    values.append(member_id)
+    
+    cursor.execute(query, values)
+    cnx.commit()
+    
+    if cursor.rowcount > 0:
+        return 1, "Miembro actualizado exitosamente"
+    else:
+        return -1, "No se encontraron cambios o el miembro no existe"
+    
+def delete_member(id):
+    '''
+    Elimina un miembro de mesa por su id
+    '''
+    query = 'DELETE FROM Miembro_mesa WHERE id_miembro = %s'
+    cursor.execute(query, (id,))
+    cnx.commit()
+    
+    if cursor.rowcount > 0:
+        return 1, "Miembro eliminado exitosamente"
+    else:
+        return -1, "No se encontró el miembro o no se realizaron cambios"
+    
+def crear_partido(calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente):
+    '''
+    argega un nuevo partido político
+    '''
+    try:
+        query = '''
+            INSERT INTO Partido_politico (calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        '''
+        values = (calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente)
+        cursor.execute(query, values)
+
+        cnx.commit()
+        return 1, "Partido creado exitosamente"
+
+    except IntegrityError as e:
+        if "Duplicate entry" in str(e):
+            return -1, f"El partido '{nombre}' ya fue ingresado."
+        else:
+            return -1, f"Error de integridad: {str(e)}"
+
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"
+
+def get_partidos_politicos():
+    '''
+    Obtiene todos los partidos políticos.
+    '''
+    query = '''
+        SELECT pp.id, pp.nombre, pp.calle, pp.numero, pp.telefono, pp.codigo_postal,
+               c.nombre AS presidente_nombre, c.apellido AS presidente_apellido,
+               v.nombre AS vicepresidente_nombre, v.apellido AS vicepresidente_apellido
+        FROM Partido_politico pp
+        JOIN Ciudadano c ON pp.ci_presidente = c.ci
+        JOIN Ciudadano v ON pp.ci_vicepresidente = v.ci
+    '''
+    cursor.execute(query)
+    result = cursor.fetchall()
+    
+    if result:
+        return result
+    return None
+
+def bulk_add_citizens(ciudadanos):
+    '''
+    Inserta muchos ciudadanos usando executemany.
+    '''
+    try:
+        query = '''
+            INSERT IGNORE INTO Ciudadano (ci, nombre, apellido, serie_credencial, nro_credencial, nro_circuito)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        '''
+        cursor.executemany(query, ciudadanos)
+        cnx.commit()
+        return 1, cursor.rowcount
+    except Exception as e:
+        return -1, str(e)
+    
+def bulk_add_circuitos(circuitos):
+    '''
+    Inserta muchos circuitos usando executemany.
+    '''
+    try:
+        query = '''
+            INSERT IGNORE INTO Circuito (nro, es_accesible, id_establecimiento)
+            VALUES (%s, %s, %s)
+        '''
+        cursor.executemany(query, circuitos)
+        cnx.commit()
+        return 1, cursor.rowcount
+    except Exception as e:
+        return -1, str(e)
+
+def bulk_add_members(miembros):
+    '''
+    Inserta muchos miembros de mesa usando executemany.
+    '''
+    try:
+        query = '''
+            INSERT IGNORE INTO Miembro_mesa (id_organismo, ci_ciudadano, nro_circuito, id_rol)
+            VALUES (%s, %s, %s, %s)
+        '''
+        cursor.executemany(query, miembros)
+        cnx.commit()
+        return 1, cursor.rowcount
+    except Exception as e:
+        return -1, str(e)
+
+def bulk_add_policias(policias):
+    '''
+    Inserta muchos policías usando executemany.
+    '''
+    try:
+        query = '''
+            INSERT IGNORE INTO Policia (id_comisaria, ci_ciudadano, id_establecimiento)
+            VALUES (%s, %s, %s)
+        '''
+        cursor.executemany(query, policias)
+        cnx.commit()
+        return 1, cursor.rowcount
+    except Exception as e:
+        return -1, str(e)
+
+def bulk_add_candidatos(candidatos):
+    '''
+    Inserta muchos candidatos usando executemany.
+    '''
+    try:
+        query = '''
+            INSERT IGNORE INTO Candidato (ci_ciudadano)
+            VALUES (%s)
+        '''
+        cursor.executemany(query, candidatos)
+        cnx.commit()
+        return 1, cursor.rowcount
+    except Exception as e:
+        return -1, str(e)
+
+def bulk_add_partidos(partidos):
+    '''
+    Inserta muchos partidos políticos usando executemany.
+    '''
+    try:
+        query = '''
+            INSERT IGNORE INTO Partido_politico (calle, numero, telefono, codigo_postal, nombre, ci_presidente, ci_vicepresidente)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        '''
+        cursor.executemany(query, partidos)
+        cnx.commit()
+        return 1, cursor.rowcount
+    except Exception as e:
+        return -1, str(e)
+    
+def get_citizen(ci):
+    '''
+    Obtiene los datos de un ciudadano por su CI.
+    '''
+    query = '''
+        SELECT 
+            c.nombre,
+            c.apellido,
+            c.serie_credencial,
+            c.nro_circuito,
+            c.nro_credencial,
+            EXISTS (
+                SELECT 1 FROM Registro_votacion rv WHERE rv.ci_ciudadano = c.ci
+            ) AS voto_realizado
+        FROM Ciudadano c
+        WHERE c.ci = %s
+    '''
+    cursor.execute(query, (ci,))
+    result = cursor.fetchone()
+    result['voto_realizado'] = result['voto_realizado'] == 1
+    
+    if result:
+        return result
+    return None
+
+def get_citizen_by_cc(cc):
+    '''
+    Obtiene los datos de un ciudadano por su CC.
+    '''
+    serie_credencial = cc[:3].upper()  
+    nro_credencial = cc[3:] 
+    
+    query = '''
+        SELECT 
+            c.nombre,
+            c.apellido,
+            c.serie_credencial,
+            c.nro_circuito,
+            c.nro_credencial,
+            EXISTS (
+                SELECT 1 FROM Registro_votacion rv WHERE rv.ci_ciudadano = c.ci
+            ) AS voto_realizado
+        FROM Ciudadano c
+        WHERE c.serie_credencial = %s AND c.nro_credencial = %s
+    '''
+    cursor.execute(query, (serie_credencial, nro_credencial))
+    result = cursor.fetchone()
+    result['voto_realizado'] = result['voto_realizado'] == 1
+    
+    if result:
+        return result
+    return None
+
+def get_citizens_by_member_circuit(member_id):
+    query = '''
+        SELECT 
+            c.nombre,
+            c.apellido,
+            c.serie_credencial,
+            c.nro_circuito,
+            c.nro_credencial,
+            c.ci,
+            EXISTS (
+                SELECT 1 FROM Registro_votacion rv WHERE rv.ci_ciudadano = c.ci
+            ) AS voto_realizado
+        FROM Ciudadano c 
+        JOIN Miembro_mesa m ON c.nro_circuito = m.nro_circuito
+        WHERE m.id_miembro = %s
+    '''
+    cursor.execute(query, (member_id,))    
+    result = cursor.fetchall()
+    
+    if result:
+        return result
+    return None
+
+def crear_papeleta(descripcion):
+    '''
+    
+    '''
+    query = ''' INSERT INTO Papeleta (descripcion) VALUES (%s)'''
+    cursor.execute(query, (descripcion,))
+    a =cursor.lastrowid
+    print(">>>>>: ",a)
+    return a
+    
+    
+
+def crear_lista(id_partido, descripcion, nro_lista, id_candidato_apoyado, id_departamento):
+    '''
+    Crea una nueva lista electoral.
+    '''
+    try:
+        id_papeleta = crear_papeleta(descripcion)
+        if id_papeleta is None:
+            return -1, "Error al crear la papeleta"
+        
+        # Insertar la lista en la tabla Lista
+        query = '''
+        INSERT INTO Lista (nro, id_candidato_apoyado, id_papeleta, id_partido_politico, id_departamento)
+        VALUES (%s, %s, %s, %s, %s)
+        '''
+        values = (nro_lista, id_candidato_apoyado, id_papeleta, id_partido, id_departamento)
+        cursor.execute(query, values)
+        cnx.commit()
+        return 1, ":ista creada exitosamente"
+
+    except IntegrityError as e:
+        if "Duplicate entry" in str(e):
+            return -1, f"La lista '{descripcion}' ya fue ingresada."
+        else:
+            return -1, f"Error de integridad: {str(e)}"
+
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"
+    
+def agregar_candidato_a_lista(nro_lista, id_candidato, id_tipo, posicion):
+    '''
+    Agrega un candidato a una lista en la tabla Integrantes_de_lista.
+    Maneja errores de duplicados por restricciones UNIQUE o PK.
+    '''
+    try:        
+        query = '''
+            INSERT INTO Integrantes_de_lista (id_candidato, nro_lista, id_tipo, posicion)
+            VALUES (%s, %s, %s, %s)
+        '''
+        values = (id_candidato, nro_lista, id_tipo, posicion)
+        cursor.execute(query, values)
+        cnx.commit()
+        return 1, "Candidato agregado a la lista exitosamente"
+    except IntegrityError as e:
+        if "Duplicate entry" in str(e):
+            return -1, "Ya existe un candidato con ese id en la lista, o la posición ya está ocupada."
+        else:
+            return -1, f"Error de integridad: {str(e)}"
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"
+    
+def get_listas():
+    '''
+    Obtiene todas las listas electorales.
+    '''
+    query = '''
+        SELECT pa.id AS id_papeleta, l.nro, pa.descripcion AS descripcion, p.nombre AS partido, 
+               ciu.nombre AS nombre_candidato, ciu.apellido AS apellido_candidato, d.nombre AS departamento
+        FROM Lista l
+        JOIN Partido_politico p ON l.id_partido_politico = p.id
+        JOIN Papeleta pa ON l.id_papeleta = pa.id
+        JOIN Candidato c ON l.id_candidato_apoyado = c.id
+        JOIN Ciudadano ciu ON c.ci_ciudadano = ciu.ci
+        JOIN Departamento d ON l.id_departamento = d.id;
+    '''
+    cursor.execute(query)
+    result = cursor.fetchall()
+    
+    if result:
+        return result
+    return None
+
+def get_integrantes_lista(nro):
+    query = '''
+    SELECT ciu.nombre AS nombre_candidato, ciu.apellido AS apellido_candidato,
+        t.descripcion AS puesto
+    FROM Integrantes_de_lista i
+    JOIN Tipo_candidato t ON i.id_tipo = t.id
+    JOIN Candidato c ON i.id_candidato = c.id
+    JOIN Ciudadano ciu ON c.ci_ciudadano = ciu.ci
+    WHERE i.nro_lista = %s ORDER BY posicion'''
+    cursor.execute(query, (nro,))
+    result = cursor.fetchall()
+    if result:
+        return result
+    return None
+
+def delete_lista(nro):
+    '''
+    Elimina una lista electoral por su nro.
+    '''
+    try:
+        # Primero, eliminamos los integrantes de la lista
+        query = 'DELETE FROM Integrantes_de_lista WHERE nro_lista = %s'
+        cursor.execute(query, (nro,))
+        
+        # Luego, eliminamos la lista
+        query = 'DELETE FROM Lista WHERE nro = %s'
+        cursor.execute(query, (nro,))
+        
+        cnx.commit()
+        
+        if cursor.rowcount > 0:
+            return 1, "Lista eliminada exitosamente"
+        else:
+            return -1, "No se encontró la lista o no se realizaron cambios"
+    
+    except IntegrityError as e:
+        return -1, f"Error de integridad: {str(e)}"
+    
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"
+
+def crear_consulta(descripcion, id_color):
+    '''
+    Crea una nueva consulta.
+    '''
+    try:
+        id_papeleta = crear_papeleta(descripcion)
+        if id_papeleta is None:
+            return -1, "Error al crear la papeleta"
+        
+        query = 'INSERT INTO Consulta (id_papeleta, id_color) VALUES (%s, %s)'
+        values = (id_papeleta, id_color)
+        cursor.execute(query, values)
+
+        cnx.commit()
+        return 1, "Consulta creada exitosamente"
+
+    except IntegrityError as e:
+        if "Duplicate entry" in str(e):
+            return -1, f"La consulta '{descripcion}' ya fue ingresada."
+        else:
+            return -1, f"Error de integridad: {str(e)}"
+
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"
+    
+
+def get_consultas():
+    '''
+    Obtiene todas las consultas.
+    '''
+    query = '''
+        SELECT c.id, p.descripcion AS descripcion_papeleta, co.decripcion AS color
+        FROM Consulta c
+        JOIN Papeleta p ON c.id_papeleta = p.id
+        JOIN Color co ON c.id_color = co.id
+    '''
+    cursor.execute(query)
+    result = cursor.fetchall()
+    
+    if result:
+        return result
+    return None
+
+def get_consulta(id):
+    '''
+    Obtiene una consulta por su id.
+    '''
+    query = '''
+        SELECT c.id, p.descripcion AS descripcion_papeleta, co.decripcion AS color
+        FROM Consulta c
+        JOIN Papeleta p ON c.id_papeleta = p.id
+        JOIN Color co ON c.id_color = co.id
+        WHERE c.id = %s
+    '''
+    cursor.execute(query, (id,))
+    result = cursor.fetchone()
+    
+    if result:
+        return result
+    return None
+
+def delete_consulta(id):
+    '''
+    Elimina una consulta por su id.
+    '''
+    try:        
+        print("entra aca")
+        query = "SELECT id_papeleta FROM Consulta WHERE id = %s"
+        cursor.execute(query, (id,))
+        id_papeleta = cursor.fetchone()
+        if not id_papeleta:
+            return -1, "No se encontró la consulta o no se realizaron cambios"
+        
+        # Luego, eliminamos la consulta
+        query = 'DELETE FROM Consulta WHERE id = %s'
+        cursor.execute(query, (id,))
+        
+        query = 'DELETE FROM Papeleta WHERE id = %s'
+        cursor.execute(query, (id_papeleta['id_papeleta'],))
+        
+        cnx.commit()
+        
+        if cursor.rowcount > 0:
+            return 1, "Consulta eliminada exitosamente"
+        else:
+            return -1, "No se encontró la consulta o no se realizaron cambios"
+    
+    except IntegrityError as e:
+        return -1, f"Error de integridad: {str(e)}"
+    
+    except Exception as e:
+        return -1, f"Error inesperado: {str(e)}"

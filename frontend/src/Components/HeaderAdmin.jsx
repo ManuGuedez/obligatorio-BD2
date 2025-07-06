@@ -12,12 +12,22 @@ function Header({ selected, setSelected }) {
             setSelected("eleccion");
         } else if (location.pathname.includes("Datos")) {
             setSelected("datos");
+        } else if (location.pathname.includes("Estadisticas")) {
+            setSelected("estadisticas");
+        } else {
+            setSelected("datos");
         }
     }, [location.pathname, setSelected]);
 
     const handleClick = (value) => {
         setSelected(value);
-        navigate(`/HomeAdministrador/${value === "datos" ? "Datos" : "Eleccion"}`);
+        if (value === "datos") {
+            navigate("/HomeAdministrador/Datos");
+        } else if (value === "eleccion") {
+            navigate("/HomeAdministrador/Eleccion");
+        } else if (value === "estadisticas") {
+            navigate("/HomeAdministrador/Estadisticas");
+        }
     };
 
     return (
@@ -30,7 +40,7 @@ function Header({ selected, setSelected }) {
             />
             <div className={classes.headerButtonContainer}>
                 <button
-                    className={`button is-rounded is-large px-6 has-text-link has-text-weight-semibold ${
+                    className={`button is-rounded is-medium has-text-link has-text-weight-semibold ${
                         selected === "datos" ? "is-info" : "is-success"
                     }`}
                     onClick={() => handleClick("datos")}
@@ -38,12 +48,20 @@ function Header({ selected, setSelected }) {
                     Gestión de datos
                 </button>
                 <button
-                    className={`button is-rounded is-large px-6 has-text-link has-text-weight-semibold ${
+                    className={`button is-rounded is-medium has-text-link has-text-weight-semibold ${
                         selected === "eleccion" ? "is-info" : "is-success"
                     }`}
                     onClick={() => handleClick("eleccion")}
                 >
                     Elección
+                </button>
+                <button
+                    className={`button is-rounded is-medium has-text-link has-text-weight-semibold ${
+                        selected === "estadisticas" ? "is-info" : "is-success"
+                    }`}
+                    onClick={() => handleClick("estadisticas")}
+                >
+                    Estadísticas
                 </button>
             </div>
         </div>
