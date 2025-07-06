@@ -8,6 +8,8 @@ from flask_socketio import SocketIO, emit
 import random
 import os
 import mysql.connector
+import eventlet
+import eventlet.wsgi
 
 app = Flask(__name__)
 CORS(app)
@@ -1329,6 +1331,7 @@ def habilitar_votante():
     '''
     claims = get_jwt()
     role_description = claims.get('role_description')
+    print("entra bien al socket")
     
     if role_description != "miembroMesa":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por un miembro de mesa."}), 400
@@ -1364,4 +1367,4 @@ def emitir_voto():
     return jsonify({"status": "ok"}), 200
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)

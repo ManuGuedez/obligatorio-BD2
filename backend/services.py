@@ -1072,6 +1072,7 @@ def get_citizens_by_member_circuit(member_id):
             c.serie_credencial,
             c.nro_circuito,
             c.nro_credencial,
+            c.ci,
             EXISTS (
                 SELECT 1 FROM Registro_votacion rv WHERE rv.ci_ciudadano = c.ci
             ) AS voto_realizado

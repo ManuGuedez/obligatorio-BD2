@@ -6,37 +6,44 @@ import PersonaModal from "../../Components/Modals/Informacion/PersonaModal";
 import ConfirmarCierreModal from "../../Components/Modals/ConfirmarCierreMesa/ConfirmarCierreModal";
 import EsperandoVoto from "./EsperandoVoto";
 import { FaUser, FaSearch } from "react-icons/fa";
-import escudo from "../../../public/Escudo20Uruguay_19.png"
+import escudo from "../../../public/Escudo20Uruguay_19.png";
 import useSocket from "../../hooks/useSocket";
-
+import miembroService from "../../services/miembroServices";
 
 function HomeMiembroMesa() {
   const [circuitoAbierto, setCircuitoAbierto] = useState(() => {
     return localStorage.getItem("circuitoAbierto") === "true";
   });
   const [tiempoRestante, setTiempoRestante] = useState(10 * 60 * 60); // 10 horas en segundos
-  const [votantes, setVotantes] = useState([
-    { nombre: "Juan Pérez", ci: "AAAXXXX", voto: false },
-    { nombre: "Ana López", ci: "BBBY123", voto: true },
-    { nombre: "Carlos Gómez", ci: "CCCZ789", voto: false },
-  ]);
+  const [votantes, setVotantes] = useState([]);
+
+  useEffect(() => {
+    const fetchVotantes = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const ciudadanos = await miembroService.getCiudadanos(token);
+        setVotantes([...ciudadanos]);
+        console.log("Ciudadanos traídos:", [...ciudadanos]);
+      } catch (error) {
+        console.error("Error al traer los ciudadanos:", error);
+      }
+    };
+
+    fetchVotantes();
+  }, []);
 
   // Socket para recibir actualizaciones en tiempo real
   useSocket({
     onVotanteHabilitado: ({ ciCiudadano }) => {
       setVotantes((prev) =>
-        prev.map((v) =>
-          v.id === ciCiudadano ? { ...v, habilitado: true } : v
-        )
+        prev.map((v) => (v.id === ciCiudadano ? { ...v, habilitado: true } : v))
       );
     },
     onVotoEmitido: ({ ciCiudadano }) => {
       setVotantes((prev) =>
-        prev.map((v) =>
-          v.id === ciCiudadano ? { ...v, yaVoto: true } : v
-        )
+        prev.map((v) => (v.id === ciCiudadano ? { ...v, yaVoto: true } : v))
       );
-    }
+    },
   });
 
   const [persona, setPersona] = useState(null);
@@ -86,17 +93,34 @@ function HomeMiembroMesa() {
   }, [circuitoAbierto, tiempoRestante]);
 
   const votantesFiltrados = votantes.filter((v) =>
-    v.ci.toLowerCase().includes(search.toLowerCase())
+    (v.ci?.toString().toLowerCase() || "").includes(search.toLowerCase())
   );
 
   useEffect(() => {
     localStorage.setItem("circuitoAbierto", circuitoAbierto);
   }, [circuitoAbierto]);
 
+  useEffect(() => {
+    console.log("Circuito abierto:", circuitoAbierto);
+    console.log("Votantes:", votantes);
+    console.log("Votantes filtrados:", votantesFiltrados);
+  }, [circuitoAbierto, votantes, votantesFiltrados]);
+
+  const handleOnVotar = () => {
+    setIsPersonaOpen(false);
+    setEsperandoVoto(true);
+  }
+
+  useEffect(() => {
+    if (esperandoVoto && persona) {
+      const token = localStorage.getItem("token");
+      miembroService.habilitarVotante(token, persona.ci)
+    }
+
+  }, [esperandoVoto])
 
   return (
     <div className={classes.homeContainer}>
-
       <aside className={classes.sidebar}>
         <img src={escudo} alt="logo" className={classes.logo} />
         <nav className={classes.nav}>
@@ -189,10 +213,7 @@ function HomeMiembroMesa() {
           <PersonaModal
             persona={persona}
             onClose={() => setIsPersonaOpen(false)}
-            onVotar={() => {
-              setIsPersonaOpen(false);
-              setEsperandoVoto(true);
-            }}
+            onVotar={handleOnVotar}
           />
         )}
 
