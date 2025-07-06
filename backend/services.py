@@ -1309,7 +1309,7 @@ def registrar_ciudadano(ci_ciudadano, nro_circuito):
     fecha_hora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     try:
         query = '''
-            INSERT INTO Registro_votacion (ci_ciudadano, fecha_hora, nro_circuito)
+            INSERT IGNORE INTO Registro_votacion (ci_ciudadano, fecha_hora, nro_circuito)
             VALUES (%s, %s, %s)
         '''
         cursor.execute(query, (ci_ciudadano, fecha_hora, nro_circuito))
@@ -1340,7 +1340,10 @@ def insertar_votos(votos_temporales):
         '''
         values = []
         for current_votos in votos_temporales:
-            values.append((voto['id_estado'], voto['es_observado'], voto['nro_circuito'], voto['id_papeleta']) for voto in current_votos)
+            print(current_votos)
+            for voto in current_votos:
+                values.append((voto['id_estado'], voto['es_observado'], voto['nro_circuito'], voto['id_papeleta']))
+        print("valores a insertar: ", values)
         cursor.executemany(query, values)
         cnx.commit()
         

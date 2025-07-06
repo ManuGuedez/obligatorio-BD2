@@ -1,10 +1,11 @@
-from flask import Flask, jsonify, request
-from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, get_jwt, jwt_required
+from flask import Flask, jsonify, request, g
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, get_jwt, jwt_required, verify_jwt_in_request
 import services
 from datetime import timedelta
 from flask_cors import CORS
 import pandas as pd
 from flask_socketio import SocketIO, emit 
+from datetime import datetime
 import random
 import os
 import mysql.connector
@@ -22,6 +23,34 @@ jwt = JWTManager(app)
 
 # Cola temporal para votos
 votos_temporales = []
+
+from flask_jwt_extended import get_jwt, verify_jwt_in_request, create_access_token
+from flask import g
+
+@app.before_request
+def refresh_token_if_needed():
+    try:
+        verify_jwt_in_request(optional=True)
+        jwt_data = get_jwt()
+        if jwt_data:
+            exp_timestamp = jwt_data["exp"]
+            now = datetime.utcnow().timestamp()
+            remaining = exp_timestamp - now
+
+            # Si quedan menos de 15 minutos, lo renovamos
+            if remaining < 900:
+                identity = jwt_data["sub"]
+                new_token = create_access_token(identity=identity)
+                # Guardamos en g para que esté disponible después
+                g.new_token = new_token
+    except Exception:
+        pass  # No hay token o es inválido, ignoramos
+    
+@app.after_request
+def attach_refresh_token(response):
+    if hasattr(g, "new_token"):
+        response.headers["X-Refresh-Token"] = g.new_token
+    return response
 
 @app.route('/registrar_usuario', methods=['POST'])
 @jwt_required()
@@ -341,10 +370,11 @@ def cerrar_circuito(nro):
     if role_description != "miembroMesa":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por un miembro de mesa."}), 400
 
-    random.shuffle(votos_temporales)
-    guardar_votos = services.insertar_votos(votos_temporales)
-    if guardar_votos[0] < 0:
-        return jsonify({"error": guardar_votos[1]}), 400
+    if len(votos_temporales) > 0:
+        random.shuffle(votos_temporales)
+        guardar_votos = services.insertar_votos(votos_temporales)
+        if guardar_votos[0] < 0:
+            return jsonify({"error": guardar_votos[1]}), 400
 
     result = services.cerrar_circuito(claims.get('id'), nro)
 
