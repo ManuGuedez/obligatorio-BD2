@@ -183,6 +183,33 @@ const adminService = {
             throw error;
         }
     },
+
+    crearPartido: async (token, partidoData) => {
+        try {
+            console.log("Creando partido:", partidoData);
+            const response = await ApiService.post(
+            "/partido-politico",
+            {
+                nombre: partidoData.nombre,
+                calle: partidoData.calle,
+                numero: Number(partidoData.numero),
+                telefono: partidoData.telefono,
+                codigo_postal: Number(partidoData.codPostal),
+                ci_presidente: Number(partidoData.ci_presidente),
+                ci_vicepresidente: Number(partidoData.ci_vicepresidente),
+            },
+            "application/json",
+            token
+            );
+
+            console.log("Partido creado:", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error creando partido:", error);
+            throw error;
+        }
+    },
+
 }
 
 export default adminService;
