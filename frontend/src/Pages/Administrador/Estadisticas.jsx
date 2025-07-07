@@ -17,9 +17,7 @@ function Estadisticas() {
                 <Tables />
             </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
 
 export default Estadisticas;

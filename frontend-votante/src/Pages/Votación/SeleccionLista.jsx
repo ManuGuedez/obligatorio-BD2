@@ -76,13 +76,6 @@ function SeleccionLista() {
     ],
   };
 
-      const resultado = Object.values(agrupadas);
-      setListas(resultado);
-    };
-
-    getListas();
-  }, []);
-
   const containerClasses = `
     ${classes.listasContainer} 
     ${modoOscuro ? classes.modoOscuro : ""} 
