@@ -18,7 +18,6 @@ function App() {
             <Route path="/HomeAdministrador/*" element={<HomeAdministrador />} />
             <Route path="/Estadisticas" element={<Estadisticas />} />
             <Route path="/Configuracion" element={<Configuracion />} />
-
         </Routes>
     )
 }
