@@ -1691,7 +1691,8 @@ def add_ciudad(nombre, id_departamento):
         query = 'INSERT INTO Ciudad (nombre, id_departamento) VALUES (%s, %s)'
         cursor.execute(query, (nombre, id_departamento))
         cnx.commit()
-        return 1, "Ciudad agregada exitosamente"
+        new_id = cursor.lastrowid
+        return 1, {"message": "Ciudad agregada exitosamente", "id": new_id}
     except mysql.connector.errors.IntegrityError as e:
         return -1, f"Error de integridad al agregar ciudad: {str(e)}"
     except Exception as e:
@@ -1702,7 +1703,8 @@ def add_zona(nombre, id_ciudad):
         query = 'INSERT INTO Zona (nombre, id_ciudad) VALUES (%s, %s)'
         cursor.execute(query, (nombre, id_ciudad))
         cnx.commit()
-        return 1, "Zona agregada exitosamente"
+        new_id = cursor.lastrowid
+        return 1, {"message": "Zona agregada exitosamente", "id": new_id}
     except mysql.connector.errors.IntegrityError as e:
         return -1, "Error de integridad: posiblemente el id_ciudad no existe o ya existe una zona con ese nombre"
     except Exception as e:

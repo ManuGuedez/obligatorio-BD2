@@ -131,7 +131,11 @@ def crear_establecimiento():
     
     result = services.create_establishment(data)
     
-    return result[1], 400 if result[0] < 0 else 200
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    else:
+        return jsonify({"message": result[1]}), 200
+
 
 @app.route('/establecimientos', methods=['GET'])
 @jwt_required()
@@ -1543,29 +1547,24 @@ def get_departamentos():
 @app.route('/ciudades', methods=['POST'])
 @jwt_required()
 def add_ciudad():
-    '''
-    cuerpo requerido:
-    - id_departamento
-    - nombre (de la ciudad)
-    '''    
     data = request.get_json()
     claims = get_jwt()
     role_description = claims.get('role_description')
 
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
-    
+
     required_fields = {'id_departamento', 'nombre'}
-    
     if data.keys() != required_fields:
         return jsonify({"error": "Faltan campos requeridos"}), 400
-    
+
     result = services.add_ciudad(data['nombre'], data['id_departamento'])
-    
+
     if result[0] < 0:
         return jsonify({"error": result[1]}), 400
     else:
-        return jsonify({"message": result[1]}), 201
+        return jsonify(result[1]), 201  # ahora incluye message + id
+
     
 @app.route('/ciudades', methods=['GET'])
 def get_ciudades():
@@ -1593,14 +1592,12 @@ def agregar_zona():
     if result[0] < 0:
         return jsonify({"error": result[1]}), 400
     else:
-        return jsonify({"message": result[1]}), 201
+        return jsonify(result[1]), 201
 
 
 @app.route('/zonas', methods=['GET'])
 def get_zonas():
     return jsonify(services.get_zonas())
-
-
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5001, debug=True)

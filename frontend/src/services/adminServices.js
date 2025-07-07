@@ -322,6 +322,105 @@ const adminService = {
             throw error;
         }
     },
+
+    getZonas: async (token) => {
+        try {
+            const response = await ApiService.get("/zonas", token);
+            console.log("Zonas fetched successfully: ", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching zonas:", error);
+            throw error;
+        }
+    },
+    
+    getCiudades: async (token) => {
+        try {
+            const response = await ApiService.get("/ciudades", token);
+            console.log("Ciudades fetched successfully: ", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching ciudades:", error);
+            throw error;
+        }
+    },
+
+    getDepartamentos: async (token) => {
+        try {
+            const response = await ApiService.get("/departamentos", token);
+            console.log("Departamentos fetched successfully: ", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching departamentos:", error);
+            throw error;
+        }
+    },
+
+    crearCiudad: async (token, nombre, id_departamento) => {
+        try {
+            const response = await ApiService.post(
+            "/ciudades",
+            {nombre, id_departamento},
+            "application/json",
+            token
+            );
+            console.log("Ciudad creada:", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error creando establecimiento:", error);
+
+            if (error.response) {
+            console.error("Respuesta del servidor:", error.response.data);
+            }
+
+            throw error;
+        }
+    },
+
+    crearZona: async (token, nombre, id_ciudad) => {
+        try {
+            const response = await ApiService.post(
+            "/zonas",
+            {nombre, id_ciudad},
+            "application/json",
+            token
+            );
+            console.log("Zona creada:", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error creando establecimiento:", error);
+
+            if (error.response) {
+            console.error("Respuesta del servidor:", error.response.data);
+            }
+
+            throw error;
+        }
+    },
+
+    crearEstablecimiento: async (token, data) => {
+        try {
+            const response = await ApiService.post(
+            "/establecimientos",
+            data,
+            "application/json",
+            token
+            );
+            console.log("Establecimiento creado:", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error creando establecimiento:", error);
+
+            if (error.response) {
+            console.error("Respuesta del servidor:", error.response.data);
+            }
+
+            throw error;
+        }
+    },
+    
+
+
 }
 
 export default adminService;
