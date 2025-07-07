@@ -127,12 +127,40 @@ const adminService = {
         try {
             console.log("Fetching resultados por lista con circuito:", circuito);
             const url = circuito
-                ? `/resultados-listas?nro_circuito=${circuito}`
-                : `/resultados-listas`;
+                ? `resultados/listas?nro_circuito=${circuito}`
+                : `resultados/listas`;
             const response = await ApiService.get(url, token);
             return response.data;
         } catch (error) {
             console.error("Error fetching resultados por lista:", error);
+            throw error;
+        }
+    },
+
+    getResultadosPorPartido: async (token, circuito = null) => {
+        try {
+            console.log("Fetching resultados por partido con circuito:", circuito);
+            const url = circuito
+                ? `resultados/partido?nro_circuito=${circuito}`
+                : `resultados/partido`;
+            const response = await ApiService.get(url, token);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching resultados por partido:", error);
+            throw error;
+        }
+    },
+
+    getResultadosPorCandidato: async (token, circuito = null) => {
+        try {
+            console.log("Fetching resultados por candidato con circuito:", circuito);
+            const url = circuito
+                ? `resultados/candidato?nro_circuito=${circuito}`
+                : `resultados/candidato`;
+            const response = await ApiService.get(url, token);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching resultados por candidato:", error);
             throw error;
         }
     },

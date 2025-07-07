@@ -125,13 +125,17 @@ const Tables = () => {
                 const token = localStorage.getItem("token");
                 const data = await adminService.getResultadosPorLista(token, circuito);
                 console.log("Resultados por lista:", data);
+                const data2 = await adminService.getResultadosPorPartido(token, circuito);
+                console.log("Resultados por partido:", data2);
+                const data3 = await adminService.getResultadosPorCandidato(token, circuito);
+                console.log("Resultados por candidato:", data3);
                 // 1° tabla: tal cual viene
                 const tabla1 = data;
 
                 // 2° tabla: agrupados por partido
-                const tabla2 = [];
+                const tabla2 = data2;
 
-                const tabla3 = [];
+                const tabla3 = data3;
 
                 setReportsArray([tabla1, tabla2, tabla3]);
 
@@ -193,11 +197,10 @@ const Tables = () => {
         <div className={classes.tablesPanel}>
             <div className={classes.headerRow}>
                 <h1 className={`${classes.header}`}>Resultados</h1>
-                <div className="field" style={{ maxWidth: "300px", marginBottom: "1rem" }}>
+                <div className="field" style={{ maxWidth: "300px", marginBottom: "1rem", marginLeft: "auto" }}>
                     <button className="button is-rounded is-link" onClick={() => window.location.reload()}>
                         Cambiar circuito
                     </button>
-
                 </div>
             </div>
             <div className={`${classes.reportsContainer}`}>
