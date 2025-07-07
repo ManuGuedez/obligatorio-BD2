@@ -10,6 +10,7 @@ export default function ListaCard({ lista, partidoColor, isSelected, onClick }) 
         const yiq = (r * 299 + g * 587 + b * 114) / 1000;
         return yiq >= 128 ? "has-text-black" : "has-text-white";
     };
+    console.log("current_list: ", lista)
 
     const textClass = getTextClass(partidoColor);
 
@@ -22,14 +23,14 @@ export default function ListaCard({ lista, partidoColor, isSelected, onClick }) 
                     borderRadius: "12px",
                     cursor: "pointer"
                 }}
-                onClick={() => onClick(lista.id, lista)}
+                onClick={() => onClick(lista.id_papeleta, lista)}
             >
                 <div className={`card-content ${textClass}`}>
                     <p className={`title is-4 mb-2 ${textClass}`}>
                         Lista {lista.nro}
                     </p>
                     <p className={`subtitle is-6 ${textClass}`}>
-                        {lista.candidato}
+                        {lista.nombre_candidato} {lista.apellido_candidato}
                     </p>
                 </div>
             </div>

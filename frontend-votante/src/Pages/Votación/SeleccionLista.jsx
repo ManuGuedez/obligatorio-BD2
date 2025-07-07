@@ -10,7 +10,7 @@ import votarService from "../../Services/votarService";
 
 function SeleccionLista() {
   const [selectedItem, setSelectedItem] = React.useState(null);
-  const [listas, setListas] = useState();
+  const [listas, setListas] = useState([]);
   const { etapa, guardarVoto, siguiente } = useFlujo();
   const tipo = etapa.tipo;
 
@@ -18,9 +18,15 @@ function SeleccionLista() {
 
   useEffect(() => {
     const getListas = async () => {
-      votarService();
+      let listass = await votarService.getListas();
+      setListas(listass);
     };
+    getListas();
   }, []);
+
+  useEffect(() => {
+    console.log("LISTAAASSSS: ", listas);
+  }, [listas]);
 
   const listasPorTipo = {
     presidencial: [
@@ -90,24 +96,32 @@ function SeleccionLista() {
     }
   };
 
-  const handleItemClick = (id) => {
+  const handleItemClick = (id, lista) => {
     setSelectedItem(id);
+    localStorage.setItem("id_papeleta", id);
   };
 
   const handleSiguienteClick = () => {
-    const listaElegida = listas
-      .flatMap((partido) =>
-        partido.listas.map((l) => ({ ...l, partido: partido.partido }))
-      )
-      .find((l) => l.id === selectedItem);
+    const listaElegida = listas.find((l) => l.id_papeleta === selectedItem);
+    console.log("elegidal", listaElegida)
 
     // guardar el voto acá, obtener id papeleta y hacer nuevo voto con el id de la papeleta
     if (listaElegida) {
       guardarVoto({
-        nro: listaElegida.nro,
-        candidato: listaElegida.candidato,
-        partido: listaElegida.partido,
+        tipo: "municipal", // tipo actual (presidencial, municipal, etc.)
+        opcion: {
+          id_papeleta: listaElegida.id_papeleta, // asumimos que el campo id es el ID de la papeleta
+          nro: listaElegida.nro,
+          candidato: listaElegida.nombre_candidato + " " + listaElegida.apellido_candidato,
+          partido: listaElegida.partido,
+        },
       });
+      console.log("imprimee",{
+          id_papeleta: listaElegida.id_papeleta, // asumimos que el campo id es el ID de la papeleta
+          nro: listaElegida.nro,
+          candidato: listaElegida.nombre_candidato + " " + listaElegida.apellido_candidato,
+          partido: listaElegida.partido,
+        })
     }
 
     const nextStep = siguiente();
@@ -140,24 +154,16 @@ function SeleccionLista() {
       </div>
 
       <div className="section" style={{ width: "100%" }}>
-        {listas.map((partido) => (
-          <div key={partido.partido} className="mb-5 px-5">
-            <h2 className="subtitle is-3 has-text-weight-bold">
-              {partido.partido}
-            </h2>
-            <div className="columns is-multiline">
-              {partido.listas.map((lista) => (
-                <ListaCard
-                  key={lista.id}
-                  lista={lista}
-                  partidoColor={partido.color}
-                  isSelected={selectedItem === lista.id}
-                  onClick={handleItemClick}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
+        {listas &&
+          listas?.map((lista) => (
+            <ListaCard
+              key={lista.id_papeleta}
+              lista={lista}
+              partidoColor={"fffff"}
+              isSelected={selectedItem === lista.id}
+              onClick={handleItemClick}
+            />
+          ))}
       </div>
 
       <div className={classes.footer}>
