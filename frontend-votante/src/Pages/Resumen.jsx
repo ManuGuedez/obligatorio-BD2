@@ -9,8 +9,6 @@ export default function Resumen() {
     console.log("Resumen renderizado", respuestas);
 
     const renderOpcion = (tipo, opcion) => {
-        console.log("renderOpcion recibido:", { tipo, opcion });
-
         if (typeof opcion === "object" && opcion !== null) {
             console.log("Es un objeto válido");
 
@@ -26,7 +24,6 @@ export default function Resumen() {
             }
 
             if ("descripcion" in opcion && "respuesta" in opcion) {
-                console.log("Es una consulta");
                 const traduccion = {
                     votoLista: "Sí",
                     votoBlanco: "Voto en Blanco",
@@ -41,7 +38,6 @@ export default function Resumen() {
             }
         }
 
-        console.log("No se pudo interpretar la opción", opcion);
         return <p><strong>Respuesta:</strong> {String(opcion)}</p>;
     };
 

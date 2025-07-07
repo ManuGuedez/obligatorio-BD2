@@ -131,7 +131,11 @@ def crear_establecimiento():
     
     result = services.create_establishment(data)
     
-    return result[1], 400 if result[0] < 0 else 200
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    else:
+        return jsonify({"message": result[1]}), 200
+
 
 @app.route('/establecimientos', methods=['GET'])
 @jwt_required()
@@ -149,9 +153,9 @@ def get_establishments():
 
     return jsonify(result), 200 if result else ({"error": "No se encontraron establecimientos"}, 400)
 
-@app.route('/establecimientos/<int:id>', methods=['GET'])
+@app.route('/establecimientos/<string:nombre>', methods=['GET'])
 @jwt_required()
-def get_establishment(id):
+def get_establishment(nombre):
     '''
     obtiene un establecimiento por su id
     '''
@@ -161,7 +165,7 @@ def get_establishment(id):
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
 
-    result = services.get_establishment(id)
+    result = services.get_establishment(nombre)
 
     if result:
         return jsonify(result), 200
@@ -1043,9 +1047,9 @@ def get_members():
 
     return jsonify(result), 200 if result else ({"error": "No se encontraron miembros"}, 400)
 
-@app.route('/miembro/<int:id>', methods=['GET'])
+@app.route('/miembro/<int:ci>', methods=['GET'])
 @jwt_required()
-def get_member(id):
+def get_member(ci):
     '''
     obtiene un miembro por su id
     '''
@@ -1055,7 +1059,7 @@ def get_member(id):
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
 
-    result = services.get_member_data(id)
+    result = services.get_member_data(ci)
 
     if result:
         return jsonify(result), 200
@@ -1218,6 +1222,16 @@ def get_partido(id):
     result = services.get_partido(id)
 
     return jsonify(result), 200 if result else ({"error": "No se encontró el partido político"}, 400)
+
+@app.route('/partido-politico/<string:nombre>', methods=['GET'])
+def get_partidoNombre(nombre):
+    '''
+    obtiene un partido político por su nombre (URL encoded)
+    '''
+    result = services.get_partido_by_name(nombre)
+
+    return (jsonify(result), 200) if result else (jsonify({"error": "No se encontró el partido político"}), 400)
+
 
 
 @app.route('/lista', methods=['POST'])
@@ -1452,7 +1466,7 @@ def emitir_voto():
     return jsonify({"status": "ok"}), 200
 
 @app.route('/organismo-publico', methods=["GET"])
-@jwt_required
+@jwt_required()
 def get_organismos_publicos():
     '''
     obtiene todas las comisarias
@@ -1466,7 +1480,7 @@ def get_organismos_publicos():
     result = services.get_organismos_publicos()
 
     return jsonify(result), 200 if result else ({"error": "No se encontraron organismos públicos"}, 400)
-    
+
 @app.route('/resultados/listas', methods=['GET'])
 @jwt_required()
 def get_resultados_por_listas():
@@ -1509,6 +1523,27 @@ def get_resultados_por_partido():
     else:
         return jsonify(result[1]), 200
 
+@app.route('/resultados/partido-color', methods=['GET'])
+@jwt_required()
+def get_resultados_por_partido_color():
+    '''
+    cuerpo opcional:
+        - nro_circuito (int)
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    
+    if role_description != 'admin':
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+    
+    nro_circuito = request.args.get('nro_circuito', default=None, type=int)
+    result = services.obtener_votos_por_partido_con_color(nro_circuito)
+    
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    return jsonify(result[1]), 200
+
+
 @app.route('/resultados/candidato', methods=['GET'])
 @jwt_required()
 def get_resultados_por_candidato():
@@ -1530,6 +1565,64 @@ def get_resultados_por_candidato():
     else:
         return jsonify(result[1]), 200
 
+@app.route('/departamentos', methods=['GET'])
+def get_departamentos():
+    return jsonify(services.get_departamentos())
+
+@app.route('/ciudades', methods=['POST'])
+@jwt_required()
+def add_ciudad():
+    data = request.get_json()
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+
+    if role_description != "admin":
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    required_fields = {'id_departamento', 'nombre'}
+    if data.keys() != required_fields:
+        return jsonify({"error": "Faltan campos requeridos"}), 400
+
+    result = services.add_ciudad(data['nombre'], data['id_departamento'])
+
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    else:
+        return jsonify(result[1]), 201  # ahora incluye message + id
+
+    
+@app.route('/ciudades', methods=['GET'])
+def get_ciudades():
+    return jsonify(services.get_ciudades())
+
+@app.route('/zonas', methods=['POST'])
+@jwt_required()
+def agregar_zona():
+    '''
+    Crea una nueva zona. 
+    '''
+    claims = get_jwt()
+    if claims.get("role_description") != "admin":
+        return jsonify({"error": "Solo el administrador puede agregar zonas."}), 403
+
+    data = request.get_json()
+    nombre = data.get("nombre")
+    id_ciudad = data.get("id_ciudad")
+
+    if not nombre or not id_ciudad:
+        return jsonify({"error": "Faltan datos requeridos (nombre, id_ciudad)"}), 400
+
+    result = services.add_zona(nombre, id_ciudad)
+
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    else:
+        return jsonify(result[1]), 201
+
+
+@app.route('/zonas', methods=['GET'])
+def get_zonas():
+    return jsonify(services.get_zonas())
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+    socketio.run(app, host="0.0.0.0", port=5001, debug=True)

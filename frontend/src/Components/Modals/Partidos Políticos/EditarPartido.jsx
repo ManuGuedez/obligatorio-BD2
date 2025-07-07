@@ -1,61 +1,105 @@
+// EditarPartido.jsx
 import React, { useRef, useState } from "react";
 import styles from "./EditarPartido.module.css";
 import { FaSearch, FaTrashAlt, FaPen } from "react-icons/fa";
+import adminService from "../../../services/adminServices";
 
 function EditarPartido({ onClose }) {
   const overlayRef = useRef();
-  const [id, setID] = useState("");
-  const [partido, setPartido] = useState(null);
+  const [partidoEncontrado, setPartidoEncontrado] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
+  const [idPartido, setIdPartido] = useState(null);
+
+  const [formData, setFormData] = useState({
+    nombre: "",
+    calle: "",
+    numero: "",
+    telefono: "",
+    codPostal: "",
+    presidente: "",
+    vice: "",
+    color: "#cccccc"
+  });
+
   const [editFields, setEditFields] = useState({
     nombre: false,
     calle: false,
-    numero: false,  
+    numero: false,
     telefono: false,
     codPostal: false,
     presidente: false,
     vice: false,
+    color: false
   });
 
   const handleOverlayClick = (e) => {
     if (e.target === overlayRef.current) onClose();
   };
 
-  const handleBuscar = (e) => {
-    e.preventDefault();
-    if (id === "10") {
-      // Simulación de búsqueda exitosa
-      setPartido({
-        id: "10",
-        nombre: "Partido BD",
-        calle: "Calle Falsa",
-        numero: "123",
-        telefono: "123456789",
-        codPostal: "12345",
-        presidenteCI: "11111111",
-        vicepresidenteCI: "22222222"
-      });
-    } else {
-      alert("Partido no encontrado (simulado)");
-    }
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const habilitarCampo = (campo) => {
-    setEditFields((prev) => ({ ...prev, [campo]: true }));
+    setEditFields(prev => ({ ...prev, [campo]: true }));
   };
 
-  const hayCambios = Object.values(editFields).some((v) => v);
+  const hayCambios = Object.values(editFields).some(Boolean);
 
-  const handleSubmit = (e) => {
+  const handleBuscar = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
-    console.log("Actualizando partido:", data);
-    onClose();
+    try {
+      const token = localStorage.getItem("token");
+      const encodedNombre = encodeURIComponent(busqueda.trim());
+      const data = await adminService.getPartidoByNombre(token, encodedNombre);
+      console.log("Partido encontrado:", data);
+
+      setFormData({
+        nombre: data.nombre,
+        calle: data.calle,
+        numero: data.numero,
+        telefono: data.telefono,
+        codPostal: data.codigo_postal,
+        presidente: data.ci_presidente,
+        vice: data.ci_vicepresidente,
+        color: data.color || "#cccccc"
+      });
+      setIdPartido(data.id);
+      setPartidoEncontrado(true);
+    } catch (error) {
+      alert("No se pudo encontrar el partido.");
+      console.error("Error al buscar partido:", error);
+    }
   };
 
-  const handleEliminar = () => {
-    console.log("Eliminar partido con ID:", id);
-    onClose();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+
+    const payload = {
+      ...(editFields.nombre && { nombre: formData.nombre }),
+      ...(editFields.calle && { calle: formData.calle }),
+      ...(editFields.numero && { numero: formData.numero }),
+      ...(editFields.telefono && { telefono: formData.telefono }),
+      ...(editFields.codPostal && { codigo_postal: formData.codPostal }),
+      ...(editFields.presidente && { ci_presidente: formData.presidente }),
+      ...(editFields.vice && { ci_vicepresidente: formData.vice }),
+      ...(editFields.color && { color: formData.color }),
+    };
+
+    if (Object.keys(payload).length === 0) {
+      alert("No realizaste ningún cambio.");
+      return;
+    }
+
+    try {
+      await adminService.updatePartido(token, idPartido, payload);
+      alert("Partido actualizado correctamente.");
+      onClose();
+    } catch (error) {
+      console.error("Error al actualizar el partido:", error);
+      alert("Error al actualizar el partido.");
+    }
   };
 
   return (
@@ -66,135 +110,57 @@ function EditarPartido({ onClose }) {
     >
       <div className={styles.modalContent}>
         <h2 className={styles.title}>Editar información de un partido</h2>
-        <form
-          className={styles.form}
-          onSubmit={partido ? handleSubmit : handleBuscar}
-        >
-          <label className={styles.label}>ID</label>
-          <div className={styles.ciRow}>
-            <input
-              name="id"
-              className={styles.input}
-              value={id}
-              onChange={(e) => setID(e.target.value)}
-              required
-              disabled={!!partido}
-            />
-            <button type="submit" className={styles.iconButton}>
-              <FaSearch />
-            </button>
-          </div>
+        <form className={styles.form} onSubmit={partidoEncontrado ? handleSubmit : handleBuscar}>
+          {!partidoEncontrado && (
+            <div className={styles.searchRow}>
+              <input
+                name="busqueda"
+                className={styles.searchInput}
+                placeholder="Nombre del partido"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+              />
+              <button type="submit" className={styles.iconButton}>
+                <FaSearch />
+              </button>
+            </div>
+          )}
 
-          {partido && (
+          {partidoEncontrado && (
             <>
-              <label className={styles.label}>Nombre</label>
+              {["nombre", "calle", "numero", "telefono", "codPostal", "presidente", "vice"].map((campo) => (
+                <div key={campo}>
+                  <label className={styles.label}>{campo[0].toUpperCase() + campo.slice(1)}</label>
+                  <div className={styles.inputRow}>
+                    <input
+                      name={campo}
+                      className={styles.input}
+                      value={formData[campo]}
+                      onChange={handleChange}
+                      disabled={!editFields[campo]}
+                    />
+                    <FaPen className={styles.editIcon} onClick={() => habilitarCampo(campo)} />
+                  </div>
+                </div>
+              ))}
+
+              <label className={styles.label}>Color</label>
               <div className={styles.inputRow}>
                 <input
-                  name="nombre"
-                  defaultValue={partido.nombre}
+                  name="color"
+                  type="color"
+                  value={formData.color}
                   className={styles.input}
-                  required
-                  disabled={!editFields.nombre}
+                  onChange={handleChange}
+                  disabled={!editFields.color}
                 />
-                <FaPen
-                  className={styles.editIcon}
-                  onClick={() => habilitarCampo("nombre")}
-                />
+                <FaPen className={styles.editIcon} onClick={() => habilitarCampo("color")} />
               </div>
-              <label className={styles.label}>Calle</label>
-              <div className={styles.inputRow}>
-                <input
-                  name="calle"
-                  defaultValue={partido.calle}
-                  className={styles.input}
-                  required
-                  disabled={!editFields.calle}
-                />
-                <FaPen
-                  className={styles.editIcon}
-                  onClick={() => habilitarCampo("calle")}
-                />
-              </div>
-              <label className={styles.label}>Número</label>
-              <div className={styles.inputRow}>
-                <input
-                  name="numero"
-                  defaultValue={partido.numero}
-                  className={styles.input}
-                  required
-                  disabled={!editFields.numero}
-                />
-                <FaPen
-                  className={styles.editIcon}
-                  onClick={() => habilitarCampo("numero")}
-                />
-              </div>
-              <label className={styles.label}>Código Postal</label>
-              <div className={styles.inputRow}>
-                <input
-                  name="codPostal"
-                  defaultValue={partido.codPostal}
-                  className={styles.input}
-                  required
-                  disabled={!editFields.codPostal}
-                />
-                <FaPen
-                  className={styles.editIcon}
-                  onClick={() => habilitarCampo("codPostal")}
-                />
-              </div>
-              <label className={styles.label}>Teléfono</label>
-              <div className={styles.inputRow}>
-                <input
-                  name="telefono"
-                  defaultValue={partido.telefono}
-                  className={styles.input}
-                  required
-                  disabled={!editFields.telefono}
-                />
-                <FaPen
-                  className={styles.editIcon}
-                  onClick={() => habilitarCampo("telefono")}
-                />
-              </div>
-              <label className={styles.label}>CI presidente</label>
-              <div className={styles.inputRow}>
-                <input
-                  name="presidente"
-                  defaultValue={partido.presidente}
-                  className={styles.input}
-                  required
-                  disabled={!editFields.presidente}
-                />
-                <FaPen
-                  className={styles.editIcon}
-                  onClick={() => habilitarCampo("presidente")}
-                />
-              </div>
-              <label className={styles.label}>Vicepresidente</label>
-              <div className={styles.inputRow}>
-                <input
-                  name="vice"
-                  defaultValue={partido.vice}
-                  className={styles.input}
-                  required
-                  disabled={!editFields.vice}
-                />
-                <FaPen
-                  className={styles.editIcon}
-                  onClick={() => habilitarCampo("vice")}
-                />
-              </div>
-              <div className={styles.actionRow}>
-                <button
-                  type="button"
-                  className={styles.deleteButton}
-                  onClick={handleEliminar}
-                >
-                  <FaTrashAlt /> Eliminar partido
-                </button>
-                { hayCambios && (
-                  <button type="submit" className={styles.deleteButton}>
+
+              <div className={styles.buttonRow}>
+                <button type="button" onClick={onClose} className={styles.cancelButton}>Cancelar</button>
+                {hayCambios && (
+                  <button type="submit" className={styles.saveButton}>
                     Guardar cambios
                   </button>
                 )}
@@ -202,8 +168,6 @@ function EditarPartido({ onClose }) {
             </>
           )}
         </form>
-
-        <button className={`${styles.closeButton} delete has-background-link`} onClick={onClose}/>
       </div>
     </div>
   );

@@ -1,22 +1,42 @@
 import React from 'react';
-import classes from './Eleccion.module.css'; 
+import { useState } from "react";
+import classes from './Eleccion.module.css';
 import AdminCard from '../../Components/Cards/HomeAdminCard/AdminCard';
+import NuevaLista from '../../Components/Modals/Lista/NuevaLista';
+import EliminarLista from '../../Components/Modals/Lista/EliminarLista';
 import CountdownToEvening from '../../Components/AdminStats/Countdown';
 
+// Crear una lista y editarla (borrarla tambien)
+
+
 function Eleccion() {
+    const [modal, setModal] = useState(null);
+
+    const handleClose = () => setModal(null);
+
+    const handleCrearLista = (data) => {
+        console.log("Datos de la nueva lista:", data);
+        alert("Lista simulada creada correctamente.");
+        setModal(null);
+    };
+
+
     const [progress, setProgress] = React.useState(90);
     return (
         <div className={classes.pageContainer}>
             <p className="title h1 has-text-link ">Elección</p>
             <div className={classes.pageContent}>
+
+
                 <AdminCard
-                    title="una card :)"
+                    title="Lista"
                     buttons={[
-                        { label: "nuevo ciudadano", onClick: () => setModal("nuevoCiudadano") },
-                        { label: "editar ciudadano", onClick: () => setModal("editarCiudadano") },
-                        { label: "nuevos ciudadanos", onClick: () => setModal("listaCiudadanos") },
+                        { label: "Nueva", onClick: () => setModal("nuevaLista") },
+                        { label: "Eliminar", onClick: () => setModal("eliminarLista") },
                     ]}
                 />
+
+
                 <div className={`${classes.cardPanel}`}>
                     <p className={`title is-4 mt-1 has-text-link ${classes.cardTitle}`}>Progreso elección</p>
                     <div className={classes.upperPanel}>
@@ -35,7 +55,14 @@ function Eleccion() {
                     </div>
                 </div>
             </div>
+            {modal === "nuevaLista" && (
+                <NuevaLista onClose={() => setModal(null)} onCrear={handleCrearLista} />
+            )}
+            {modal === "eliminarLista" && (
+                <EliminarLista onClose={() => setModal(null)} />
+            )}
         </div>
+
     );
 }
 export default Eleccion;

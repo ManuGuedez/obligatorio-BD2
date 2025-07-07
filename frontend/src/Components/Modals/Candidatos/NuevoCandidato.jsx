@@ -23,6 +23,7 @@ function NuevoCandidato({ onClose }) {
       onClose();
     } catch (error) {
       console.error("Error al crear candidato:", error);
+      onClose();
     }
   };
 
