@@ -44,35 +44,35 @@ function EditarEstablecimiento({ onClose }) {
 
 
     const handleSearch = async () => {
-    try {
-        const token = localStorage.getItem("token");
-        const encodedNombre = encodeURIComponent(busqueda.trim());
-        const data = await adminService.getEstablecimientoByNombre(token, encodedNombre);
-        console.log("Establecimiento encontrado:", data);
+        try {
+            const token = localStorage.getItem("token");
+            const encodedNombre = encodeURIComponent(busqueda.trim());
+            const data = await adminService.getEstablecimientoByNombre(token, encodedNombre);
+            console.log("Establecimiento encontrado:", data);
 
-        // Buscar zona por nombre en el array de zonas
-        const zonaEncontrada = zonas.find(
-        (z) => z.nombre.toLowerCase() === data.nombre_zona.toLowerCase()
-        );
+            // Buscar zona por nombre en el array de zonas
+            const zonaEncontrada = zonas.find(
+            (z) => z.nombre.toLowerCase() === data.nombre_zona.toLowerCase()
+            );
 
-        if (!zonaEncontrada) {
-        alert("No se encontró la zona asociada.");
-        return;
+            if (!zonaEncontrada) {
+            alert("No se encontró la zona asociada.");
+            return;
+            }
+
+            setFormData({
+            nombre: data.nombre_est,
+            zona: data.nombre_zona,
+            tipo: data.tipo_est,
+            direccion: data.direccion_est,
+            id_zona: zonaEncontrada.id
+            });
+            setIdEstablecimiento(data.id_est);
+            setEstablecimientoEncontrado(true);
+        } catch (error) {
+            alert("No se pudo encontrar el establecimiento.");
+            console.error("Error al buscar establecimiento:", error);
         }
-
-        setFormData({
-        nombre: data.nombre_est,
-        zona: data.nombre_zona,
-        tipo: data.tipo_est,
-        direccion: data.direccion_est,
-        id_zona: zonaEncontrada.id
-        });
-        setIdEstablecimiento(data.id_est);
-        setEstablecimientoEncontrado(true);
-    } catch (error) {
-        alert("No se pudo encontrar el establecimiento.");
-        console.error("Error al buscar establecimiento:", error);
-    }
     };
 
 

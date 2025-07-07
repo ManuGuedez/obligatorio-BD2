@@ -1228,6 +1228,16 @@ def get_partido(id):
 
     return jsonify(result), 200 if result else ({"error": "No se encontró el partido político"}, 400)
 
+@app.route('/partido-politico/<string:nombre>', methods=['GET'])
+def get_partidoNombre(nombre):
+    '''
+    obtiene un partido político por su nombre (URL encoded)
+    '''
+    result = services.get_partido_by_name(nombre)
+
+    return (jsonify(result), 200) if result else (jsonify({"error": "No se encontró el partido político"}), 400)
+
+
 
 @app.route('/lista', methods=['POST'])
 @jwt_required()

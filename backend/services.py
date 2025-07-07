@@ -1190,6 +1190,21 @@ def get_partido(id):
     return None
     
 
+def get_partido_by_name(nombre):
+    query = '''
+        SELECT pp.id, pp.nombre, pp.calle, pp.numero, pp.telefono, pp.codigo_postal,
+               c.nombre AS presidente_nombre, c.apellido AS presidente_apellido,
+               v.nombre AS vicepresidente_nombre, v.apellido AS vicepresidente_apellido
+        FROM Partido_politico pp
+        JOIN Ciudadano c ON pp.ci_presidente = c.ci
+        JOIN Ciudadano v ON pp.ci_vicepresidente = v.ci
+        WHERE pp.nombre = %s
+    '''
+    cursor.execute(query, (nombre,))
+    result = cursor.fetchone()  # solo uno esperado por nombre
+
+    return result
+
 def crear_lista(id_partido, descripcion, nro_lista, id_candidato_apoyado, id_departamento):
     '''
     Crea una nueva lista electoral.

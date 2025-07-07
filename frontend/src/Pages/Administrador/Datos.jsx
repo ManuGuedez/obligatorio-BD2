@@ -112,10 +112,6 @@ function Datos() {
               label: "Nuevo Partido Político",
               onClick: () => setModal("nuevoPartido"),
             },
-            {
-              label: "Editar Partido Político",
-              onClick: () => setModal("editarPartido"),
-            },
           ]}
         />
       </div>
