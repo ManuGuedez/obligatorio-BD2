@@ -42,7 +42,7 @@ export function FlujoProvider({ children }) {
         // no guardar voto en blanco del plebicito / referendum cuando votas 
 
         const clave = etapa.id || etapa.tipo;
-        console.log("id_estado", id_estado)
+        //console.log("id_estado", id_estado)
         console.log("id_papeleta", id_papeleta)
         setRespuestas((prev) => [
         ...prev.filter((r) => r.id !== id_papeleta),

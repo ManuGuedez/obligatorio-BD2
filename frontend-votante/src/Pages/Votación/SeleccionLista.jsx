@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import { useAccesibilidad } from "../../Components/Configuracion/Accesibilidad";
 import classes from "./SeleccionLista.module.css";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -15,8 +15,8 @@ function SeleccionLista() {
 
     // use effect que haga el fetch de las listas
 
-    useEffect(async () => {
-        const getListas = await votarService.getListas()
+    useEffect( () => {
+        const getListas = votarService.getListas()
     }, [])
 
 
