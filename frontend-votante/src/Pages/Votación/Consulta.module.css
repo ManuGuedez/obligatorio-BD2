@@ -1,0 +1,113 @@
+.presidencialContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: white;
+    min-height: 100vh;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 2rem 2rem;
+    background-color: #495E92;
+    color: white;
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.spacer {
+    width: 2rem;
+}
+
+.headerTitle {
+    flex-grow: 1;
+    text-align: center;
+}
+
+.headerIcon {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.content {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    padding: 2rem;
+    width: 100%;
+    gap: 20px;
+    justify-content: center;
+}
+
+.votoLista {
+    user-select: none;
+    background-color: #9CB9EB;
+    height: 250px;
+    width: 350px;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.otrosVotos {
+    height: 250px;
+    width: 350px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.votoBlanco, .votoAnulado {
+    user-select: none;
+    background-color: #9CB9EB;
+    height: 115px;
+    width: 350px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.votoBlanco:hover, .votoAnulado:hover, .votoLista:hover {
+    background-color: #7A9BCF;
+    cursor: pointer;
+}
+
+.seleccionado {
+    background-color: #E8C06C !important;
+}
+
+.footer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 2rem;
+}
+
+.modoOscuro {
+    background-color: #121212;
+    color: #f0f0f0;
+}
+
+.letraGrande {
+    font-size: 1.3rem;
+}
+
+.altoContraste {
+    background-color: black !important;
+    color: yellow !important;
+}

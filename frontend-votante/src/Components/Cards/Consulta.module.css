@@ -1,0 +1,20 @@
+.card {
+    padding: 2rem;
+    border-radius: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.card:hover {
+    transform: scale(1.03);
+}
+
+.seleccionado {
+    outline: 4px solid black !important;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+}

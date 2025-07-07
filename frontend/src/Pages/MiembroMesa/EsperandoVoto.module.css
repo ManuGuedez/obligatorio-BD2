@@ -1,0 +1,66 @@
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modalBox {
+  background-color: #ffffff;
+  padding: 30px 25px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.confirmarBtn {
+  background-color: #003366;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin-top: 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.confirmarBtn:hover {
+  background-color: #002244;
+}
+
+.confirmarBtn {
+  background-color: #003366;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.confirmarBtn:hover {
+  background-color: #002244;
+}
+
+.cancelarBtn {
+  background-color: #facc15;
+  color: #000;
+  border: none;
+  padding: 10px 20px;
+  margin: 5px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.cancelarBtn:hover {
+  background-color: #fbbf24;
+}

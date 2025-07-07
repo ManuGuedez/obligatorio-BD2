@@ -1,0 +1,118 @@
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modalBox {
+  background-color: #ffffff;
+  padding: 30px 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.modalBox h2 {
+  margin-bottom: 20px;
+  font-size: 1.3rem;
+  color: #1e2a4a;
+}
+
+.modalBox p {
+  margin: 8px 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.votarButton {
+  background-color: #003366;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 20px 10px 10px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.votarButton:hover {
+  background-color: #002244;
+}
+
+.cerrarButton {
+  background-color: #ccc;
+  color: #333;
+  border: none;
+  padding: 10px 20px;
+  margin: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.cerrarButton:hover {
+  background-color: #bbb;
+}
+
+
+.switchContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 15px;
+  gap: 10px;
+}
+
+.switchLabel {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 24px;
+}
+
+.switchLabel input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switchSlider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 24px;
+  transition: 0.4s;
+}
+
+.switchSlider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.4s;
+}
+
+.switchLabel input:checked+.switchSlider {
+  background-color: #facc15;
+}
+
+.switchLabel input:checked+.switchSlider:before {
+  transform: translateX(22px);
+}
