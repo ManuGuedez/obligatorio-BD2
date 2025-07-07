@@ -1,0 +1,30 @@
+:root {
+    --bulma-primary-h: 218deg;
+    --bulma-primary-s: 66%;
+    --bulma-primary-l: 77%;
+    --bulma-link-h: 223deg;
+    --bulma-link-s: 33%;
+    --bulma-link-l: 43%;
+    --bulma-info-h: 41deg;
+    --bulma-info-s: 73%;
+    --bulma-info-l: 67%;
+    --bulma-success-h: 218deg;
+    --bulma-success-s: 42%;
+    --bulma-success-l: 84%;
+    --bulma-danger-h: 359deg;
+    --bulma-danger-s: 58%;
+    --bulma-danger-l: 39%;
+}
+
+#root, body, html {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+body {
+  background-color: #f9f9fb;
+}

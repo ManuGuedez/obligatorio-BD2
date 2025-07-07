@@ -57,7 +57,7 @@ CREATE TABLE Ciudadano (
     ci INT PRIMARY KEY,
     nombre VARCHAR(15),
     apellido VARCHAR(15),
-    serie_credencial VARCHAR(10),
+    serie_credencial VARCHAR(3),
     nro_circuito INT,
     FOREIGN KEY (nro_circuito) REFERENCES Circuito(nro)
 );
@@ -87,9 +87,9 @@ CREATE TABLE Policia(
 );
 
 CREATE TABLE Rol_mesa(
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  rol VARCHAR(15),
-  descripcion VARCHAR(20)
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    rol VARCHAR(15),
+    descripcion VARCHAR(20)
 );
 
 CREATE TABLE Organismo_publico(
@@ -210,4 +210,8 @@ CREATE TABLE Registro_votacion (
 );
 
 -- este no lo puedo usar con el nuevo coso.
+ALTER TABLE Usuario ADD COLUMN salt VARCHAR(128);
+ALTER TABLE Usuario MODIFY COLUMN contraseña VARCHAR(128);
+
+
 

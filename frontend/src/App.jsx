@@ -1,26 +1,25 @@
-import { useState } from "react";
-import "./App.css";
+import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import Login from "./Pages/Login/Login";
+import HomeMiembroMesa from "./Pages/MiembroMesa/HomeMiembroMesa";
+import HomeAdministrador from "./Pages/Administrador/HomeAdministrador";
+import Estadisticas from "./Components/Estadisticas/Estadisticas";
+import Configuracion from "./Components/Configuracion/Configuracion";
+import './global.css';
+
+export const url = "http://localhost:5001";
 
 function App() {
-  const [count, setCount] = useState(0);
-
-  return (
-    <>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  );
+    return (
+        <Routes>
+            <Route path="/" element={<Navigate to="/Login" />} />
+            <Route path="/Login" element={<Login />} />
+            <Route path="/HomeMiembroMesa" element={<HomeMiembroMesa />} />
+            <Route path="/HomeAdministrador/*" element={<HomeAdministrador />} />
+            <Route path="/Estadisticas" element={<Estadisticas />} />
+            <Route path="/Configuracion" element={<Configuracion />} />
+        </Routes>
+    )
 }
 
 export default App;
