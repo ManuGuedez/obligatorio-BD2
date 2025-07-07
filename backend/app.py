@@ -1421,6 +1421,7 @@ def habilitar_votante():
         return jsonify({"error": "Esta acción puede ser realizada únicamente por un miembro de mesa."}), 400
     
     data = request.get_json()    
+    print("lo que me llega:", data)
     ci_ciudadano = data["ci_ciudadano"]
     es_observado = data["es_observado"]
     nro_circuito = data["nro_circuito"]
@@ -1456,10 +1457,12 @@ def emitir_voto():
     
     result = services.guardar_votos_temporalmente(votos)
     if result[0] < 0:
-        return jsonify({"error": "no se guardaron los votos"})
+        return jsonify({"error": result[1]}), 400
     
     # Si hay 10 votos, los baraja e inserta
-    services.persistir_votos()
+    result = services.persistir_votos()
+    if result[0] < 0:
+        return jsonify({"error": result[1]})
     
     # Marcar en la base de datos que el votante ya votó (sin guardar el voto junto al id)
     socketio.emit('voto_emitido', {'ci_ciudadano': ci_ciudadano})

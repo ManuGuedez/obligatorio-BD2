@@ -1759,16 +1759,18 @@ def guardar_votos_temporalmente(votos):
     values = []
     for voto in votos:
         id_estado = voto['id_estado']
-        es_observado = voto['es_observado']
+        es_observado = voto['es_observado'] == "true"
         nro_circuito = voto['nro_circuito']
         id_papeleta = voto['id_papeleta']
         values.append((id_estado, es_observado, nro_circuito, id_papeleta))
+    print("llega aca", values)
     try:
         query = '''
             INSERT INTO Votos_temporales (id_estado, es_observado, nro_circuito, id_papeleta) VALUES (%s, %s, %s, %s)
         '''
         cursor.executemany(query, values)
         cnx.commit()
+        print("se insertannnnnn", cursor.rowcount)
         return 1, cursor.rowcount
     except Exception as e:
         return -1, str(e)
@@ -1780,7 +1782,7 @@ def persistir_votos(forzar=False):
     cursor.execute(query)
     cantidad_votos = cursor.fetchone().get('cantidad')
     if cantidad_votos < 10 and not forzar:
-        return 
+        return 1, "NA"
     
     query = '''
         SELECT * FROM Votos_temporales
@@ -1791,7 +1793,7 @@ def persistir_votos(forzar=False):
     values = []
     for voto in votos:
         id_estado = voto['id_estado']
-        es_observado = voto['es_observado']
+        es_observado = voto['es_observado'] == "true"
         nro_circuito = voto['nro_circuito']
         id_papeleta = voto['id_papeleta']
         values.append((id_estado, es_observado, nro_circuito, id_papeleta))
