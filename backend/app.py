@@ -153,9 +153,9 @@ def get_establishments():
 
     return jsonify(result), 200 if result else ({"error": "No se encontraron establecimientos"}, 400)
 
-@app.route('/establecimientos/<int:id>', methods=['GET'])
+@app.route('/establecimientos/<string:nombre>', methods=['GET'])
 @jwt_required()
-def get_establishment(id):
+def get_establishment(nombre):
     '''
     obtiene un establecimiento por su id
     '''
@@ -165,7 +165,7 @@ def get_establishment(id):
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
 
-    result = services.get_establishment(id)
+    result = services.get_establishment(nombre)
 
     if result:
         return jsonify(result), 200

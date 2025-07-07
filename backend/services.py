@@ -227,9 +227,9 @@ def get_establishments():
         return result
     return None
 
-def get_establishment(id):
+def get_establishment(nombre):
     '''
-    obtiene un establecimiento por su id
+    obtiene un establecimiento por su nombre
     '''
     query = '''
         SELECT e.id as id_est, e.nombre as nombre_est, e.tipo as tipo_est, e.direccion as direccion_est,
@@ -238,8 +238,8 @@ def get_establishment(id):
         JOIN Zona z ON e.id_zona = z.id
         JOIN Ciudad c ON z.id_ciudad = c.id
         JOIN Departamento d ON c.id_departamento = d.id
-        WHERE e.id = %s'''
-    cursor.execute(query, (id,))
+        WHERE e.nombre = %s'''
+    cursor.execute(query, (nombre,))
     result = cursor.fetchone()
 
     if result:

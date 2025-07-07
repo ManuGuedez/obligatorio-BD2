@@ -418,9 +418,34 @@ const adminService = {
             throw error;
         }
     },
-    
 
+    getEstablecimientoByNombre: async (token, nombre) => {
+        try {
+            const response = await ApiService.get(`/establecimientos/${nombre}`, token);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching establecimiento by nombre:", error);
+            throw error;
+        }
+    },
 
+    updateEstablecimiento: async (token, id, data) => {
+        try {
+            const response = await ApiService.patch(
+            `/establecimientos/${id}`,
+            data,
+            token
+            );
+            if (response.code !== 200) {
+            throw new Error(response.data?.error || "No se pudo actualizar el establecimiento");
+            }
+            console.log("Establecimiento actualizado:", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error actualizando establecimiento:", error);
+            throw error;
+        }
+    },
 }
 
 export default adminService;
