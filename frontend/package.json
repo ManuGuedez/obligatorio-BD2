@@ -19,13 +19,8 @@
     "react-dom": "^19.1.0",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.6.2",
-<<<<<<< HEAD
-    "socket.io-client": "^4.8.1"
-=======
     "recharts": "^3.0.2",
-    "socket.io-client": "^4.8.1",
-    "xlsx": "^0.18.5"
->>>>>>> fd688106e91f3ac888bbf541e72c8c14e5a8bffb
+    "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

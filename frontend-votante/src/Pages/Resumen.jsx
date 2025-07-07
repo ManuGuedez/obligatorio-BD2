@@ -51,16 +51,10 @@ export default function Resumen() {
 
     const handleSiguienteClick = async () => {
         console.log("Confirmando votación...");
-<<<<<<< HEAD
-        
-        await votarService.emitirVoto(respuestas);
-        navigate ("/confirmacion");
-=======
         let resupesta1 = [{ "id_estado": 1, "es_observado": 1, "nro_circuito": 1034, "id_papeleta": 9 }]
         await votarService.emitirVoto(resupesta1);
         // await votarService.emitirVoto(respuestas);
         navigate("/confirmacion");
->>>>>>> fd688106e91f3ac888bbf541e72c8c14e5a8bffb
     };
 
 
