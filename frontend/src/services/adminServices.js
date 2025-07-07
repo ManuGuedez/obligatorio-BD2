@@ -151,6 +151,22 @@ const adminService = {
         }
     },
 
+    getResultadosPorPartidoConColor: async (token, circuito = null) => {
+        try {
+            console.log("Fetching resultados por partido con color. Circuito:", circuito);
+            const url = circuito
+                ? `resultados/partido-color?nro_circuito=${circuito}`
+                : `resultados/partido-color`;
+
+            const response = await ApiService.get(url, token);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching resultados por partido con color:", error);
+            throw error;
+        }
+    },
+
+
     getResultadosPorCandidato: async (token, circuito = null) => {
         try {
             console.log("Fetching resultados por candidato con circuito:", circuito);

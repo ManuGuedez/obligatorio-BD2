@@ -1569,6 +1569,65 @@ def obtener_votos_por_lista_con_porcentaje(nro_circuito=None):
 
     return 1, resultados
 
+def obtener_votos_por_partido_con_color(nro_circuito=None):
+    # No aplicamos filtro por circuito
+    where_clause = ""
+    params = []
+
+    # -- Si quisieras filtrar por circuito cerrado, descomentá esto:
+    # if nro_circuito is not None:
+    #     if validar_circuito_cerrado(nro_circuito):
+    #         where_clause = "WHERE V.nro_circuito = %s"
+    #         params = [nro_circuito]
+    #     else:
+    #         return -1, "El circuito debe cerrar para ver los resultados"
+
+    # -- Si quisieras validar que terminó la elección, descomentá esto:
+    # if not eleccion_finalizada():
+    #     return -1, "La elección debe finalizar para ver los resultados"
+
+    # Total de votos válidos
+    cursor.execute(f"SELECT COUNT(*) AS total FROM Voto V {where_clause}", params)
+    total_votos = cursor.fetchone()["total"]
+
+    if total_votos == 0:
+        return -1, "No se registraron votos."
+
+    # Consulta con color del partido
+    cursor.execute(f"""
+        SELECT
+            PP.nombre AS partido,
+            COUNT(V.id) AS votos,
+            CONCAT('#', C.decripcion) AS color
+        FROM Partido_politico PP
+        JOIN Lista L ON L.id_partido_politico = PP.id
+        JOIN Papeleta P ON L.id_papeleta = P.id
+        LEFT JOIN Voto V ON V.id_papeleta = P.id 
+        LEFT JOIN Color C ON PP.id_color = C.id
+        {where_clause}
+        GROUP BY PP.nombre, C.decripcion;
+    """, params)
+
+    resultados = cursor.fetchall()
+
+    datos = []
+    for r in resultados:
+        porcentaje = (r["votos"] / total_votos) * 100
+        color = r.get("color")
+        if not color or color.strip() == "#":
+            color = "#cccccc"
+
+        datos.append({
+            "texto": r["partido"],
+            "votosFavor": r["votos"],
+            "votosTotal": total_votos,
+            "color": color,
+            "porcentaje": f"{porcentaje:.2f}%"
+        })
+
+    return 1, datos
+
+
 def get_organismos_publicos():
     query = '''SELECT * FROM Organismo_publico'''
     cursor.execute(query)
