@@ -228,9 +228,9 @@ def get_establishments():
         return result
     return None
 
-def get_establishment(id):
+def get_establishment(nombre):
     '''
-    obtiene un establecimiento por su id
+    obtiene un establecimiento por su nombre
     '''
     query = '''
         SELECT e.id as id_est, e.nombre as nombre_est, e.tipo as tipo_est, e.direccion as direccion_est,
@@ -239,8 +239,8 @@ def get_establishment(id):
         JOIN Zona z ON e.id_zona = z.id
         JOIN Ciudad c ON z.id_ciudad = c.id
         JOIN Departamento d ON c.id_departamento = d.id
-        WHERE e.id = %s'''
-    cursor.execute(query, (id,))
+        WHERE e.nombre = %s'''
+    cursor.execute(query, (nombre,))
     result = cursor.fetchone()
 
     if result:
@@ -868,7 +868,7 @@ def get_members_data():
         return result
     return None
 
-def get_member_data(id):
+def get_member_data(ci):
     '''
     Obtiene los datos de un miembro de mesa por su ID.
     '''
@@ -877,9 +877,9 @@ def get_member_data(id):
             FROM Miembro_mesa m
             JOIN Ciudadano c ON m.ci_ciudadano = c.ci
             JOIN Rol_mesa rm ON m.id_rol = rm.id
-            WHERE m.id_miembro = %s
+            WHERE m.ci_ciudadano = %s
     '''
-    cursor.execute(query, (id,))
+    cursor.execute(query, (ci,))
     result = cursor.fetchone()
     
     if result:
@@ -954,13 +954,13 @@ def crear_partido(calle, numero, telefono, codigo_postal, nombre, ci_presidente,
     '''
     try:
         query = '''
-            SELECT id FROM Color WHERE descripcion = %s
+            SELECT id FROM Color WHERE decripcion = %s
         '''
         color = str(color).strip().lower()
         cursor.execute(query, (color,))
         id_color = cursor.fetchone()
         if not id_color:
-            query = "INSERT INTO Color (descripcion) VALUE (%s)"
+            query = "INSERT INTO Color (decripcion) VALUE (%s)"
             cursor.execute(query, (color,))
             id_color = cursor.lastrowid
 
@@ -1201,6 +1201,21 @@ def get_partido(id):
         return result
     return None
     
+
+def get_partido_by_name(nombre):
+    query = '''
+        SELECT pp.id, pp.nombre, pp.calle, pp.numero, pp.telefono, pp.codigo_postal,
+               c.nombre AS presidente_nombre, c.apellido AS presidente_apellido,
+               v.nombre AS vicepresidente_nombre, v.apellido AS vicepresidente_apellido
+        FROM Partido_politico pp
+        JOIN Ciudadano c ON pp.ci_presidente = c.ci
+        JOIN Ciudadano v ON pp.ci_vicepresidente = v.ci
+        WHERE pp.nombre = %s
+    '''
+    cursor.execute(query, (nombre,))
+    result = cursor.fetchone()  # solo uno esperado por nombre
+
+    return result
 
 def crear_lista(id_partido, descripcion, nro_lista, id_candidato_apoyado, id_departamento):
     '''
@@ -1579,6 +1594,65 @@ def obtener_votos_por_lista_con_porcentaje(nro_circuito=None):
 
     return 1, resultados
 
+def obtener_votos_por_partido_con_color(nro_circuito=None):
+    # No aplicamos filtro por circuito
+    where_clause = ""
+    params = []
+
+    # -- Si quisieras filtrar por circuito cerrado, descomentá esto:
+    # if nro_circuito is not None:
+    #     if validar_circuito_cerrado(nro_circuito):
+    #         where_clause = "WHERE V.nro_circuito = %s"
+    #         params = [nro_circuito]
+    #     else:
+    #         return -1, "El circuito debe cerrar para ver los resultados"
+
+    # -- Si quisieras validar que terminó la elección, descomentá esto:
+    # if not eleccion_finalizada():
+    #     return -1, "La elección debe finalizar para ver los resultados"
+
+    # Total de votos válidos
+    cursor.execute(f"SELECT COUNT(*) AS total FROM Voto V {where_clause}", params)
+    total_votos = cursor.fetchone()["total"]
+
+    if total_votos == 0:
+        return -1, "No se registraron votos."
+
+    # Consulta con color del partido
+    cursor.execute(f"""
+        SELECT
+            PP.nombre AS partido,
+            COUNT(V.id) AS votos,
+            CONCAT('#', C.decripcion) AS color
+        FROM Partido_politico PP
+        JOIN Lista L ON L.id_partido_politico = PP.id
+        JOIN Papeleta P ON L.id_papeleta = P.id
+        LEFT JOIN Voto V ON V.id_papeleta = P.id 
+        LEFT JOIN Color C ON PP.id_color = C.id
+        {where_clause}
+        GROUP BY PP.nombre, C.decripcion;
+    """, params)
+
+    resultados = cursor.fetchall()
+
+    datos = []
+    for r in resultados:
+        porcentaje = (r["votos"] / total_votos) * 100
+        color = r.get("color")
+        if not color or color.strip() == "#":
+            color = "#cccccc"
+
+        datos.append({
+            "texto": r["partido"],
+            "votosFavor": r["votos"],
+            "votosTotal": total_votos,
+            "color": color,
+            "porcentaje": f"{porcentaje:.2f}%"
+        })
+
+    return 1, datos
+
+
 def get_organismos_publicos():
     query = '''SELECT * FROM Organismo_publico'''
     cursor.execute(query)
@@ -1738,7 +1812,42 @@ def persistir_votos(forzar=False):
     except Exception as e:
         cnx.rollback()
         return -1, str(e)
-    
-    
-    
-    
+
+def get_departamentos():
+    query = 'select * from Departamento '
+    cursor.execute(query)
+    return cursor.fetchall()
+
+def get_ciudades():
+    query = 'select * from Ciudad '
+    cursor.execute(query)
+    return cursor.fetchall()
+
+def get_zonas():
+    query = 'select * from Zona '
+    cursor.execute(query)
+    return cursor.fetchall()
+
+def add_ciudad(nombre, id_departamento):
+    try:
+        query = 'INSERT INTO Ciudad (nombre, id_departamento) VALUES (%s, %s)'
+        cursor.execute(query, (nombre, id_departamento))
+        cnx.commit()
+        new_id = cursor.lastrowid
+        return 1, {"message": "Ciudad agregada exitosamente", "id": new_id}
+    except mysql.connector.errors.IntegrityError as e:
+        return -1, f"Error de integridad al agregar ciudad: {str(e)}"
+    except Exception as e:
+        return -1, f"Error inesperado al agregar ciudad: {str(e)}"
+
+def add_zona(nombre, id_ciudad):
+    try:
+        query = 'INSERT INTO Zona (nombre, id_ciudad) VALUES (%s, %s)'
+        cursor.execute(query, (nombre, id_ciudad))
+        cnx.commit()
+        new_id = cursor.lastrowid
+        return 1, {"message": "Zona agregada exitosamente", "id": new_id}
+    except mysql.connector.errors.IntegrityError as e:
+        return -1, "Error de integridad: posiblemente el id_ciudad no existe o ya existe una zona con ese nombre"
+    except Exception as e:
+        return -1, f"Error inesperado al agregar zona: {str(e)}"

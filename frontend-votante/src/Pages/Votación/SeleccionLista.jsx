@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useAccesibilidad } from "../../Components/Configuracion/Accesibilidad";
 import classes from "./SeleccionLista.module.css";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGear } from "@fortawesome/free-solid-svg-icons";
 import ListaCard from "../../Components/Cards/Lista";
@@ -14,8 +14,11 @@ function SeleccionLista() {
   const { etapa, guardarVoto, siguiente } = useFlujo();
   const tipo = etapa.tipo;
 
-  // use effect que haga el fetch de las listas
+  const { modoOscuro, letraGrande, altoContraste } = useAccesibilidad();
+  const navigate = useNavigate();
+  const iconRef = useRef(null);
 
+  // GET listas desde backend real
   useEffect(() => {
     const getListas = async () => {
       let listass = await votarService.getListas();
@@ -73,18 +76,19 @@ function SeleccionLista() {
     ],
   };
 
-  //const listas = listasPorTipo[tipo] || [];
+      const resultado = Object.values(agrupadas);
+      setListas(resultado);
+    };
 
-  const { modoOscuro, letraGrande, altoContraste } = useAccesibilidad();
-  const navigate = useNavigate();
-  const iconRef = useRef(null);
+    getListas();
+  }, []);
 
   const containerClasses = `
-        ${classes.listasContainer} 
-        ${modoOscuro ? classes.modoOscuro : ""} 
-        ${letraGrande ? classes.letraGrande : ""} 
-        ${altoContraste ? classes.altoContraste : ""}
-    `;
+    ${classes.listasContainer} 
+    ${modoOscuro ? classes.modoOscuro : ""} 
+    ${letraGrande ? classes.letraGrande : ""} 
+    ${altoContraste ? classes.altoContraste : ""}
+  `;
 
   const handleConfigClick = () => {
     if (iconRef.current) {
@@ -105,7 +109,6 @@ function SeleccionLista() {
     const listaElegida = listas.find((l) => l.id_papeleta === selectedItem);
     console.log("elegidal", listaElegida)
 
-    // guardar el voto acá, obtener id papeleta y hacer nuevo voto con el id de la papeleta
     if (listaElegida) {
       guardarVoto({
         tipo: "municipal", // tipo actual (presidencial, municipal, etc.)
