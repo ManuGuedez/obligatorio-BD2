@@ -393,6 +393,11 @@ def abrir_circuito(id_miembro, nro):
     if cursor.rowcount > 0:
         return 1, "Circuito abierto exitosamente"
     elif cursor.rowcount == 0:
+        cursor.execute("select 1 from Circuito Where nro = %s and es_cerrado=TRUE", (nro,))
+        es_cerrado = cursor.fetchone()
+        print("respuestaaaa:", es_cerrado)
+        if es_cerrado:
+            return -1, "El circuito ya cerró, no podes volver a abrirlo."
         return -1, "El circuito ya está abierto."
     else:
         return -1, "No se encontró el circuito."    
