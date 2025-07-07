@@ -21,6 +21,7 @@ function Datos() {
   const [modal, setModal] = useState(null);
 
   const handleClose = () => setModal(null);
+  
 
   return (
     <div className={classes.pageContainer}>
