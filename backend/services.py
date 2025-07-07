@@ -948,13 +948,13 @@ def crear_partido(calle, numero, telefono, codigo_postal, nombre, ci_presidente,
     '''
     try:
         query = '''
-            SELECT id FROM Color WHERE descripcion = %s
+            SELECT id FROM Color WHERE decripcion = %s
         '''
         color = str(color).strip().lower()
         cursor.execute(query, (color,))
         id_color = cursor.fetchone()
         if not id_color:
-            query = "INSERT INTO Color (descripcion) VALUE (%s)"
+            query = "INSERT INTO Color (decripcion) VALUE (%s)"
             cursor.execute(query, (color,))
             id_color = cursor.lastrowid
 

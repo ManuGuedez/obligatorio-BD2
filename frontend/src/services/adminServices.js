@@ -252,6 +252,7 @@ const adminService = {
                 codigo_postal: Number(partidoData.codPostal),
                 ci_presidente: Number(partidoData.ci_presidente),
                 ci_vicepresidente: Number(partidoData.ci_vicepresidente),
+                color: partidoData.color,
             },
             "application/json",
             token
