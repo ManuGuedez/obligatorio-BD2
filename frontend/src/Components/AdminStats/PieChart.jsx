@@ -19,8 +19,6 @@ useEffect(() => {
                 value: item.votosFavor,
                 color: item.color || "#cccccc",
             }));
-
-            console.log("Datos transformados para el gráfico:", dataTransformada);
             setChartData(dataTransformada);
         } catch (error) {
             console.error("Error cargando resultados del gráfico:", error);
@@ -39,7 +37,7 @@ useEffect(() => {
                         data: chartData,
                         highlightScope: { fade: "global", highlight: "item" },
                         faded: { innerRadius: 30, additionalRadius: -30, color: "gray" },
-                        valueFormatter: (value) => `${value}%`,
+                        valueFormatter: ({ value }) => `${value}%`,
                     },
                 ]}
                 width={250}
