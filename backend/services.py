@@ -2,6 +2,7 @@ import mysql.connector as mysql
 from mysql.connector.errors import IntegrityError
 import encriptacion_contraseña as encrypt
 from datetime import datetime
+import random
 
 cnx = mysql.connect(user='xr_g6_admin', password='Bd2025!', host='mysql.reto-ucu.net', port=50006, database='XR_Grupo6') #mysql
 cursor = cnx.cursor(dictionary=True) # devuelve la info en formato key-value
@@ -149,7 +150,7 @@ def get_person_data(nombre_usuario):
     obtiene los datos de la persona dado su nombre de usuario
     retorna un diccionario con los datos de la persona
     '''
-    query = """SELECT c.ci, c.nombre, c.apellido, r.descripcion_rol 
+    query = """SELECT c.ci, c.nombre, c.apellido, r.descripcion_rol, m.nro_circuito 
                 FROM Ciudadano c 
                 JOIN Miembro_mesa m ON (c.ci = m.ci_ciudadano)
                 JOIN Usuario_miembro um ON (m.id_miembro = um.id_miembro)  
@@ -392,6 +393,11 @@ def abrir_circuito(id_miembro, nro):
     if cursor.rowcount > 0:
         return 1, "Circuito abierto exitosamente"
     elif cursor.rowcount == 0:
+        cursor.execute("select 1 from Circuito Where nro = %s and es_cerrado=TRUE", (nro,))
+        es_cerrado = cursor.fetchone()
+        print("respuestaaaa:", es_cerrado)
+        if es_cerrado:
+            return -1, "El circuito ya cerró, no podes volver a abrirlo."
         return -1, "El circuito ya está abierto."
     else:
         return -1, "No se encontró el circuito."    
@@ -1112,13 +1118,13 @@ def get_citizen(ci):
     return None
 
 def get_citizen_by_cc(cc):
-    '''
+    """
     Obtiene los datos de un ciudadano por su CC.
-    '''
+    """
     serie_credencial = cc[:3].upper()  
     nro_credencial = cc[3:] 
     
-    query = '''
+    query = """
         SELECT 
             c.nombre,
             c.apellido,
@@ -1129,15 +1135,21 @@ def get_citizen_by_cc(cc):
                 SELECT 1 FROM Registro_votacion rv WHERE rv.ci_ciudadano = c.ci
             ) AS voto_realizado
         FROM Ciudadano c
-        WHERE c.serie_credencial = %s AND c.nro_credencial = %s
-    '''
+        WHERE c.serie_credencial = %s
+        AND (c.nro_credencial = %s OR c.nro_credencial IS NULL)
+    """
+    # WHERE c.serie_credencial = %s AND c.nro_credencial = %s
+    
     cursor.execute(query, (serie_credencial, nro_credencial))
     result = cursor.fetchone()
-    result['voto_realizado'] = result['voto_realizado'] == 1
     
-    if result:
-        return result
-    return None
+    # Si no encontró nada, devolvemos None
+    if not result:
+        return None
+
+    # Ajustamos el campo al tipo booleano
+    result['voto_realizado'] = (result['voto_realizado'] == 1)
+    return result
 
 def get_citizens_by_member_circuit(member_id):
     query = '''
@@ -1428,8 +1440,6 @@ def registrar_ciudadano(ci_ciudadano, nro_circuito):
     except Exception as e:
         return -1, f"Error inesperado: {str(e)}"
         
-    
-    
 def registrar_voto(votos, ci_ciudadano):
     circuito = votos[0]['nro_circuito']
     return registrar_ciudadano(ci_ciudadano, circuito)
@@ -1744,6 +1754,62 @@ def get_roles_miembro():
     query = 'select * from Rol_mesa '
     cursor.execute(query)
     return cursor.fetchall()
+
+def guardar_votos_temporalmente(votos):
+    values = []
+    for voto in votos:
+        id_estado = voto['id_estado']
+        es_observado = voto['es_observado']
+        nro_circuito = voto['nro_circuito']
+        id_papeleta = voto['id_papeleta']
+        values.append((id_estado, es_observado, nro_circuito, id_papeleta))
+    try:
+        query = '''
+            INSERT INTO Votos_temporales (id_estado, es_observado, nro_circuito, id_papeleta) VALUES (%s, %s, %s, %s)
+        '''
+        cursor.executemany(query, values)
+        cnx.commit()
+        return 1, cursor.rowcount
+    except Exception as e:
+        return -1, str(e)
+    
+def persistir_votos(forzar=False):
+    query = '''
+        SELECT count(1) as cantidad FROM Votos_temporales
+    '''
+    cursor.execute(query)
+    cantidad_votos = cursor.fetchone().get('cantidad')
+    if cantidad_votos < 10 and not forzar:
+        return 
+    
+    query = '''
+        SELECT * FROM Votos_temporales
+    '''
+    cursor.execute(query)
+    votos = cursor.fetchall()
+    random.shuffle(votos)
+    values = []
+    for voto in votos:
+        id_estado = voto['id_estado']
+        es_observado = voto['es_observado']
+        nro_circuito = voto['nro_circuito']
+        id_papeleta = voto['id_papeleta']
+        values.append((id_estado, es_observado, nro_circuito, id_papeleta))
+    try:
+        query = '''
+            INSERT INTO Voto (id_estado, es_observado, nro_circuito, id_papeleta) VALUES (%s, %s, %s, %s)
+        '''
+        cursor.executemany(query, values)
+        cnx.commit()
+        
+        # Eliminar los votos temporales (una vez insertados)
+        cursor.execute('DELETE FROM Votos_temporales')
+        cnx.commit()
+        
+        return 1, cursor.rowcount
+    except Exception as e:
+        cnx.rollback()
+        return -1, str(e)
 
 def get_departamentos():
     query = 'select * from Departamento '

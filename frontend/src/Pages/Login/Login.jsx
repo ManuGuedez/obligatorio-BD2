@@ -55,6 +55,7 @@ function Login() {
       );
 
       console.log("Respuesta del servidor:", user);
+      console.log(localStorage.getItem("user_data"))
 
       if (user.code === 200) {
         console.log("Respuesta del servidor:", user);

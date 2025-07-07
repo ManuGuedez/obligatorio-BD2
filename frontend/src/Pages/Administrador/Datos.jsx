@@ -29,13 +29,15 @@ function Datos() {
       <div className={classes.pageContent}>
         <AdminCard
           title="Ciudadano"
+          className="ciudadano-card"
+
           buttons={[
             {
-              label: "Nuevo Ciudadano",
+              label: "Nuevo",
               onClick: () => setModal("nuevoCiudadano"),
             },
             {
-              label: "Editar Ciudadano",
+              label: "Editar",
               onClick: () => setModal("editarCiudadano"),
             },
           ]}
@@ -44,11 +46,11 @@ function Datos() {
           title="Circuito"
           buttons={[
             {
-              label: "Nuevo Circuito",
+              label: "Nuevo",
               onClick: () => setModal("nuevoCircuito"),
             },
             {
-              label: "Editar Circuito",
+              label: "Editar",
               onClick: () => setModal("editarCircuito"),
             },
           ]}
@@ -57,11 +59,11 @@ function Datos() {
           title="Establecimiento"
           buttons={[
             {
-              label: "Nuevo Establecimiento",
+              label: "Nuevo",
               onClick: () => setModal("nuevoEstablecimiento"),
             },
             {
-              label: "Editar Establecimiento",
+              label: "Editar",
               onClick: () => setModal("editarEstablecimiento"),
             },
           ]}
@@ -70,11 +72,11 @@ function Datos() {
           title="Miembro de Mesa"
           buttons={[
             {
-              label: "Nuevo Miembro",
+              label: "Nuevo",
               onClick: () => setModal("nuevoMiembro"),
             },
             {
-              label: "Editar Miembro",
+              label: "Editar",
               onClick: () => setModal("editarMiembro"),
             },
           ]}

@@ -98,7 +98,7 @@ def login():
     datos_usuario = dict()
     if resultado[1]['role_description'] == "miembroMesa":
         person_data = services.get_person_data(nombre_usuario)
-        usuario = {"ci": person_data['ci'], "nombre_usuario": nombre_usuario, "nombre": person_data['nombre'], "apellido": person_data['apellido'], "id": resultado[1]['id']}
+        usuario = {"ci": person_data['ci'], "nombre_usuario": nombre_usuario, "nombre": person_data['nombre'], "apellido": person_data['apellido'], "id": resultado[1]['id'], "nro_circuito": person_data['nro_circuito']}
         datos_usuario["user"] = usuario 
         
     access_token = create_access_token(identity=str(resultado[1]['id']), additional_claims={'role_description': resultado[1]['role_description'],"id": resultado[1]['id']})
@@ -374,11 +374,7 @@ def cerrar_circuito(nro):
     if role_description != "miembroMesa":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por un miembro de mesa."}), 400
 
-    if len(votos_temporales) > 0:
-        random.shuffle(votos_temporales)
-        guardar_votos = services.insertar_votos(votos_temporales)
-        if guardar_votos[0] < 0:
-            return jsonify({"error": guardar_votos[1]}), 400
+    services.persistir_votos(True)
 
     result = services.cerrar_circuito(claims.get('id'), nro)
 
@@ -400,7 +396,6 @@ def obtener_resultado_final():
         return jsonify({"error": "No tiene autorización para acceder a esta información."}), 400
 
     result = services.obtener_resultado_final(id_miembro)
-    
     if result[0] < 0:
         return jsonify({"error": result[1]}), 400
     return jsonify({"message":result[1]}), 200
@@ -1416,6 +1411,8 @@ def habilitar_votante():
     Habilita a un votante para que pueda votar.
     cuerpo requerido:
         - ci_ciudadano (int)
+        - es_observado (bool)
+        - nro_circuito (int)
     '''
     claims = get_jwt()
     role_description = claims.get('role_description')
@@ -1423,16 +1420,17 @@ def habilitar_votante():
     if role_description != "miembroMesa":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por un miembro de mesa."}), 400
     
-    data = request.get_json()
-    
+    data = request.get_json()    
     ci_ciudadano = data["ci_ciudadano"]
+    es_observado = data["es_observado"]
+    nro_circuito = data["nro_circuito"]
     # Lógica para marcar que el votante está habilitado
     
     # evnia un mensaje (evento) a los clientes conectados por websocket
     # - 'votante_habilitado' es el nombre del evento
     # - {'ci_ciudadano': ci_ciudadano} es el payload del evento
     # namespace='/totem' es el espacio de nombres del socketio (aisla conexiones de diferentes partes de la aplicación)
-    socketio.emit('votante_habilitado', {'ci_ciudadano': ci_ciudadano}) 
+    socketio.emit('votante_habilitado', {'ci_ciudadano': ci_ciudadano, 'es_observado': es_observado, 'nro_circuito': nro_circuito}) 
     return jsonify({"status": "ok"}), 200
 
 @app.route('/emitir_voto', methods=['POST'])
@@ -1456,19 +1454,15 @@ def emitir_voto():
     if result[0] < 0:
         return jsonify({"error": result[1]}), 400    
     
-    votos_temporales.append(votos)
-    print(votos_temporales)
+    result = services.guardar_votos_temporalmente(votos)
+    if result[0] < 0:
+        return jsonify({"error": "no se guardaron los votos"})
+    
+    # Si hay 10 votos, los baraja e inserta
+    services.persistir_votos()
+    
     # Marcar en la base de datos que el votante ya votó (sin guardar el voto junto al id)
     socketio.emit('voto_emitido', {'ci_ciudadano': ci_ciudadano})
-
-    # Si hay 10 votos, los baraja e inserta
-    if len(votos_temporales) >= 10:
-        random.shuffle(votos_temporales)
-        result = services.insertar_votos(votos_temporales)
-        if result[0] < 0:
-            return jsonify({"error": result[1]}), 400
-        votos_temporales.clear()
-
     return jsonify({"status": "ok"}), 200
 
 @app.route('/organismo-publico', methods=["GET"])
