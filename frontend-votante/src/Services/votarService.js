@@ -21,6 +21,22 @@ const votarService = {
             console.error("Error en emitirVoto:", error);
             throw error;
         }
+    },
+    getListas: async () => {
+        try {
+            const response = await ApiService.get("/lista");
+            if (response.code == 200) {
+                console.log("Listas: ", response.data)
+                return response.data
+            } else {
+                console.log("Error al cargar las listas:", response);
+                throw new Error(`Error al cargar las listas: ${response.code}`);
+            }
+        }
+        catch (error) {
+            console.error("Error en getListas:", error);
+            throw error;
+        }
     }
 }
 

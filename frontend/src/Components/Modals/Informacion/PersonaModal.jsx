@@ -4,6 +4,22 @@ import miembroService from "../../../services/miembroServices";
 
 function PersonaModal({ persona, onClose, onVotar }) {
   const [observado, setObservado] = useState(false);
+
+  const handleBackdropClick = (e) => {
+    // Si clickeaste directamente sobre el fondo
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  const handleToggle = () => {
+    setObservado((prev) => !prev);
+  };
+
+  const handleVotar = () => {
+    onVotar(observado); // podemos enviar el estado de observado si querés manejarlo afuera también
+  };
+
   const [yaVoto, setYaVoto] = useState(null);   // null = cargando
   const token = localStorage.getItem("token");
 
@@ -27,49 +43,53 @@ function PersonaModal({ persona, onClose, onVotar }) {
   if (!persona) return null;
 
   return (
-    <div className={classes.modal} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className={classes.modalBox}>
-        {yaVoto === null ? (
-          <p>Cargando estado de voto…</p>
-        ) : (
-          <>
-            <h2>Información del votante</h2>
-            <p><strong>Nombre:</strong> {persona.nombre} {persona.apellido}</p>
-            <p><strong>CI:</strong> {persona.ci}</p>
-            <p>
-              <strong>Estado de voto:</strong>{" "}
-              {yaVoto ? "Ya votó" : "Sin votar"}
-            </p>
+  <div className={classes.modal} onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className={classes.modalBox}>
+      {yaVoto === null ? (
+        <p>Cargando estado de voto…</p>
+      ) : (
+        <>
+          <h2>Información del votante</h2>
+          <p><strong>Nombre:</strong> {persona.nombre} {persona.apellido}</p>
+          <p><strong>CI:</strong> {persona.ci}</p>
+          <p>
+            <strong>Estado de voto:</strong>{" "}
+            {yaVoto ? "Ya votó" : "Sin votar"}
+          </p>
 
-            {!yaVoto && (
-              <div className={classes.controles}>
-                <label>
+          {!yaVoto && (
+            <>
+              <div className={classes.switchContainer}>
+                <br />
+                <span>Voto Observado</span>
+                <br />
+                <label className={classes.switchLabel}>
                   <input
                     type="checkbox"
                     checked={observado}
-                    onChange={() => setObservado(prev => !prev)}
-                  /> Marcar como observado
+                    onChange={handleToggle}
+                  />
+                  <span className={classes.switchSlider}></span>
                 </label>
-                <button
-                  className={classes.votarButton}
-                  onClick={() => { onVotar(observado); onClose(); }}
-                >
-                  Confirmar voto
-                </button>
               </div>
-            )}
-          </>
-        )}
 
-        <button
-          className={classes.cerrarButton}
-          onClick={onClose}
-        >
-          Cerrar
-        </button>
-      </div>
+              <button className={classes.votarButton} onClick={handleVotar}>
+                VOTAR
+              </button>
+            </>
+          )}
+
+          <button
+            className={classes.cerrarButton}
+            onClick={onClose}
+          >
+            Cerrar
+          </button>
+        </>
+      )}
     </div>
-  );
+  </div>
+);
 }
 
 export default PersonaModal;

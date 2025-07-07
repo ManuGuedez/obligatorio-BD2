@@ -87,6 +87,13 @@ export default function HomeMiembroMesa() {
     localStorage.setItem("circuitoAbierto", circuitoAbierto);
   }, [circuitoAbierto]);
 
+  const handleOnVotar = (observado) => {
+    setIsPersonaOpen(false);
+    setEsperandoVoto(true);
+    localStorage.setItem("es_observado", observado)
+  };
+  
+  // Handler búsqueda externa
   const handleSearchExternal = async () => {
     const cc = searchCred.toUpperCase().trim();
     if (!cc) return;
@@ -101,8 +108,9 @@ export default function HomeMiembroMesa() {
 
   useEffect(() => {
     if (esperandoVoto && persona) {
-      miembroService.habilitarVotante(token, persona.ci);
-    }
+      const token = localStorage.getItem("token");
+      miembroService.habilitarVotante(token, persona.ci, localStorage.getItem("es_observado"), localStorage.getItem("nro_circuito"));
+    } if (esperandoVoto && persona) miembroService.habilitarVotante(token, persona.ci);
   }, [esperandoVoto, persona, token]);
 
   const handleAbrirCircuito = async () => {
@@ -114,16 +122,7 @@ export default function HomeMiembroMesa() {
     }
   };
 
-  const handleSeleccionarPersona = (v) => {
-    setPersona(v);
-    setIsPersonaOpen(true);
-  };
-
-  const handleOnVotar = () => {
-    setIsPersonaOpen(false);
-    setEsperandoVoto(true);
-  };
-
+  const handleSeleccionarPersona = v => { setPersona(v); setIsPersonaOpen(true); };
   const handleConfirm = async () => {
     setIsConfirmOpen(false);
     try {

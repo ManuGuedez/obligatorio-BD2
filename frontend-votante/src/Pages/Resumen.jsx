@@ -70,7 +70,7 @@ export default function Resumen() {
                     respuestas.map((r, index) => (
                         <div key={`${r.tipo}-${index}`} className="mb-5">
                             <h2 className="title is-4 has-text-link">
-                                {formatearTitulo(r.tipo)}
+                                {r.tipo}
                             </h2>
                             {renderOpcion(r.tipo, r.opcion)}
                             <hr />
@@ -86,10 +86,10 @@ export default function Resumen() {
 }
 
 function formatearTitulo(tipo) {
-    if (tipo.startsWith("articulo")) {
+    if (tipo?.startsWith("articulo")) {
         return "Plebiscito Artículo " + tipo.replace("articulo", "");
     }
-    if (tipo.startsWith("ley")) {
+    if (tipo?.startsWith("ley")) {
         return "Referéndum Ley " + tipo.replace("ley", "");
     }
     if (tipo === "presidencial") return "Votación Presidencial";

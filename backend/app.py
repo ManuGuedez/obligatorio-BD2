@@ -98,7 +98,7 @@ def login():
     datos_usuario = dict()
     if resultado[1]['role_description'] == "miembroMesa":
         person_data = services.get_person_data(nombre_usuario)
-        usuario = {"ci": person_data['ci'], "nombre_usuario": nombre_usuario, "nombre": person_data['nombre'], "apellido": person_data['apellido'], "id": resultado[1]['id']}
+        usuario = {"ci": person_data['ci'], "nombre_usuario": nombre_usuario, "nombre": person_data['nombre'], "apellido": person_data['apellido'], "id": resultado[1]['id'], "nro_circuito": person_data['nro_circuito']}
         datos_usuario["user"] = usuario 
         
     access_token = create_access_token(identity=str(resultado[1]['id']), additional_claims={'role_description': resultado[1]['role_description'],"id": resultado[1]['id']})
@@ -1397,6 +1397,8 @@ def habilitar_votante():
     Habilita a un votante para que pueda votar.
     cuerpo requerido:
         - ci_ciudadano (int)
+        - es_observado (bool)
+        - nro_circuito (int)
     '''
     claims = get_jwt()
     role_description = claims.get('role_description')
@@ -1404,16 +1406,17 @@ def habilitar_votante():
     if role_description != "miembroMesa":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por un miembro de mesa."}), 400
     
-    data = request.get_json()
-    
+    data = request.get_json()    
     ci_ciudadano = data["ci_ciudadano"]
+    es_observado = data["es_observado"]
+    nro_circuito = data["nro_circuito"]
     # Lógica para marcar que el votante está habilitado
     
     # evnia un mensaje (evento) a los clientes conectados por websocket
     # - 'votante_habilitado' es el nombre del evento
     # - {'ci_ciudadano': ci_ciudadano} es el payload del evento
     # namespace='/totem' es el espacio de nombres del socketio (aisla conexiones de diferentes partes de la aplicación)
-    socketio.emit('votante_habilitado', {'ci_ciudadano': ci_ciudadano}) 
+    socketio.emit('votante_habilitado', {'ci_ciudadano': ci_ciudadano, 'es_observado': es_observado, 'nro_circuito': nro_circuito}) 
     return jsonify({"status": "ok"}), 200
 
 @app.route('/emitir_voto', methods=['POST'])

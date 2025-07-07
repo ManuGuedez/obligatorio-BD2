@@ -22,11 +22,10 @@ const miembroService = {
         }
     },
 
-    habilitarVotante: async (token, ciCiudadano) => {
+    habilitarVotante: async (token, ciCiudadano, esObservado, nroCircuito) => {
         try {
-
-            console.log("Habilitando votante con CI:", ciCiudadano);
-            const response = await ApiService.post("/habilitar_votante", { ci_ciudadano: ciCiudadano }, "application/json", token);
+            console.log("Habilitando votante con CI:", ciCiudadano);          
+            const response = await ApiService.post("/habilitar_votante", { ci_ciudadano: ciCiudadano, es_observado: esObservado, nro_circuito: nroCircuito },"application/json", token);
             console.log("Votante habilitado:", response.data);
             return response.data;
         } catch (error) {

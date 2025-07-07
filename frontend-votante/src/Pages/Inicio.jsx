@@ -11,19 +11,22 @@ function Inicio() {
   const { siguiente } = useFlujo();
 
   const [habilitado, setHabilitado] = useState(false);
-  const [ciCiudadano, setciCiudadano] = useState(null);
+  const [infoCiudadano, setInfoCiudadano] = useState(null);
 
   useSocketTotem((data) => {
-    setciCiudadano(data.ci_ciudadano);
+    setInfoCiudadano(data)
     setHabilitado(true);
   });
 
   useEffect(() => {
-    if (ciCiudadano && ciCiudadano !== null && ciCiudadano !== undefined) {
-      localStorage.setItem("ci_ciudadano", ciCiudadano);
-      console.log("CI del ciudadano guardada:", ciCiudadano);
+    if (infoCiudadano && infoCiudadano !== null && infoCiudadano !== undefined) {
+      localStorage.setItem("ci_ciudadano", infoCiudadano.ci_ciudadano);
+      localStorage.setItem("es_observado", infoCiudadano.es_observado);
+      localStorage.setItem("nro_circuito", infoCiudadano.nro_circuito);
+      console.log("info del ciudadano guardada:", infoCiudadano);
+      console.log(infoCiudadano.es_observado);
     }
-  }, [ciCiudadano]);
+  }, [infoCiudadano]);
 
   const handleConfigClick = () => {
     const configIcon = document.querySelector(

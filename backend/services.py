@@ -150,7 +150,7 @@ def get_person_data(nombre_usuario):
     obtiene los datos de la persona dado su nombre de usuario
     retorna un diccionario con los datos de la persona
     '''
-    query = """SELECT c.ci, c.nombre, c.apellido, r.descripcion_rol 
+    query = """SELECT c.ci, c.nombre, c.apellido, r.descripcion_rol, m.nro_circuito 
                 FROM Ciudadano c 
                 JOIN Miembro_mesa m ON (c.ci = m.ci_ciudadano)
                 JOIN Usuario_miembro um ON (m.id_miembro = um.id_miembro)  
