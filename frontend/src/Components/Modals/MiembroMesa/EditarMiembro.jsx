@@ -145,13 +145,13 @@ function EditarMiembro({ onClose }) {
                 {editFields.circuito ? (
                   <div style={{ flex: 1 }}>
                     <input
-                      className="input mb-2"
+                      className="input mb-2 is-rounded"
                       type="text"
                       placeholder="Buscar..."
                       value={busquedaCircuito}
                       onChange={(e) => setBusquedaCircuito(e.target.value)}
                     />
-                    <div className="select is-fullwidth">
+                    <div className="select is-fullwidth is-rounded">
                       <select
                         name="circuito"
                         value={circuitoSelected}
@@ -186,14 +186,7 @@ function EditarMiembro({ onClose }) {
               <div className={styles.inputRow}>
                 {editFields.rol ? (
                   <div style={{ flex: 1 }}>
-                    <input
-                      className="input mb-2"
-                      type="text"
-                      placeholder="Buscar..."
-                      value={busquedaRol}
-                      onChange={(e) => setBusquedaRol(e.target.value)}
-                    />
-                    <div className="select is-fullwidth">
+                    <div className="select is-fullwidth is-rounded">
                       <select
                         name="rol"
                         value={rolSelected}
@@ -225,14 +218,19 @@ function EditarMiembro({ onClose }) {
                 <FaPen className={styles.editIcon} onClick={() => habilitarCampo("rol")} />
               </div>
               <div className={styles.actionRow}>
+                <button
+                  type="button"
+                  className="button is-danger is-rounded has-text-white"
+                  style={{gap:"3px"}}
+                  onClick={handleEliminar}
+                >
+                  <FaTrashAlt /> Eliminar miembro
+                </button>
                 {hayCambios && (
                   <button type="submit" className={styles.deleteButton}>
                     Guardar cambios
                   </button>
                 )}
-                <button type="button" className={styles.deleteButton} onClick={handleEliminar}>
-                  <FaTrashAlt /> eliminar miembro
-                </button>
               </div>
             </>
           )}

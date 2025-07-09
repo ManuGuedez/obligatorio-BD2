@@ -84,18 +84,16 @@ function NuevoCiudadano({ onClose }) {
             Nº Credencial
             <input name="numero" type="text" className={styles.input} required />
           </label>
-          <label className="label">Circuito</label>
           <div className="control">
+            <label>Circuito</label>
             <input
-              className="input"
+              className="input is-rounded"
               type="text"
               placeholder="Buscar..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
             />
-          </div>
-          <div className="control mt-2">
-            <div className="select is-fullwidth">
+            <div className="select is-fullwidth is-rounded mt-1">
               <select
                 value={circuito || ""}
                 onChange={(e) => setCircuito(Number(e.target.value))}

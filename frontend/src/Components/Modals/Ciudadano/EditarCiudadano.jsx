@@ -147,9 +147,11 @@ const handleEliminar = async () => {
               required
               disabled={!!ciudadano}
             />
-            <button type="submit" className={styles.iconButton}>
-              <FaSearch />
-            </button>
+            {!ciudadano ? (
+              <button type="submit" className={styles.iconButton}>
+                <FaSearch />
+              </button>
+            ) : null}
           </div>
 
           {ciudadano && (
@@ -218,13 +220,13 @@ const handleEliminar = async () => {
                 {editFields.circuito ? (
                   <div className="field is-fullwidth" style={{ flex: 1 }}>
                     <input
-                      className="input mb-2"
+                      className="input mb-2 is-rounded"
                       type="text"
                       placeholder="Buscar..."
                       value={busqueda}
                       onChange={(e) => setBusqueda(e.target.value)}
                     />
-                    <div className="select is-fullwidth">
+                    <div className="select is-fullwidth is-rounded">
                       <select
                         name="circuito"
                         value={circuito || ""}
@@ -256,11 +258,12 @@ const handleEliminar = async () => {
             
               <div className={styles.actionRow}>
                 <button
-                  type="button"
-                  className={styles.deleteButton}
-                  onClick={handleEliminar}
-                >
-                  <FaTrashAlt /> Eliminar ciudadano
+                    type="button"
+                    className="button is-danger is-rounded has-text-white"
+                    style={{gap:"3px"}}
+                    onClick={handleEliminar}
+                  >
+                    <FaTrashAlt /> Eliminar ciudadano
                 </button>
                 {hayCambios && (
                   <button type="submit" className={styles.deleteButton}>
@@ -272,9 +275,7 @@ const handleEliminar = async () => {
           )}
         </form>
 
-        <button className={styles.closeButton} onClick={onClose}>
-          X
-        </button>
+        <button className={`${styles.closeButton} delete has-background-link`} onClick={onClose}/>
       </div>
     </div>
   );

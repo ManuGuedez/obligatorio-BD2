@@ -971,7 +971,6 @@ def get_citizens_by_member_circuit():
     else:
         return jsonify({"error": "No se encontraron ciudadanos en el circuito especificado"}), 400
 
-
 @app.route('/miembro', methods=['POST'])
 @jwt_required()
 def add_member():
@@ -984,20 +983,53 @@ def add_member():
     '''
     claims = get_jwt()
     role_description = claims.get('role_description')
-    
+
     if role_description != "admin":
         return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
-    
+
     data = request.get_json()
     required_fields = {'id_organismo', 'ci', 'nro_circuito', 'id_rol'}
-    if data.keys() != required_fields:
+    if set(data.keys()) != required_fields:
         return jsonify({"error": "Todos los campos son requeridos"}), 400
-    
+
+    # 1. Agregar miembro
     result = services.add_member(data['id_organismo'], data['ci'], data['nro_circuito'], data['id_rol'])
-    
     if result[0] < 0:
         return jsonify({"error": result[1]}), 400
-    return jsonify({"message": "Miembro agregado exitosamente"}), 200
+
+    miembro_id = result[1]  # ID del miembro recién creado
+
+    try:
+        # 2. Obtener datos del ciudadano por su CI
+        ciudadano = services.get_citizen(data['ci'])
+        if not ciudadano:
+            return jsonify({"error": "No se encontró el ciudadano correspondiente"}), 400
+
+        nombre = ciudadano['nombre'].strip().lower()
+        apellido = ciudadano['apellido'].strip().lower()
+        nombre_usuario = f"{nombre}.{apellido}"
+        password = f"{ciudadano['nombre']}_{ciudadano['apellido']}123"
+
+        # 3. Crear el usuario asociado al miembro
+        usuario_data = {
+            'nombre_usuario': nombre_usuario,
+            'password': password,
+            'id_miembro': miembro_id
+        }
+        result_user = services.register_user(usuario_data)
+
+        if result_user[0] < 0:
+            return jsonify({"error": result_user[1]}), 400
+
+        return jsonify({
+            "message": "Miembro y usuario creados exitosamente",
+            "usuario": nombre_usuario,
+            "password_generada": password
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+
 
 @app.route('/miembro/bulk', methods=['POST'])
 @jwt_required()

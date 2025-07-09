@@ -133,9 +133,11 @@ function EditarPolicia({ onClose }) {
               required
               disabled={!!policia}
             />
-            <button type="submit" className={styles.iconButton}>
-              <FaSearch />
-            </button>
+            {!policia && (
+              <button type="submit" className={styles.iconButton}>
+                <FaSearch />
+              </button>
+            )}
           </div>
 
           {policia && (
@@ -145,13 +147,13 @@ function EditarPolicia({ onClose }) {
                 {editFields.comisaria ? (
                   <div className="field is-fullwidth" style={{ flex: 1 }}>
                     <input
-                      className="input mb-2"
+                      className="input mb-2 is-rounded"
                       type="text"
                       placeholder="Buscar..."
                       value={busquedaComisaria}
                       onChange={(e) => setBusquedaComisaria(e.target.value)}
                     />
-                    <div className="select is-fullwidth">
+                    <div className="select is-fullwidth is-rounded">
                       <select
                         name="comisaria"
                         value={comisaria || ""}
@@ -185,13 +187,13 @@ function EditarPolicia({ onClose }) {
                 {editFields.establecimiento ? (
                   <div className="field is-fullwidth" style={{ flex: 1 }}>
                     <input
-                      className="input mb-2"
+                      className="input mb-2 is-rounded"
                       type="text"
                       placeholder="Buscar..."
                       value={busqueda}
                       onChange={(e) => setBusqueda(e.target.value)}
                     />
-                    <div className="select is-fullwidth">
+                    <div className="select is-fullwidth is-rounded">
                       <select
                         name="establecimiento"
                         value={establecimiento || ""}
@@ -225,7 +227,8 @@ function EditarPolicia({ onClose }) {
               <div className={styles.actionRow}>
                 <button
                   type="button"
-                  className={styles.deleteButton}
+                  className="button is-danger is-rounded has-text-white"
+                  style={{gap:"3px"}}
                   onClick={handleEliminar}
                 >
                   <FaTrashAlt /> Eliminar policía

@@ -182,7 +182,7 @@ function EditarEstablecimiento({ onClose }) {
                             </div>
                             <div className={styles.buttonRow}>
                                 <button type="button" onClick={onClose} className={styles.cancelButton}>Cancelar</button>
-                                <button type="submit" className={styles.saveButton}>Guardar cambios</button>
+                                <button type="submit" className="button is-link is-rounded has-text-weight-bold has-text-info">Guardar cambios</button>
                             </div>
                         </>
                     )}

@@ -838,7 +838,9 @@ def add_member(id_organismo,ci, nro_circuito, id_rol):
 
         cnx.commit()
         if cursor.rowcount > 0:
-            return 1, "Miembro agregado exitosamente"
+            cursor.execute('SELECT LAST_INSERT_ID() AS id')
+            result = cursor.fetchone()
+            return 1, result['id']
         else:
             return -1, "Ya existe un miembro con ese rol en el circuito"
 

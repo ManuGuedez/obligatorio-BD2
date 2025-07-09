@@ -191,8 +191,13 @@ function EditarCircuito({ onClose }) {
 
 
               <div className={styles.actionRow}>
-                <button type="button" className="button is-danger has-text-white is-rounded" style={{gap: "2px"}} onClick={handleEliminar}>
-                  <FaTrashAlt/> Eliminar Circuito
+                <button
+                  type="button"
+                  className="button is-danger is-rounded has-text-white"
+                  style={{gap:"3px"}}
+                  onClick={handleEliminar}
+                >
+                  <FaTrashAlt /> Eliminar circuito
                 </button>
                 {hayCambios && (
                   <button type="submit" className={styles.deleteButton}>
@@ -204,7 +209,7 @@ function EditarCircuito({ onClose }) {
           )}
         </form>
 
-        <button className={styles.closeButton} onClick={onClose}>X</button>
+        <button className={`${styles.closeButton} delete has-background-link`} onClick={onClose}/>
       </div>
     </div>
   );

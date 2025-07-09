@@ -85,11 +85,11 @@ function Datos() {
           title="Policías"
           buttons={[
             {
-              label: "Nuevo Policía",
+              label: "Nuevo",
               onClick: () => setModal("nuevoPolicia"),
             },
             {
-              label: "Editar Policía",
+              label: "Editar",
               onClick: () => setModal("editarPolicia"),
             },
           ]}
@@ -98,12 +98,8 @@ function Datos() {
           title="Candidatos"
           buttons={[
             {
-              label: "Nuevo Candidato",
+              label: "Nuevo",
               onClick: () => setModal("nuevoCandidato"),
-            },
-            {
-              label: "Editar Candidato",
-              onClick: () => setModal("editarCandidato"),
             },
           ]}
         />
@@ -111,7 +107,7 @@ function Datos() {
           title="Partidos Políticos"
           buttons={[
             {
-              label: "Nuevo Partido Político",
+              label: "Nuevo",
               onClick: () => setModal("nuevoPartido"),
             },
           ]}
