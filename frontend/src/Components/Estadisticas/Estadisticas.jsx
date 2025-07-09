@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
   ResponsiveContainer,
-  Legend
+  Legend,
 } from "recharts";
 import ApiService from "../../services/apiServices";
 
@@ -25,12 +25,15 @@ export default function Estadisticas() {
     presidente: "-",
     vicepresidente: "-",
     partido: "-",
-    votosPorLista: [] // opcional, si querés más adelante
+    votosPorLista: [], // opcional, si querés más adelante
   });
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await ApiService.get("/circuitos/obtener-resultado-final", token);
+        const response = await ApiService.get(
+          "/circuitos/obtener-resultado-final",
+          token
+        );
         console.log("Estadísticas:", response.data);
 
         if (response?.data?.message) {
@@ -48,18 +51,30 @@ export default function Estadisticas() {
     fetchData();
   }, [token]);
 
+  const obtenerListasMasVotadas = (listas) => {
+    const maxVotos = Math.max(...listas.map((l) => l.votos));
+    return listas.filter((l) => l.votos === maxVotos);
+  };
 
   const noVotaron = estadisticas.totalVotantes - estadisticas.votaron;
 
   const chartData = {
     participacion: [
       { name: "Votaron", value: estadisticas.votaron, color: "#36A2EB" },
-      { name: "No votaron", value: noVotaron, color: "#FF6384" }
+      { name: "No votaron", value: noVotaron, color: "#FF6384" },
     ],
     observados: [
-      { name: "Votos Observados", value: estadisticas.votosObservados, color: "#FFCE56" },
-      { name: "Votos Normales", value: estadisticas.votaron - estadisticas.votosObservados, color: "#4CAF50" }
-    ]
+      {
+        name: "Votos Observados",
+        value: estadisticas.votosObservados,
+        color: "#FFCE56",
+      },
+      {
+        name: "Votos Normales",
+        value: estadisticas.votaron - estadisticas.votosObservados,
+        color: "#4CAF50",
+      },
+    ],
   };
 
   const renderPieChart = (data, title) => (
@@ -119,7 +134,9 @@ export default function Estadisticas() {
         <div className={styles.votosOpcionesRow}>
           <div className={styles.cardSi}>
             <h3 className={styles.valor}>
-              {estadisticas.votosAFavorConsulta?.[0]?.porcentaje?.toFixed(2) ?? "0.00"}%
+              {estadisticas.votosAFavorConsulta?.[0]?.porcentaje?.toFixed(2) ??
+                "0.00"}
+              %
             </h3>
             <p className={styles.subtitulo}>Votos por Sí</p>
             <p className={styles.detalle}>
@@ -129,7 +146,9 @@ export default function Estadisticas() {
 
           <div className={styles.cardNo}>
             <h3 className={styles.valor}>
-              {estadisticas.votosAFavorConsulta?.[1]?.porcentaje?.toFixed(2) ?? "0.00"}%
+              {estadisticas.votosAFavorConsulta?.[1]?.porcentaje?.toFixed(2) ??
+                "0.00"}
+              %
             </h3>
             <p className={styles.subtitulo}>Votos por No</p>
             <p className={styles.detalle}>
@@ -138,12 +157,18 @@ export default function Estadisticas() {
           </div>
 
           <div className={styles.cardFormula}>
-            <h3 className={styles.subtitulo}>Fórmula ganadora</h3>
-            <p className={styles.valor}>{estadisticas.presidente}</p>
-            <p className={styles.detalle}>{estadisticas.vicepresidente}</p>
-            <p className={styles.detalleSecundario}>
-              {estadisticas.partido}
-            </p>
+            {estadisticas.votosPorLista.length > 0 && (
+              <div >
+                <h2 className={styles.title}>Lista más votada</h2>
+                {obtenerListasMasVotadas(estadisticas.votosPorLista).map(
+                  (l, i) => (
+                    <p key={i}>
+                      Lista {l.lista} con {l.votos} voto(s)
+                    </p>
+                  )
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
