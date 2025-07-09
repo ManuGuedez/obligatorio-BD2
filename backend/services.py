@@ -1521,12 +1521,30 @@ def obtener_resultado_final(id_miembro):
     """, (circuito,))
     votos_consulta = cursor.fetchall()
     
+    # 7. Votos en blanco
+    cursor.execute("""
+        SELECT COUNT(*) AS votosEnBlanco
+        FROM Voto
+        WHERE nro_circuito = %s AND id_estado = 2
+    """, (circuito,))
+    votos_en_blanco = cursor.fetchone()["votosEnBlanco"]
+
+    # 8. Votos anulados
+    cursor.execute("""
+        SELECT COUNT(*) AS votosAnulados
+        FROM Voto
+        WHERE nro_circuito = %s AND id_estado = 3
+    """, (circuito,))
+    votos_anulados = cursor.fetchone()["votosAnulados"]
+    
     return 1, {
         "totalVotantes": total,
         "votaron": votaron,
         "votosPorLista": votos_lista,
         "votosObservados": observados,
-        "votosAFavorConsulta": votos_consulta
+        "votosAFavorConsulta": votos_consulta,
+        "votosEnBlanco": votos_en_blanco,
+        "votosAnulados": votos_anulados
     }
     
 
@@ -1546,6 +1564,7 @@ def eleccion_finalizada():
     cursor.execute(query)
     
     pendientes = cursor.fetchone().get('pendientes', 0)
+    print("Circuitos pendientes de cerrar:", pendientes)
     return pendientes == 0
 
 def obtener_votos_por_lista_con_porcentaje(nro_circuito=None):
@@ -1589,10 +1608,33 @@ def obtener_votos_por_lista_con_porcentaje(nro_circuito=None):
     cursor.execute(query, params)
 
     resultados = cursor.fetchall()
+    
+      
+    votos_blanco, votos_anulado = obtener_votos_blanco_anulado(where_clause, params)
+    
+    total_con_otros = total_votos + votos_blanco + votos_anulado
+
+    porc_blanco = (votos_blanco / total_con_otros) * 100
+    porc_anulado = (votos_anulado / total_con_otros) * 100
 
     for r in resultados:
-        porcentaje = (r["votos"] / total_votos) * 100
+        porcentaje = (r["votos"] / total_con_otros) * 100
         r["porcentaje"] = f"{porcentaje:.2f}%"
+    
+    resultados.append({
+        "lista": "En Blanco",
+        "numero_lista": "-",
+        "partido": "En Blanco",
+        "votos": votos_blanco,
+        "porcentaje": f"{porc_blanco:.2f}%"
+    })
+    resultados.append({
+        "lista": "Anulado",
+        "numero_lista": "-",
+        "partido": "Anulado",
+        "votos": votos_anulado,
+        "porcentaje": f"{porc_anulado:.2f}%"
+    })
 
     return 1, resultados
 
@@ -1654,6 +1696,32 @@ def obtener_votos_por_partido_con_color(nro_circuito=None):
 
     return 1, datos
 
+def obtener_votos_blanco_anulado(where_clause="", params=None):
+    if params is None:
+        params = []
+
+    where = "WHERE V.id_estado IN (2, 3)"
+    query_params = []
+
+    if where_clause:
+        # Si ya hay condiciones, agregamos el filtro adicional
+        where = f"{where_clause} AND V.id_estado IN (2, 3)"
+        query_params = params
+
+    cursor.execute(f"""
+        SELECT id_estado, COUNT(*) AS cantidad
+        FROM Voto V
+        {where}
+        GROUP BY V.id_estado
+    """, query_params)
+
+    otros = cursor.fetchall()
+
+    votos_blanco = next((x["cantidad"] for x in otros if x["id_estado"] == 2), 0)
+    votos_anulado = next((x["cantidad"] for x in otros if x["id_estado"] == 3), 0)
+
+    return votos_blanco, votos_anulado
+
 
 def get_organismos_publicos():
     query = '''SELECT * FROM Organismo_publico'''
@@ -1699,20 +1767,44 @@ def obtener_votos_por_partido(nro_circuito=None):
     """, params)
 
     resultados = cursor.fetchall()
+    
+    votos_blanco, votos_anulado = obtener_votos_blanco_anulado(where_clause, params)
+    
+    total_con_otros = total_votos + votos_blanco + votos_anulado
 
+    porc_blanco = (votos_blanco / total_con_otros) * 100
+    porc_anulado = (votos_anulado / total_con_otros) * 100
+    
     for r in resultados:
-        porcentaje = (r["votos"] / total_votos) * 100
+        porcentaje = (r["votos"] / total_con_otros) * 100
         r["porcentaje"] = f"{porcentaje:.2f}%"
+
+    # Agregar filas extra al final
+    resultados.append({
+        "partido": "En Blanco",
+        "votos": votos_blanco,
+        "porcentaje": f"{porc_blanco:.2f}%"
+    })
+    resultados.append({
+        "partido": "Anulado",
+        "votos": votos_anulado,
+        "porcentaje": f"{porc_anulado:.2f}%"
+    })
+
 
     return 1, resultados
 
 def obtener_votos_por_candidato(nro_circuito=None):
-    cursor = cnx.cursor(dictionary=True)
+    where_clause = ""
+    params = []
 
     if nro_circuito is not None:
-        if not validar_circuito_cerrado(nro_circuito):
-            return -1, "El circuito debe estar cerrado para ver los resultados"
-       
+        if validar_circuito_cerrado(nro_circuito):
+            where_clause = "WHERE V.nro_circuito = %s"
+            params = [nro_circuito]
+        else:
+            return -1, "El circuito debe cerrar para ver los resultados"
+    
     if not eleccion_finalizada():
         return -1, "La elección debe finalizar para ver los resultados"
         
@@ -1745,10 +1837,30 @@ def obtener_votos_por_candidato(nro_circuito=None):
     """, params)
 
     resultados = cursor.fetchall()
+    
+    votos_blanco, votos_anulado = obtener_votos_blanco_anulado(where_clause, params)
+    
+    total_con_otros = total_votos + votos_blanco + votos_anulado
+
+    porc_blanco = (votos_blanco / total_con_otros) * 100
+    porc_anulado = (votos_anulado / total_con_otros) * 100
 
     for r in resultados:
-        porcentaje = (r["votos"] / total_votos) * 100
+        porcentaje = (r["votos"] / total_con_otros) * 100
         r["porcentaje"] = f"{porcentaje:.2f}%"
+
+    resultados.append({
+    "partido": "En Blanco",
+    "candidato": "En blanco",
+    "votos": votos_blanco,
+    "porcentaje": f"{porc_blanco:.2f}%"
+    })
+    resultados.append({
+        "partido": "Anulado",
+        "candidato": "Anulado",
+        "votos": votos_anulado,
+        "porcentaje": f"{porc_anulado:.2f}%"
+    })
 
     return 1, resultados
 
