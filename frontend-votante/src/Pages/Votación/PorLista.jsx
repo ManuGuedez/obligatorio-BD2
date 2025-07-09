@@ -86,15 +86,7 @@ function VotacionPorLista() {
             </div>
 
             <div className={classes.footer}>
-                <button
-                    className="button has-background-grey-lighter is-large is-rounded"
-                    onClick={() => {
-                        const prevStep = anterior();
-                        navigate(`${prevStep.tipo}`, { state: prevStep });
-                    }}
-                    disabled
-                >
-                    <strong>Atrás</strong>
+                <button>
                 </button>
                 <button className="button has-background-grey-lighter is-large is-rounded" onClick={handleSiguienteClick} disabled={!selectedItem}>
                     <strong>Siguiente</strong>

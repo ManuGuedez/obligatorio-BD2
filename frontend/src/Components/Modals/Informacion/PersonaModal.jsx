@@ -72,19 +72,17 @@ function PersonaModal({ persona, onClose, onVotar }) {
                   <span className={classes.switchSlider}></span>
                 </label>
               </div>
-
+              <button
+                className={classes.cerrarButton}
+                onClick={onClose}
+              >
+                Cerrar
+              </button>
               <button className={classes.votarButton} onClick={handleVotar}>
                 VOTAR
               </button>
             </>
           )}
-
-          <button
-            className={classes.cerrarButton}
-            onClick={onClose}
-          >
-            Cerrar
-          </button>
         </>
       )}
     </div>

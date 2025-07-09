@@ -184,7 +184,7 @@ export default function HomeMiembroMesa() {
           </div>
         </div>
 
-        <h3>Votantes de mi circuito</h3>
+        <p className="title is-4">Votantes de mi circuito</p>
         <div className={classes.searchBox}>
           <input
             type="text"
@@ -203,7 +203,7 @@ export default function HomeMiembroMesa() {
             <div key={i} className={classes.votante} onClick={() => handleSeleccionarPersona(v)}>
               <FaUser className={classes.userIcon} />
               <div className={classes.votanteInfo}>
-                <p>{v.nombre}</p>
+                <p>{v.nombre} {v.apellido}</p>
                 <span>{formatearCredencial(v)}</span>
               </div>
               {v.tipoVoto === "observado" ? (
