@@ -1472,7 +1472,29 @@ def insertar_votos(votos_temporales):
     except Exception as e:
         return -1, f"Error inesperado: {str(e)}"
         
-    
+
+def obtener_votos_blanco_anulado(where_clause="", params=None):
+    if params is None:
+        params = []
+
+    estado_filter = "V.id_estado IN (2, 3)"
+    where = f"{where_clause} AND {estado_filter}" if where_clause else f"WHERE {estado_filter}"
+
+    cursor.execute(f"""
+        SELECT id_estado, COUNT(*) AS cantidad
+        FROM Voto V
+        {where}
+        GROUP BY V.id_estado
+    """, params)
+
+    otros = cursor.fetchall()
+
+    votos_blanco = next((x["cantidad"] for x in otros if x["id_estado"] == 2), 0)
+    votos_anulado = next((x["cantidad"] for x in otros if x["id_estado"] == 3), 0)
+
+    return votos_blanco, votos_anulado
+
+
 def obtener_resultado_final(id_miembro):
     # 1. Obtener circuito
     cursor.execute("SELECT nro_circuito FROM Miembro_mesa WHERE id_miembro = %s", (id_miembro,))
@@ -1696,32 +1718,6 @@ def obtener_votos_por_partido_con_color(nro_circuito=None):
 
     return 1, datos
 
-def obtener_votos_blanco_anulado(where_clause="", params=None):
-    if params is None:
-        params = []
-
-    where = "WHERE V.id_estado IN (2, 3)"
-    query_params = []
-
-    if where_clause:
-        # Si ya hay condiciones, agregamos el filtro adicional
-        where = f"{where_clause} AND V.id_estado IN (2, 3)"
-        query_params = params
-
-    cursor.execute(f"""
-        SELECT id_estado, COUNT(*) AS cantidad
-        FROM Voto V
-        {where}
-        GROUP BY V.id_estado
-    """, query_params)
-
-    otros = cursor.fetchall()
-
-    votos_blanco = next((x["cantidad"] for x in otros if x["id_estado"] == 2), 0)
-    votos_anulado = next((x["cantidad"] for x in otros if x["id_estado"] == 3), 0)
-
-    return votos_blanco, votos_anulado
-
 
 def get_organismos_publicos():
     query = '''SELECT * FROM Organismo_publico'''
@@ -1795,25 +1791,24 @@ def obtener_votos_por_partido(nro_circuito=None):
     return 1, resultados
 
 def obtener_votos_por_candidato(nro_circuito=None):
+    if not eleccion_finalizada():
+        return -1, "La elección debe finalizar para ver los resultados"
+    
+    # Filtro dinámico
     where_clause = ""
     params = []
 
     if nro_circuito is not None:
-        if validar_circuito_cerrado(nro_circuito):
-            where_clause = "WHERE V.nro_circuito = %s"
-            params = [nro_circuito]
-        else:
+        if not validar_circuito_cerrado(nro_circuito):
             return -1, "El circuito debe cerrar para ver los resultados"
-    
-    if not eleccion_finalizada():
-        return -1, "La elección debe finalizar para ver los resultados"
-        
-    params = [nro_circuito, nro_circuito] if nro_circuito is not None else [None, None]
+        where_clause = "WHERE V.nro_circuito = %s"
+        params = [nro_circuito]
 
-    # Total de votos (válidos) en ese circuito o global
-    cursor.execute("""
-        SELECT COUNT(*) AS total FROM Voto V
-        WHERE (%s IS NULL OR V.nro_circuito = %s)
+    # Total de votos válidos
+    cursor.execute(f"""
+        SELECT COUNT(*) AS total
+        FROM Voto V
+        {where_clause if where_clause else ""}
     """, params)
     total_votos = cursor.fetchone()["total"]
 
@@ -1821,7 +1816,7 @@ def obtener_votos_por_candidato(nro_circuito=None):
         return -1, "No se registraron votos."
 
     # Votos por candidato
-    cursor.execute("""
+    cursor.execute(f"""
         SELECT
             PP.nombre AS partido,
             CONCAT(C.apellido, ' ', C.nombre) AS candidato,
@@ -1832,34 +1827,33 @@ def obtener_votos_por_candidato(nro_circuito=None):
         JOIN Candidato CD ON L.id_candidato_apoyado = CD.id
         JOIN Ciudadano C ON CD.ci_ciudadano = C.ci
         LEFT JOIN Voto V ON V.id_papeleta = P.id
-            AND (%s IS NULL OR V.nro_circuito = %s)
-        GROUP BY PP.nombre, C.apellido, C.nombre, CD.id;    
-    """, params)
-
+            {"AND V.nro_circuito = %s" if nro_circuito is not None else ""}
+        GROUP BY PP.nombre, C.apellido, C.nombre, CD.id
+    """, params if nro_circuito is not None else [])
+    
     resultados = cursor.fetchall()
-    
-    votos_blanco, votos_anulado = obtener_votos_blanco_anulado(where_clause, params)
-    
-    total_con_otros = total_votos + votos_blanco + votos_anulado
 
-    porc_blanco = (votos_blanco / total_con_otros) * 100
-    porc_anulado = (votos_anulado / total_con_otros) * 100
+    # Votos blanco y anulados
+    votos_blanco, votos_anulado = obtener_votos_blanco_anulado(where_clause, params)
+
+    total_con_otros = total_votos + votos_blanco + votos_anulado
 
     for r in resultados:
         porcentaje = (r["votos"] / total_con_otros) * 100
         r["porcentaje"] = f"{porcentaje:.2f}%"
 
+    # Añadir blanco y anulados
     resultados.append({
-    "partido": "En Blanco",
-    "candidato": "En blanco",
-    "votos": votos_blanco,
-    "porcentaje": f"{porc_blanco:.2f}%"
+        "partido": "En Blanco",
+        "candidato": "En blanco",
+        "votos": votos_blanco,
+        "porcentaje": f"{(votos_blanco / total_con_otros) * 100:.2f}%"
     })
     resultados.append({
         "partido": "Anulado",
         "candidato": "Anulado",
         "votos": votos_anulado,
-        "porcentaje": f"{porc_anulado:.2f}%"
+        "porcentaje": f"{(votos_anulado / total_con_otros) * 100:.2f}%"
     })
 
     return 1, resultados

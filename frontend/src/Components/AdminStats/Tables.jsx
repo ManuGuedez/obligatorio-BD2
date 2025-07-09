@@ -129,15 +129,22 @@ const Tables = () => {
                 console.log("Resultados por partido:", data2);
                 const data3 = await adminService.getResultadosPorCandidato(token, circuito);
                 console.log("Resultados por candidato:", data3);
-                // 1° tabla: tal cual viene
-                const tabla1 = data;
 
-                // 2° tabla: agrupados por partido
-                const tabla2 = data2;
+                const ordenarResultados = (tabla) => {
+                    return tabla.sort((a, b) => {
+                        if (b.votos !== a.votos) {
+                            return b.votos - a.votos; // primero por votos (descendente)
+                        }
+                        return a.partido.localeCompare(b.partido); // luego por partido (ascendente)
+                    });
+                };
 
-                const tabla3 = data3;
+                const tabla1 = ordenarResultados(data);
+                const tabla2 = ordenarResultados(data2);
+                const tabla3 = ordenarResultados(data3);
 
                 setReportsArray([tabla1, tabla2, tabla3]);
+
 
             } catch (error) {
                 console.error("Error al obtener resultados por lista:", error);
@@ -165,7 +172,7 @@ const Tables = () => {
                             }}
                         />
                     </div>
-                    <div className="dropdown-menu" style={{ width: "100%" }}>
+                    <div className="dropdown-menu is-rounded" style={{ width: "100%" }}>
                         <div className={`dropdown-content`} style={{ maxHeight: "150px", overflowY: "auto" }}>
                             {circuitos
                             .filter((c) => c.nro.toString().includes(circuitoInput))
