@@ -19,7 +19,7 @@ const Tables = () => {
             case 0: // de un circuito
                 return reportsArray[0] && reportsArray[0].length > 0 ? (
                     <table className={`table is-fullwidth is-striped`}>
-                        <thead>
+                        <thead className={classes.tableHeader}>
                             <tr className={`is-link`}>
                                 <th className={`has-text-white`} style={{ fontSize: "1.3rem", paddingLeft: "2rem" }}>Lista</th>
                                 <th className={`has-text-white`} style={{ fontSize: "1.3rem", paddingLeft: "2rem" }}>Partido</th>
@@ -27,7 +27,7 @@ const Tables = () => {
                                 <th className={`has-text-white`} style={{ fontSize: "1.3rem", textAlign: "right", paddingRight: "2rem" }}>Porcentaje</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className={classes.tableBody}>
                             {reportsArray[0].map((report, index) => (
                                 <tr key={index}>
                                     <td style={{ fontSize: "1rem", paddingLeft: "2rem" }}>{report.lista}</td>
@@ -46,14 +46,14 @@ const Tables = () => {
             case 1: // agrupados por partido de un circuito
                 return reportsArray[1] && reportsArray[1].length > 0 ? (
                     <table className={`table is-fullwidth is-striped`}>
-                        <thead>
+                        <thead className={classes.tableHeader}>
                             <tr className={`is-link`}>
                                 <th className={`has-text-white`} style={{ fontSize: "1.3rem", paddingLeft: "2rem" }}>Partido</th>
                                 <th className={`has-text-white`} style={{ fontSize: "1.3rem", paddingLeft: "2rem" }}>Cant. Votos</th>
                                 <th className={`has-text-white`} style={{ fontSize: "1.3rem", textAlign: "right", paddingRight: "2rem" }}>Porcentaje</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className={classes.tableBody}>
                             {reportsArray[1].map((report, index) => (
                                 <tr key={index}>
                                     <td style={{ fontSize: "1rem", paddingLeft: "2rem" }}>{report.partido}</td>
@@ -71,7 +71,7 @@ const Tables = () => {
             case 2: // por candidato de un circuito
                 return reportsArray[2] && reportsArray[2].length > 0 ? (
                     <table className={`table is-fullwidth is-striped`}>
-                        <thead>
+                        <thead className={classes.tableHeader}>
                             <tr className={`is-link`}>
                                 <th className={`has-text-white`} style={{ fontSize: "1.3rem", paddingLeft: "2rem" }}>Partido</th>
                                 <th className={`has-text-white`} style={{ fontSize: "1.3rem", paddingLeft: "2rem" }}>Candidato</th>
@@ -79,7 +79,7 @@ const Tables = () => {
                                 <th className={`has-text-white`} style={{ fontSize: "1.3rem", textAlign: "right", paddingRight: "2rem" }}>Porcentaje</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className={classes.tableBody}>
                             {reportsArray[2].map((report, index) => (
                                 <tr key={index}>
                                     <td style={{ fontSize: "1rem", paddingLeft: "2rem" }}>{report.partido}</td>

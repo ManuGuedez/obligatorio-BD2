@@ -16,7 +16,7 @@ useEffect(() => {
             const dataTransformada = resultados.map((item, index) => ({
                 id: index,
                 label: item.texto,
-                value: item.votosFavor * 100 / item.votosTotal,
+                value: Math.round((item.votosFavor * 100 / item.votosTotal) * 100) / 100,
                 color: item.color || "#cccccc",
             }));
             setChartData(dataTransformada);
