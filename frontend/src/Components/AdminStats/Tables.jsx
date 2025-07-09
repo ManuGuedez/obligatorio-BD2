@@ -65,7 +65,7 @@ const Tables = () => {
                     </table>
                     ) : (
                     <p className="has-text-grey" style={{ padding: "2rem" }}>
-                        No hay resultados agrupados por partido.
+                        No hay resultados agrupados por partido en este circuito.
                     </p>
                 );
             case 2: // por candidato de un circuito
@@ -92,7 +92,7 @@ const Tables = () => {
                     </table>
                 ) : (
                 <p className="has-text-grey" style={{ padding: "2rem" }}>
-                    No hay resultados agrupados por candidato.
+                    No hay resultados agrupados por candidato en este circuito.
                 </p>
                 );
             default:

@@ -1788,7 +1788,7 @@ def obtener_votos_por_departamento():
             JOIN Ciudad ciu ON z.id_ciudad = ciu.id
             JOIN Departamento d ON ciu.id_departamento = d.id
             JOIN Papeleta p ON v.id_papeleta = p.id
-            JOIN Lista l ON l.id_papeleta = p.id AND l.id_departamento = d.id
+            JOIN Lista l ON l.id_papeleta = p.id
             JOIN Partido_politico pp ON l.id_partido_politico = pp.id
             JOIN Color col ON pp.id_color = col.id
             WHERE v.id_estado = (SELECT id FROM Estado_voto WHERE descripcion = 'emitido')

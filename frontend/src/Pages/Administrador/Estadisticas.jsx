@@ -12,9 +12,11 @@ function Estadisticas() {
         <div className={classes.pageContainer}>
             <p className="title h1 has-text-link ">Estadísticas</p>
             <div className={classes.pageContent}>
-                <PieChartComponent />
+                <div style={{display: 'flex', flexDirection: 'column', gap: '20px'}}>
+                    <PieChartComponent />
+                    <Tables />
+                </div>
                 <MapaUruguay className={classes.mapaPanel}/>
-                <Tables />
             </div>
         </div>
     );

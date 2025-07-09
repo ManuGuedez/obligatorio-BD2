@@ -16,7 +16,7 @@ useEffect(() => {
             const dataTransformada = resultados.map((item, index) => ({
                 id: index,
                 label: item.texto,
-                value: item.votosFavor,
+                value: item.votosFavor * 100 / item.votosTotal,
                 color: item.color || "#cccccc",
             }));
             setChartData(dataTransformada);
@@ -31,18 +31,40 @@ useEffect(() => {
 
     return (
         <div className={classes.cardPanel}>
-            <PieChart
-                series={[
-                    {
-                        data: chartData,
-                        highlightScope: { fade: "global", highlight: "item" },
-                        faded: { innerRadius: 30, additionalRadius: -30, color: "gray" },
-                        valueFormatter: ({ value }) => `${value}%`,
-                    },
-                ]}
-                width={250}
-                height={200}
-            />
+            <div>
+                <PieChart
+                    series={[
+                        {
+                            data: chartData,
+                            highlightScope: { fade: "global", highlight: "item" },
+                            faded: { innerRadius: 30, additionalRadius: -30, color: "gray" },
+                            valueFormatter: ({ value }) => `${value}%`,
+                        },
+                    ]}
+                    width={200}
+                    height={200}
+                    hideLegend={true}
+                />
+            </div>
+            <div style={{ maxHeight: 200, overflowY: "auto", width: 120}}>
+                {chartData.map((item) => (
+                    <div key={item.id} style={{ display: "flex", alignItems: "center", marginBottom: 5}}>
+                        <div
+                            style={{
+                            width: 14,
+                            height: 14,
+                            borderRadius: 100,
+                            backgroundColor: item.color,
+                            marginRight: 8,
+                            border: "1px solid #ccc"
+                            }}
+                        />
+                        <span style={{ fontSize: "1rem", color: "#333"}}>
+                            {item.label}
+                        </span>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }
