@@ -1755,6 +1755,89 @@ def get_roles_miembro():
     cursor.execute(query)
     return cursor.fetchall()
 
+def obtener_votos_por_departamento():
+    cursor = cnx.cursor(dictionary=True)
+
+    #if not eleccion_finalizada():
+    #    return -1, "La elección debe finalizar para ver los resultados"
+    
+    # Total de votos válidos
+    cursor.execute("""
+        SELECT COUNT(*) AS total FROM Voto V
+        WHERE V.id_estado = (SELECT id FROM Estado_voto WHERE descripcion = 'emitido')
+    """)
+    total_votos = cursor.fetchone()["total"]
+
+    if total_votos == 0:
+        return -1, "No se registraron votos."
+
+    # Resultados por departamento
+    cursor.execute("""
+        WITH votos_departamento AS (
+            SELECT
+                d.id AS id_departamento,
+                d.nombre AS departamento,
+                pp.id AS id_partido,
+                pp.nombre AS partido,
+                CONCAT('#', col.decripcion) AS color,
+                COUNT(v.id) AS votos
+            FROM Voto v
+            JOIN Circuito c ON v.nro_circuito = c.nro
+            JOIN Establecimiento e ON c.id_establecimiento = e.id
+            JOIN Zona z ON e.id_zona = z.id
+            JOIN Ciudad ciu ON z.id_ciudad = ciu.id
+            JOIN Departamento d ON ciu.id_departamento = d.id
+            JOIN Papeleta p ON v.id_papeleta = p.id
+            JOIN Lista l ON l.id_papeleta = p.id AND l.id_departamento = d.id
+            JOIN Partido_politico pp ON l.id_partido_politico = pp.id
+            JOIN Color col ON pp.id_color = col.id
+            WHERE v.id_estado = (SELECT id FROM Estado_voto WHERE descripcion = 'emitido')
+            GROUP BY d.id, d.nombre, pp.id, pp.nombre, col.decripcion
+        ),
+        total_votos AS (
+            SELECT
+                id_departamento,
+                SUM(votos) AS total_votos
+            FROM votos_departamento
+            GROUP BY id_departamento
+        ),
+        ranking AS (
+            SELECT
+                vd.id_departamento,
+                vd.departamento,
+                vd.partido,
+                vd.color,
+                vd.votos,
+                COALESCE(tv.total_votos, 0) AS total_votos,
+                ROUND(CASE
+                    WHEN COALESCE(tv.total_votos, 0) = 0 THEN 0
+                    ELSE vd.votos * 100.0 / tv.total_votos
+                END, 2) AS porcentaje,
+                ROW_NUMBER() OVER (
+                    PARTITION BY vd.id_departamento
+                    ORDER BY vd.votos DESC, vd.id_partido ASC
+                ) AS row_num
+            FROM votos_departamento vd
+            LEFT JOIN total_votos tv ON vd.id_departamento = tv.id_departamento
+        ),
+        todos_los_departamentos AS (
+            SELECT id AS id_departamento, nombre AS departamento
+            FROM Departamento
+        )
+        SELECT
+            t.id_departamento,
+            t.departamento,
+            COALESCE(r.partido, '') AS partido,
+            COALESCE(r.color, 'f0f0f0') AS color,
+            COALESCE(r.porcentaje, 0.00) AS porcentaje
+        FROM todos_los_departamentos t
+        LEFT JOIN ranking r ON t.id_departamento = r.id_departamento AND r.row_num = 1
+        ORDER BY t.departamento;
+    """)
+
+    resultados = cursor.fetchall()
+    return 1, resultados
+
 def guardar_votos_temporalmente(votos):
     values = []
     for voto in votos:

@@ -1505,6 +1505,26 @@ def get_resultados_por_listas():
     else:
         return jsonify(result[1]), 200
     
+@app.route('/resultados/departamento', methods=['GET'])
+@jwt_required()
+def get_resultados_por_departamentos():
+    '''
+    Retorna el partido más votado por departamento con su color y porcentaje de votos.
+    Solo accesible para administradores.
+    '''
+    claims = get_jwt()
+    role_description = claims.get('role_description')
+    
+    if role_description != 'admin':
+        return jsonify({"error": "Esta acción puede ser realizada únicamente por el administrador."}), 400
+
+    result = services.obtener_votos_por_departamento()
+
+    if result[0] < 0:
+        return jsonify({"error": result[1]}), 400
+    else:
+        return jsonify(result[1]), 200
+    
 @app.route('/resultados/partido', methods=['GET'])
 @jwt_required()
 def get_resultados_por_partido():

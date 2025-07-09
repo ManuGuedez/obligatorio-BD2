@@ -1,58 +1,38 @@
 
 import React, { useEffect, useState } from 'react';
+import adminService from '../../services/adminServices';
 
 export default function MapaUruguay() {
+    const[data, setData] = useState([]);
     const [tooltip, setTooltip] = useState({ visible: false, content: '', x: 0, y: 0 });
-    const votosPorDepartamento = {
-        Dep1: { PartidoA: 760, PartidoB: 529, PartidoC: 791 },
-        Dep2: { PartidoA: 890, PartidoB: 786, PartidoC: 869 },
-        Dep3: { PartidoA: 250, PartidoB: 1107, PartidoC: 314 },
-        Dep4: { PartidoA: 992, PartidoB: 348, PartidoC: 348 },
-        Dep5: { PartidoA: 949, PartidoB: 991, PartidoC: 468 },
-        Dep6: { PartidoA: 652, PartidoB: 426, PartidoC: 702 },
-        Dep7: { PartidoA: 253, PartidoB: 555, PartidoC: 420 },
-        Dep8: { PartidoA: 190, PartidoB: 569, PartidoC: 117 },
-        Dep9: { PartidoA: 553, PartidoB: 891, PartidoC: 366 },
-        Dep10: { PartidoA: 964, PartidoB: 974, PartidoC: 703 },
-        Dep11: { PartidoA: 991, PartidoB: 111, PartidoC: 915 },
-        Dep12: { PartidoA: 436, PartidoB: 224, PartidoC: 397 },
-        Dep13: { PartidoA: 519, PartidoB: 301, PartidoC: 982 },
-        Dep14: { PartidoA: 369, PartidoB: 841, PartidoC: 515 },
-        Dep15: { PartidoA: 896, PartidoB: 476, PartidoC: 948 },
-        Dep16: { PartidoA: 661, PartidoB: 420, PartidoC: 688 },
-        Dep17: { PartidoA: 938, PartidoB: 292, PartidoC: 992 },
-        Dep18: { PartidoA: 602, PartidoB: 950, PartidoC: 312 },
-        Dep19: { PartidoA: 334, PartidoB: 509, PartidoC: 827 }
-    };
-
-    const coloresPorPartido = {
-        PartidoA: "#ffd166",
-        PartidoB: "#06d6a0",
-        PartidoC: "#118ab2"
-    };
-
-    const getGanador = (votos) => { 
-        return Object.entries(votos).reduce((a, b) => (b[1] > a[1] ? b : a))[0];
-    };
-
-    const calcularPorcentajeGanador = (votos) => {
-        const totalVotos = Object.values(votos).reduce((sum, voto) => sum + voto, 0);
-        const ganador = getGanador(votos);
-        const votosGanador = votos[ganador];
-        const porcentaje = ((votosGanador / totalVotos) * 100).toFixed(1);
-        return { ganador, votosGanador, porcentaje, totalVotos };
-    };
 
     useEffect(() => {
-        Object.entries(votosPorDepartamento).forEach(([depId, votos]) => {
-            const { ganador, porcentaje } = calcularPorcentajeGanador(votos);
-            const path = document.getElementById(depId);
+    const fetchData = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const resultados = await adminService.getResultadosPorDepartamento(token);
+            console.log("Resultados por departamento:", resultados);
+            setData(resultados);
+        } catch (error) {
+            console.error("Error cargando resultados del gráfico:", error);
+        }
+    };
+
+    fetchData();
+}, []);
+
+    useEffect(() => {
+        data.forEach((dep) => {
+            const path = document.getElementById(`Dep${dep.id_departamento}`);
             if (path) {
-                path.setAttribute('fill', coloresPorPartido[ganador]);
+                path.setAttribute('fill', dep.color);
                 path.addEventListener('mouseenter', (e) => {
+                    const content = dep.partido
+                            ? `${dep.partido}: ${dep.porcentaje}%`
+                            : 'Sin votos'; 
                     setTooltip({ 
                         visible: true, 
-                        content: `${ganador}: ${porcentaje}%`, 
+                        content: content,
                         x: e.clientX, 
                         y: e.clientY 
                     });
@@ -65,7 +45,7 @@ export default function MapaUruguay() {
                 });
             }
         });
-    }, []);
+    }, [data]);
 
 
     return (

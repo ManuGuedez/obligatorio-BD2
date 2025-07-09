@@ -13,7 +13,7 @@ function Estadisticas() {
             <p className="title h1 has-text-link ">Estadísticas</p>
             <div className={classes.pageContent}>
                 <PieChartComponent />
-                {/*<MapaUruguay className={classes.mapaPanel}/>*/}
+                <MapaUruguay className={classes.mapaPanel}/>
                 <Tables />
             </div>
         </div>

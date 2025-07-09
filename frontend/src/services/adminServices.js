@@ -151,6 +151,19 @@ const adminService = {
         }
     },
 
+    getResultadosPorDepartamento: async (token) => {
+        try {
+            console.log("Fetching resultados por departamento");
+            const url = `resultados/departamento`;
+            const response = await ApiService.get(url, token);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching resultados por departamento:", error);
+            throw error;
+        }
+    },
+
+
     getResultadosPorPartidoConColor: async (token, circuito = null) => {
         try {
             console.log("Fetching resultados por partido con color. Circuito:", circuito);
